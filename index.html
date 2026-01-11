@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jack Wallman - Portfolio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Work+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --vibrant-orange: #ff6b35;
+            --vibrant-pink: #ff66cc;
+            --vibrant-cyan: #00d4ff;
+            --vibrant-yellow: #ffd700;
+            --vibrant-green: #7ed957;
+            --vibrant-blue: #4a90e2;
+            --deep-navy: #1a1f3a;
+            --rich-blue: #2d3561;
+            --charcoal: #2c2c2c;
+            --lead-gray: #3a3a3a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Work Sans', sans-serif;
+            background: linear-gradient(180deg, var(--deep-navy) 0%, var(--rich-blue) 50%, var(--deep-navy) 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Stained Glass Light Effects */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(ellipse at 15% 20%, rgba(255, 107, 53, 0.15) 0%, transparent 40%),
+                radial-gradient(ellipse at 85% 15%, rgba(255, 102, 204, 0.12) 0%, transparent 40%),
+                radial-gradient(ellipse at 70% 60%, rgba(0, 212, 255, 0.15) 0%, transparent 40%),
+                radial-gradient(ellipse at 25% 75%, rgba(126, 217, 87, 0.12) 0%, transparent 40%),
+                radial-gradient(ellipse at 50% 40%, rgba(255, 215, 0, 0.1) 0%, transparent 40%);
+            pointer-events: none;
+            z-index: 0;
+            animation: colorPulse 15s ease-in-out infinite;
+        }
+
+        @keyframes colorPulse {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+
+        /* Geometric Lead Lines */
+        .lead-lines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.1;
+            pointer-events: none;
+            z-index: 1;
+            background-image: 
+                repeating-linear-gradient(0deg, transparent, transparent 100px, var(--lead-gray) 100px, var(--lead-gray) 103px),
+                repeating-linear-gradient(90deg, transparent, transparent 100px, var(--lead-gray) 100px, var(--lead-gray) 103px);
+        }
+
+        .container {
+            position: relative;
+            z-index: 2;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 5rem;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        h1 {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(3rem, 8vw, 5.5rem);
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ffffff 0%, var(--vibrant-cyan) 50%, var(--vibrant-pink) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 60px rgba(0, 212, 255, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            font-weight: 300;
+            letter-spacing: 0.4em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 2rem;
+        }
+
+        .glass-divider {
+            width: 120px;
+            height: 4px;
+            margin: 2rem auto;
+            background: linear-gradient(90deg, 
+                var(--vibrant-orange), 
+                #ff8c5a,
+                var(--vibrant-pink), 
+                var(--vibrant-cyan), 
+                var(--vibrant-blue),
+                var(--vibrant-green),
+                #b8e986,
+                var(--vibrant-yellow),
+                var(--vibrant-orange)
+            );
+            background-size: 300% 100%;
+            animation: rainbowFlow 12s linear infinite;
+        }
+
+        @keyframes rainbowFlow {
+            to { background-position: 300% 0; }
+        }
+
+        /* Stained Glass Window Cards */
+        .windows-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 2.5rem;
+            margin-bottom: 5rem;
+        }
+
+        .glass-window {
+            position: relative;
+            padding: 2.5rem 2rem;
+            background: rgba(42, 47, 75, 0.7);
+            backdrop-filter: blur(12px);
+            clip-path: polygon(
+                15% 0, 85% 0, 
+                100% 15%, 100% 85%, 
+                85% 100%, 15% 100%, 
+                0 85%, 0 15%
+            );
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            animation: fadeInUp 0.8s ease-out backwards;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .glass-window:nth-child(1) { 
+            animation-delay: 0.2s;
+            --glow-color: var(--vibrant-orange);
+        }
+        .glass-window:nth-child(2) { 
+            animation-delay: 0.4s;
+            --glow-color: var(--vibrant-cyan);
+        }
+        .glass-window:nth-child(3) { 
+            animation-delay: 0.6s;
+            --glow-color: var(--vibrant-pink);
+        }
+        .glass-window:nth-child(4) { 
+            animation-delay: 0.8s;
+            --glow-color: var(--vibrant-yellow);
+        }
+
+        /* Colored top border like lead came */
+        .glass-window::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: var(--glow-color);
+            box-shadow: 0 0 20px var(--glow-color);
+        }
+
+        .glass-window:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+            border-color: var(--glow-color);
+        }
+
+        .glass-window::after {
+            content: '';
+            position: absolute;
+            inset: -50%;
+            background: radial-gradient(circle at center, var(--glow-color), transparent 70%);
+            opacity: 0;
+            transition: opacity 0.4s;
+            filter: blur(40px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .glass-window:hover::after {
+            opacity: 0.15;
+        }
+
+        .window-icon {
+            width: 100px;
+            height: auto;
+            flex-shrink: 0;
+            display: block;
+            filter: drop-shadow(0 0 15px rgba(0, 212, 255, 0.4));
+            animation: iconFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .glass-window:nth-child(1) .window-icon { 
+            animation-delay: 0s;
+            filter: drop-shadow(0 0 15px rgba(255, 107, 53, 0.5));
+        }
+        .glass-window:nth-child(2) .window-icon { 
+            animation-delay: 1s;
+            filter: drop-shadow(0 0 15px rgba(0, 212, 255, 0.5));
+        }
+        .glass-window:nth-child(3) .window-icon { 
+            animation-delay: 2s;
+            filter: drop-shadow(0 0 15px rgba(255, 102, 204, 0.5));
+        }
+        .glass-window:nth-child(4) .window-icon { 
+            animation-delay: 3s;
+            filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.5));
+        }
+
+        .window-content-wrapper {
+            flex: 1;
+            position: relative;
+            z-index: 10;
+        }
+
+        .window-content a {
+            position: relative;
+            z-index: 10;
+            pointer-events: auto;
+        }
+
+        .window-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #ffffff;
+        }
+
+        .window-content {
+            font-size: 0.95rem;
+            line-height: 1.8;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 300;
+        }
+
+        /* Projects Section */
+        .section-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInUp 0.8s ease-out backwards;
+            animation-delay: 0.8s;
+        }
+
+        .section-title {
+            font-family: 'Cinzel', serif;
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(90deg, var(--vibrant-cyan), var(--vibrant-pink), var(--vibrant-yellow));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .projects-container {
+            display: grid;
+            gap: 2rem;
+            margin-bottom: 4rem;
+            animation: fadeInUp 0.8s ease-out backwards;
+            animation-delay: 1s;
+        }
+
+        .project-tile {
+            padding: 2.5rem;
+            background: rgba(42, 47, 75, 0.6);
+            backdrop-filter: blur(10px);
+            border-left: 5px solid transparent;
+            border-image: linear-gradient(180deg, var(--vibrant-orange), var(--vibrant-cyan)) 1;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .project-tile::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(0, 212, 255, 0.1), 
+                rgba(255, 102, 204, 0.1),
+                transparent
+            );
+            transition: left 0.6s ease;
+        }
+
+        .project-tile:hover::before {
+            left: 100%;
+        }
+
+        .project-tile:hover {
+            background: rgba(42, 47, 75, 0.8);
+            transform: translateX(15px);
+            box-shadow: -10px 0 30px rgba(0, 212, 255, 0.2);
+        }
+
+        .project-tile h3 {
+            font-family: 'Cinzel', serif;
+            font-size: 1.6rem;
+            margin-bottom: 0.75rem;
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .project-tile p {
+            color: rgba(255, 255, 255, 0.75);
+            font-weight: 300;
+            line-height: 1.7;
+            margin-bottom: 1rem;
+        }
+
+        .project-link {
+            color: var(--vibrant-cyan);
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            padding: 0.5rem 0;
+        }
+
+        .project-link:hover {
+            color: var(--vibrant-pink);
+        }
+
+        .project-link::before {
+            font-size: 1.3rem;
+            filter: drop-shadow(0 0 8px currentColor);
+            transition: all 0.3s ease;
+        }
+
+        .project-link:hover::before {
+            filter: drop-shadow(0 0 15px currentColor);
+            transform: scale(1.1);
+        }
+
+        /* Specific icons for different links */
+        a[href*="linkedin"]::before {
+            content: '💼';
+        }
+
+        a[href*="github"]::before {
+            content: '⚡';
+        }
+
+        a[href*="twitter"]::before {
+            content: '🐦';
+        }
+
+        a[href*="mailto"]::before {
+            content: '✉️';
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 3rem 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            animation: fadeIn 1s ease-out backwards;
+            animation-delay: 1.2s;
+        }
+
+        .social-grid {
+            display: flex;
+            justify-content: center;
+            gap: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .social-link {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 1.8rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .social-link::before {
+            content: '';
+            position: absolute;
+            inset: -10px;
+            background: var(--link-color);
+            opacity: 0;
+            border-radius: 50%;
+            filter: blur(15px);
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+
+        .social-link:nth-child(1) { --link-color: var(--vibrant-pink); }
+        .social-link:nth-child(2) { --link-color: var(--vibrant-cyan); }
+
+        .social-link:hover {
+            color: var(--link-color);
+            transform: translateY(-8px) scale(1.2);
+        }
+
+        .social-link:hover::before {
+            opacity: 0.3;
+        }
+
+        footer p {
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 300;
+            font-size: 0.9rem;
+            letter-spacing: 0.15em;
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 2rem 1rem;
+            }
+
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .windows-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .glass-window {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .window-icon {
+                width: 100px;
+            }
+
+            .social-grid {
+                gap: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="lead-lines"></div>
+    
+    <div class="container">
+        <header>
+            <h1>Jack Wallman</h1>
+            <p class="subtitle">2026 - A Year Of Creation</p>
+            <div class="glass-divider"></div>
+        </header>
+
+        <div class="windows-grid">
+            <div class="glass-window">
+                <img src="images/portrait.png" alt="Jack Wallman" class="window-icon">
+                <div class="window-content-wrapper">
+                    <h2 class="window-title">About</h2>
+                    <p class="window-content">
+                        This year I aim to create more and consume less.
+                        This website will be the window onto those creations.
+                        Not a saint, just vibing with a stained glass theme. 
+                    </p>
+                </div>
+            </div>
+
+            <div class="glass-window">
+                <img src="images/yotei_rim.png" alt="Mount Yotei" class="window-icon">
+                <div class="window-content-wrapper">
+                    <h2 class="window-title">This Site</h2>
+                    <p class="window-content">
+                        Once upon a time if you wanted a space on the web you made yourself a website.
+                        When I was 12 I had a small corner of my own on the site that my dad had for a racehorse called Ice Cracker.
+                        It was great, anything was possible.<br><br>
+                        Since then the dark shadow of social media has cast over the web and we have been striaght jacketed into profiles and feeds.<br><br>
+                        Let a new light shine though! 
+                        Building a personal website with complete creative control is now as close to free as it is ever going to get.
+                        And I'm here for it!
+
+                    </p>
+                </div>
+            </div>
+
+            <div class="glass-window">
+                <img src="images/ranier_rim.png" alt="Mount Rainier" class="window-icon">
+                <div class="window-content-wrapper">
+                    <h2 class="window-title">Web presence</h2>
+                    <p class="window-content">
+                        <a href="https://www.linkedin.com/in/jack-w-wallman/" target="_blank" class="project-link">LinkedIn</a><br>
+                        <a href="https://github.com/yourusername" target="_blank" class="project-link">GitHub</a>
+                    </p>
+                </div>
+            </div>
+
+            <div class="glass-window">
+                <img src="images/blanc_rim.png" alt="Mont Blanc" class="window-icon">
+                <div class="window-content-wrapper">
+                    <h2 class="window-title">Games</h2>
+                    <p class="window-content">
+                        I've made a few small games over the years, mostly small experiments with Dark Basic and Unity.
+                        But, I've never published! This year I'm going to make some games (turning to Godot) and share them here.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-header">
+            <h2 class="section-title">Featured Projects</h2>
+            <div class="glass-divider"></div>
+        </div>
+        
+        <div class="projects-container">
+            <div class="project-tile">
+                <h3>Project Title One</h3>
+                <p>A beautiful description of your first project and what makes it special. Built with modern technologies and thoughtful design.</p>
+                <a href="https://github.com/yourusername/project1" target="_blank" class="project-link">View Project</a>
+            </div>
+
+        <footer>
+            <p>© 2026 Jack Wallman. Built with passion.</p>
