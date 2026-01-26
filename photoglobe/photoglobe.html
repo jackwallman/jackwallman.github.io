@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Northern Hemisphere - Polar View with Mountains</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Montserrat:wght@300;400;500&family=Indie+Flower&display=swap" rel="stylesheet">
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://d3js.org/topojson.v3.min.js"></script>
     <style>
@@ -16,7 +16,7 @@
             --accent: #d4af37;
             --accent-hover: #f0c952;
         }
-
+ 
         * {
             margin: 0;
             padding: 0;
@@ -279,6 +279,19 @@
             z-index: 2000;
         }
 
+        /* Enable pointer events on container when fullscreen is active */
+        .polaroid-container.has-fullscreen {
+            pointer-events: auto;
+        }
+
+        .polaroid-container.has-fullscreen .polaroid:not(.fullscreen) {
+            pointer-events: none;
+        }
+
+        .polaroid-container.has-fullscreen .polaroid.fullscreen {
+            pointer-events: auto;
+        }
+
         .polaroid {
             position: absolute;
             width: 200px;
@@ -290,10 +303,16 @@
             pointer-events: auto;
             transform-origin: center;
             opacity: 0;
+            transition: all 0.4s ease-out;
         }
 
         .polaroid.tossed {
             animation: polaroidToss 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+        /* Disable animation transition when entering fullscreen */
+        .polaroid.fullscreen {
+            animation: none !important;
         }
 
         .polaroid img {
@@ -316,9 +335,9 @@
         .polaroid-caption {
             text-align: center;
             margin-top: 10px;
-            font-family: 'Permanent Marker', cursive;
+            font-family: 'Indie Flower', cursive;
             color: #333;
-            font-size: 14px;
+            font-size: 16px;
         }
 
         @keyframes polaroidToss {
@@ -340,6 +359,40 @@
             z-index: 3000;
             transform: scale(1.1) rotate(0deg) !important;
             transition: all 0.3s ease;
+        }
+
+        /* Fullscreen polaroid styles */
+        .polaroid.fullscreen {
+            position: fixed !important;
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%) rotate(0deg) scale(1) !important;
+            width: 90vw !important;
+            max-width: 1200px !important;
+            height: auto !important;
+            z-index: 6000 !important;
+            animation: none !important;
+            padding: 20px !important;
+            padding-bottom: 60px !important;
+            box-shadow: 0 20px 80px rgba(0, 0, 0, 0.8) !important;
+            opacity: 1 !important;
+        }
+
+        .polaroid.fullscreen img,
+        .polaroid.fullscreen video {
+            width: 100% !important;
+            height: auto !important;
+            max-height: 70vh !important;
+            object-fit: contain !important;
+        }
+
+        .polaroid.fullscreen .polaroid-caption {
+            font-size: 22px !important;
+            margin-top: 20px !important;
+        }
+
+        .polaroid.fullscreen:hover {
+            transform: translate(-50%, -50%) rotate(0deg) scale(1) !important;
         }
 
         .close-polaroids {
@@ -388,12 +441,12 @@
 </head>
 <body>
     <header>
-        <h1>Northern Hemisphere Explorer</h1>
-        <p class="subtitle">Polar Projection View with Mountain Ranges</p>
+        <h1>Photoglobe</h1>
+        <p class="subtitle">Click to see our holiday snaps</p>
     </header>
 
     <div class="map-container">
-        <div class="loading" id="loading">Loading accurate world map data...</div>
+        <div class="loading" id="loading">Loading world map data...</div>
         <svg id="map"></svg>
     </div>
 
@@ -674,6 +727,47 @@
                     <div class="polaroid-caption">${photo.caption}</div>
                 `;
                 
+                // Add click handler for fullscreen
+                polaroid.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const container = document.getElementById('polaroidContainer');
+                    
+                    console.log('Polaroid clicked, current fullscreen status:', this.classList.contains('fullscreen'));
+                    
+                    if (this.classList.contains('fullscreen')) {
+                        // Exit fullscreen
+                        console.log('Exiting fullscreen');
+                        this.classList.remove('fullscreen');
+                        container.classList.remove('has-fullscreen');
+                        
+                        // Pause video if it's playing
+                        const video = this.querySelector('video');
+                        if (video) {
+                            video.pause();
+                        }
+                    } else {
+                        // Remove fullscreen from any other polaroid
+                        document.querySelectorAll('.polaroid.fullscreen').forEach(p => {
+                            p.classList.remove('fullscreen');
+                        });
+                        
+                        // Enter fullscreen
+                        console.log('Entering fullscreen');
+                        this.classList.add('fullscreen');
+                        container.classList.add('has-fullscreen');
+                        
+                        console.log('Polaroid classes after adding fullscreen:', this.className);
+                        console.log('Polaroid computed style position:', window.getComputedStyle(this).position);
+                        console.log('Polaroid computed style z-index:', window.getComputedStyle(this).zIndex);
+                        
+                        // Play video if it's a video
+                        const video = this.querySelector('video');
+                        if (video) {
+                            video.play();
+                        }
+                    }
+                });
+                
                 container.appendChild(polaroid);
                 
                 // Trigger animation after a delay
@@ -693,6 +787,24 @@
             
             // Remove all viewing-photos highlights
             svg.selectAll('.viewing-photos').classed('viewing-photos', false);
+        });
+
+        // Click outside polaroid to exit fullscreen
+        document.getElementById('polaroidContainer').addEventListener('click', function(e) {
+            // Only if clicking the container itself (not a polaroid)
+            if (e.target === this) {
+                console.log('Clicked outside polaroid');
+                document.querySelectorAll('.polaroid.fullscreen').forEach(polaroid => {
+                    polaroid.classList.remove('fullscreen');
+                    
+                    // Pause video if playing
+                    const video = polaroid.querySelector('video');
+                    if (video) {
+                        video.pause();
+                    }
+                });
+                this.classList.remove('has-fullscreen');
+            }
         });
 
         // Azimuthal Equal Area projection centered on North Pole
@@ -742,8 +854,8 @@
             // Approximate location for Japanese Alps (central Honshu)
             lat: 37,  // Latitude
             lon: 137, // Longitude
-            width: 100,  // Width of SVG overlay
-            height: 120  // Height of SVG overlay
+            width: 80,  // Width of SVG overlay (80% of 100)
+            height: 96  // Height of SVG overlay (80% of 120)
         };
 
         // Define static overlay - World Mountains (non-interactive)
@@ -889,7 +1001,7 @@
                 if (rockiesPos) {
                     // Add the SVG as an image
                     rockiesImage = rockiesGroup.append("image")
-                        .attr("href", "canadian_rockies.svg")
+                        .attr("href", "Canadian_rockies.svg")
                         .attr("x", rockiesPos[0] - canadianRockies.width / 2)
                         .attr("y", rockiesPos[1] - canadianRockies.height / 2)
                         .attr("width", canadianRockies.width)
