@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Northern Hemisphere - Polar View with Mountains</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://d3js.org/topojson.v3.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0a0e27;
+            --bg-secondary: #1a1f3a;
+            --text-primary: #e8e6e3;
+            --text-secondary: #a8a6a3;
+            --accent: #d4af37;
+            --accent-hover: #f0c952;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        header {
+            text-align: center;
+            padding: 3rem 2rem 2rem;
+            max-width: 900px;
+        }
+
+        h1 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 3.5rem;
+            font-weight: 300;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            font-weight: 300;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            animation: fadeIn 1.5s ease-out;
+        }
+
+        .map-container {
+            position: relative;
+            width: 90%;
+            max-width: 1000px;
+            padding: 2rem;
+            animation: fadeIn 2s ease-out;
+        }
+
+        #map {
+            width: 100%;
+            height: auto;
+            background: radial-gradient(circle, #4a90c9 0%, #2d5a7d 100%);
+            border-radius: 50%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5),
+                        inset 0 0 80px rgba(0, 0, 0, 0.3);
+        }
+
+        .country {
+            fill: #5a8a5a;
+            stroke: #2d4a2d;
+            stroke-width: 0.5;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .country:hover {
+            /* Default: no hover effect for countries without mountains */
+        }
+
+        /* Countries with interactive mountains - grassier green */
+        .country.has-mountains {
+            fill: #8bc34a;
+        }
+
+        .country.has-mountains:hover {
+            fill: var(--accent);
+            stroke: var(--accent-hover);
+            stroke-width: 1.5;
+            filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.8));
+        }
+
+        .country.eu-country {
+            /* EU countries get special styling when any EU country is hovered */
+            fill: #8bc34a;
+        }
+
+        .country.eu-highlight {
+            fill: var(--accent);
+            stroke: var(--accent-hover);
+            stroke-width: 1.5;
+            filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.8));
+        }
+
+        /* Keep region highlighted while viewing photos */
+        .country.viewing-photos {
+            fill: var(--accent);
+            stroke: var(--accent-hover);
+            stroke-width: 1.5;
+            filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.8));
+        }
+
+        .graticule {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.1);
+            stroke-width: 0.5;
+        }
+
+        .ocean {
+            fill: #4a90c9;
+        }
+
+        /* Mountain styles */
+        .mountain-range {
+            fill: #8B7355;
+            stroke: #654321;
+            stroke-width: 1.5;
+            opacity: 0.85;
+            filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.4));
+        }
+
+        .mountain-peak {
+            fill: url(#mountainGradient);
+            stroke: #4a3319;
+            stroke-width: 1;
+        }
+
+        .snow-cap {
+            fill: #ffffff;
+            opacity: 0.9;
+        }
+
+        .rockies-overlay {
+            transition: all 0.3s ease;
+            transform-origin: center;
+            z-index: 10;
+        }
+
+        .rockies-highlight {
+            filter: brightness(1.3) drop-shadow(0 0 15px rgba(212, 175, 55, 0.8));
+            transform: scale(1.2);
+            z-index: 100;
+        }
+
+        .usa-rockies-overlay {
+            transition: all 0.3s ease;
+            transform-origin: center;
+            z-index: 10;
+        }
+
+        .usa-rockies-highlight {
+            filter: brightness(1.3) drop-shadow(0 0 15px rgba(212, 175, 55, 0.8));
+            transform: scale(1.2);
+            z-index: 100;
+        }
+
+        .japanese-alps-overlay {
+            transition: all 0.3s ease;
+            transform-origin: center;
+            z-index: 10;
+        }
+
+        .japanese-alps-highlight {
+            filter: brightness(1.3) drop-shadow(0 0 15px rgba(212, 175, 55, 0.8));
+            transform: scale(1.2);
+            z-index: 100;
+        }
+
+        .european-alps-overlay {
+            transition: all 0.3s ease;
+            transform-origin: center;
+            z-index: 10;
+        }
+
+        .european-alps-highlight {
+            filter: brightness(1.3) drop-shadow(0 0 15px rgba(212, 175, 55, 0.8));
+            transform: scale(1.2);
+            z-index: 100;
+        }
+
+        .tooltip {
+            position: fixed;
+            background: rgba(26, 31, 58, 0.95);
+            color: var(--text-primary);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 400;
+            letter-spacing: 0.05em;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border: 1px solid var(--accent);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            z-index: 1000;
+            white-space: nowrap;
+        }
+
+        .tooltip.active {
+            opacity: 1;
+        }
+
+        .instructions {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            letter-spacing: 0.1em;
+            animation: fadeIn 2.5s ease-out;
+        }
+
+        .instructions span {
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--accent);
+            font-size: 1.2rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        footer {
+            margin-top: auto;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-align: center;
+        }
+
+        /* Polaroid styles */
+        .polaroid-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 2000;
+        }
+
+        .polaroid {
+            position: absolute;
+            width: 200px;
+            background: white;
+            padding: 10px;
+            padding-bottom: 40px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            pointer-events: auto;
+            transform-origin: center;
+            opacity: 0;
+        }
+
+        .polaroid.tossed {
+            animation: polaroidToss 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+        .polaroid img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            background: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .polaroid video {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            background: #000;
+        }
+
+        .polaroid-caption {
+            text-align: center;
+            margin-top: 10px;
+            font-family: 'Permanent Marker', cursive;
+            color: #333;
+            font-size: 14px;
+        }
+
+        @keyframes polaroidToss {
+            0% {
+                opacity: 1;
+                left: var(--start-x);
+                top: var(--start-y);
+                transform: rotate(var(--start-rotation)) scale(0.8);
+            }
+            100% {
+                opacity: 1;
+                left: var(--final-x);
+                top: var(--final-y);
+                transform: rotate(var(--rotation)) scale(1);
+            }
+        }
+
+        .polaroid:hover {
+            z-index: 3000;
+            transform: scale(1.1) rotate(0deg) !important;
+            transition: all 0.3s ease;
+        }
+
+        .close-polaroids {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: var(--accent);
+            color: var(--bg-primary);
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            z-index: 2001;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            display: none;
+        }
+
+        .close-polaroids:hover {
+            background: var(--accent-hover);
+            transform: scale(1.05);
+        }
+
+        .close-polaroids.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .subtitle {
+                font-size: 0.85rem;
+            }
+
+            .map-container {
+                width: 95%;
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Northern Hemisphere Explorer</h1>
+        <p class="subtitle">Polar Projection View with Mountain Ranges</p>
+    </header>
+
+    <div class="map-container">
+        <div class="loading" id="loading">Loading accurate world map data...</div>
+        <svg id="map"></svg>
+    </div>
+
+    <div class="instructions">
+        <span>Hover</span> over countries to highlight · <span>Click</span> to view photo albums
+    </div>
+
+    <div class="tooltip" id="tooltip"></div>
+
+    <div class="polaroid-container" id="polaroidContainer"></div>
+    <button class="close-polaroids" id="closePolaroids">Close Photos</button>
+
+    <footer>
+        Explore the places we've been · Powered by D3.js with Natural Earth data
+    </footer>
+
+    <script>
+        // Map configuration
+        const width = 1000;
+        const height = 1000;
+
+        // Create SVG
+        const svg = d3.select("#map")
+            .attr("viewBox", [0, 0, width, height]);
+
+        // Add gradient for mountains
+        const defs = svg.append("defs");
+        
+        const mountainGradient = defs.append("linearGradient")
+            .attr("id", "mountainGradient")
+            .attr("x1", "0%")
+            .attr("y1", "0%")
+            .attr("x2", "0%")
+            .attr("y2", "100%");
+        
+        mountainGradient.append("stop")
+            .attr("offset", "0%")
+            .attr("stop-color", "#f5f5f5")
+            .attr("stop-opacity", 1);
+        
+        mountainGradient.append("stop")
+            .attr("offset", "40%")
+            .attr("stop-color", "#a89968")
+            .attr("stop-opacity", 1);
+        
+        mountainGradient.append("stop")
+            .attr("offset", "100%")
+            .attr("stop-color", "#654321")
+            .attr("stop-opacity", 1);
+
+        // Tooltip
+        const tooltip = d3.select("#tooltip");
+
+        // Cloudinary configuration
+        const CLOUDINARY_CLOUD_NAME = 'dwob5ehbo';
+        
+        // Map regions to Cloudinary tags (easier than folders!)
+        const regionCloudinaryTags = {
+            'Canada': 'canada',
+            'United States of America': 'usa',
+            'Japan': 'japan',
+            'EU': 'europe'
+        };
+
+        // Cache for loaded photos
+        const photoCache = {};
+
+        // Fetch photos AND videos from Cloudinary by tag
+        async function fetchCloudinaryPhotos(tag) {
+            // Check cache first
+            if (photoCache[tag]) {
+                return photoCache[tag];
+            }
+
+            try {
+                let allMedia = [];
+                
+                // Fetch images
+                const imageUrl = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/list/${tag}.json`;
+                console.log('Fetching images from:', imageUrl);
+                
+                try {
+                    const imageResponse = await fetch(imageUrl);
+                    console.log('Image response status:', imageResponse.status);
+                    
+                    if (imageResponse.ok) {
+                        const imageText = await imageResponse.text();
+                        if (imageText && imageText.trim() !== '') {
+                            const imageData = JSON.parse(imageText);
+                            console.log('Image data:', imageData);
+                            
+                            if (imageData.resources && imageData.resources.length > 0) {
+                                const images = imageData.resources.map(resource => {
+                                    let caption = resource.public_id.split('/').pop().replace(/_/g, ' ').replace(/\.\w+$/, '');
+                                    if (resource.context && resource.context.custom && resource.context.custom.caption) {
+                                        caption = resource.context.custom.caption;
+                                    }
+                                    
+                                    return {
+                                        url: `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/upload/w_800,q_auto,f_auto/${resource.public_id}`,
+                                        caption: caption,
+                                        isVideo: false
+                                    };
+                                });
+                                allMedia = allMedia.concat(images);
+                                console.log(`Found ${images.length} images`);
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.log('No images found or error fetching images:', error);
+                }
+                
+                // Fetch videos
+                const videoUrl = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/list/${tag}.json`;
+                console.log('Fetching videos from:', videoUrl);
+                
+                try {
+                    const videoResponse = await fetch(videoUrl);
+                    console.log('Video response status:', videoResponse.status);
+                    
+                    if (videoResponse.ok) {
+                        const videoText = await videoResponse.text();
+                        if (videoText && videoText.trim() !== '') {
+                            const videoData = JSON.parse(videoText);
+                            console.log('Video data:', videoData);
+                            
+                            if (videoData.resources && videoData.resources.length > 0) {
+                                const videos = videoData.resources.map(resource => {
+                                    let caption = resource.public_id.split('/').pop().replace(/_/g, ' ').replace(/\.\w+$/, '');
+                                    if (resource.context && resource.context.custom && resource.context.custom.caption) {
+                                        caption = resource.context.custom.caption;
+                                    }
+                                    
+                                    return {
+                                        url: `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/w_800,q_auto/${resource.public_id}`,
+                                        caption: caption,
+                                        isVideo: true,
+                                        format: resource.format || 'mp4'
+                                    };
+                                });
+                                allMedia = allMedia.concat(videos);
+                                console.log(`Found ${videos.length} videos`);
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.log('No videos found or error fetching videos:', error);
+                }
+                
+                console.log(`Total media found for tag "${tag}":`, allMedia.length, allMedia);
+                
+                if (allMedia.length > 0) {
+                    // Cache the results
+                    photoCache[tag] = allMedia;
+                    return allMedia;
+                }
+            } catch (error) {
+                console.error('Error fetching Cloudinary media:', error);
+                console.error('Tag:', tag);
+            }
+            
+            console.log(`No media found for tag: ${tag}`);
+            return [];
+        }
+
+        // Polaroid scatter function - now async to fetch from Cloudinary
+        async function scatterPolaroids(regionName) {
+            const container = document.getElementById('polaroidContainer');
+            const closeBtn = document.getElementById('closePolaroids');
+            
+            // Clear existing polaroids
+            container.innerHTML = '';
+            
+            // Remove all previous viewing-photos highlights
+            svg.selectAll('.viewing-photos').classed('viewing-photos', false);
+            
+            // Show loading message
+            container.innerHTML = '<div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 1.5rem; text-align: center;">Loading photos...</div>';
+            
+            // Get tag for this region
+            const tag = regionCloudinaryTags[regionName];
+            
+            if (!tag) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            // Fetch photos from Cloudinary by tag
+            const photos = await fetchCloudinaryPhotos(tag);
+            
+            // Clear loading message
+            container.innerHTML = '';
+            
+            if (photos.length === 0) {
+                // No photos found - show message
+                container.innerHTML = '<div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 1.5rem; text-align: center;">No photos found for this region</div>';
+                closeBtn.classList.add('active');
+                return;
+            }
+            
+            // Highlight the clicked region
+            if (regionName === 'EU') {
+                // Highlight all EU countries
+                svg.selectAll('.eu-country').classed('viewing-photos', true);
+            } else {
+                // Highlight specific country
+                svg.selectAll('.country')
+                    .filter(d => d.properties.name === regionName)
+                    .classed('viewing-photos', true);
+            }
+            
+            // Create polaroids with random positions and rotations
+            for (let i = 0; i < photos.length; i++) {
+                const polaroid = document.createElement('div');
+                polaroid.className = 'polaroid';
+                
+                // Random final position
+                const finalX = Math.random() * (window.innerWidth - 220) + 10;
+                const finalY = Math.random() * (window.innerHeight - 280) + 10;
+                
+                // Random starting position (off-screen from various edges)
+                const edge = Math.floor(Math.random() * 4); // 0=top, 1=right, 2=bottom, 3=left
+                let startX, startY;
+                
+                switch(edge) {
+                    case 0: // from top
+                        startX = Math.random() * window.innerWidth;
+                        startY = -300;
+                        break;
+                    case 1: // from right
+                        startX = window.innerWidth + 300;
+                        startY = Math.random() * window.innerHeight;
+                        break;
+                    case 2: // from bottom
+                        startX = Math.random() * window.innerWidth;
+                        startY = window.innerHeight + 300;
+                        break;
+                    case 3: // from left
+                        startX = -300;
+                        startY = Math.random() * window.innerHeight;
+                        break;
+                }
+                
+                // Random rotation between -20 and 20 degrees (final)
+                const rotation = (Math.random() - 0.5) * 40;
+                
+                // Random starting rotation (more dramatic spin)
+                const startRotation = (Math.random() - 0.5) * 360;
+                
+                // Set CSS variables for animation
+                polaroid.style.setProperty('--start-x', startX + 'px');
+                polaroid.style.setProperty('--start-y', startY + 'px');
+                polaroid.style.setProperty('--final-x', finalX + 'px');
+                polaroid.style.setProperty('--final-y', finalY + 'px');
+                polaroid.style.setProperty('--rotation', rotation + 'deg');
+                polaroid.style.setProperty('--start-rotation', startRotation + 'deg');
+                
+                // Create polaroid with real photo/video from Cloudinary
+                const photo = photos[i];
+                
+                let mediaContent;
+                if (photo.isVideo) {
+                    // Video element with controls
+                    mediaContent = `
+                        <video controls loop muted playsinline>
+                            <source src="${photo.url}.${photo.format}" type="video/${photo.format}">
+                            Your browser does not support video.
+                        </video>
+                    `;
+                } else {
+                    // Image element
+                    mediaContent = `<img src="${photo.url}" alt="${photo.caption}" style="width: 100%; height: 180px; object-fit: cover;">`;
+                }
+                
+                polaroid.innerHTML = `
+                    ${mediaContent}
+                    <div class="polaroid-caption">${photo.caption}</div>
+                `;
+                
+                container.appendChild(polaroid);
+                
+                // Trigger animation after a delay
+                setTimeout(() => {
+                    polaroid.classList.add('tossed');
+                }, i * 150);
+            }
+            
+            // Show close button
+            closeBtn.classList.add('active');
+        }
+
+        // Close polaroids function
+        document.getElementById('closePolaroids').addEventListener('click', function() {
+            document.getElementById('polaroidContainer').innerHTML = '';
+            this.classList.remove('active');
+            
+            // Remove all viewing-photos highlights
+            svg.selectAll('.viewing-photos').classed('viewing-photos', false);
+        });
+
+        // Azimuthal Equal Area projection centered on North Pole
+        const projection = d3.geoAzimuthalEqualArea()
+            .rotate([0, -90])
+            .scale(350)
+            .translate([width / 2, height / 2])
+            .clipAngle(90);
+
+        const path = d3.geoPath().projection(projection);
+
+        // Graticule (grid lines)
+        const graticule = d3.geoGraticule();
+
+        // Draw ocean background
+        svg.append("path")
+            .datum({type: "Sphere"})
+            .attr("class", "ocean")
+            .attr("d", path);
+
+        // Draw graticule
+        svg.append("path")
+            .datum(graticule)
+            .attr("class", "graticule")
+            .attr("d", path);
+
+        // Define custom overlay - Canadian Rockies
+        const canadianRockies = {
+            // Approximate location for western Canada (British Columbia/Alberta border)
+            lat: 58,  // Latitude
+            lon: -135, // Longitude
+            width: 160,  // Width of SVG overlay
+            height: 200  // Height of SVG overlay
+        };
+
+        // Define custom overlay - USA Rockies
+        const usaRockies = {
+            // Approximate location for western USA Rocky Mountains
+            lat: 35,  // Latitude (Montana/Wyoming area)
+            lon: -103, // Longitude
+            width: 252,  // Width of SVG overlay
+            height: 324  // Height of SVG overlay
+        };
+
+        // Define custom overlay - Japanese Alps
+        const japaneseAlps = {
+            // Approximate location for Japanese Alps (central Honshu)
+            lat: 37,  // Latitude
+            lon: 137, // Longitude
+            width: 100,  // Width of SVG overlay
+            height: 120  // Height of SVG overlay
+        };
+
+        // Define static overlay - World Mountains (non-interactive)
+        const worldMountains = {
+            // Cover the entire visible area
+            lat: 78,  // Center latitude
+            lon: 0,   // Center longitude
+            width: 963,  // Width to cover most of the map
+            height: 856  // Height to cover most of the map
+        };
+
+        // Define custom overlay - European Alps
+        const europeanAlps = {
+            // Approximate location for European Alps (Switzerland/Austria area)
+            lat: 44.5,  // Latitude
+            lon: 10, // Longitude
+            width: 180,  // Width of SVG overlay
+            height: 140  // Height of SVG overlay
+        };
+
+        // List of EU countries
+        const euCountries = [
+            "Austria", "Belgium", "Bulgaria", "Croatia", "Cyprus", "Czech Republic",
+            "Denmark", "Estonia", "Finland", "France", "Germany", "Greece",
+            "Hungary", "Ireland", "Italy", "Latvia", "Lithuania", "Luxembourg",
+            "Malta", "Netherlands", "Poland", "Portugal", "Romania", "Slovakia",
+            "Slovenia", "Spain", "Sweden"
+        ];
+
+        // Load world data
+        d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json")
+            .then(world => {
+                document.getElementById("loading").style.display = "none";
+
+                const countries = topojson.feature(world, world.objects.countries);
+
+                // Countries with interactive mountains
+                const mountainCountries = ["Canada", "United States of America", "Japan"];
+
+                // Draw countries FIRST
+                const countryPaths = svg.selectAll(".country")
+                    .data(countries.features)
+                    .enter()
+                    .append("path")
+                    .attr("class", d => {
+                        let classes = "country";
+                        
+                        // Add eu-country class to EU countries
+                        if (euCountries.includes(d.properties.name)) {
+                            classes += " eu-country has-mountains";
+                        }
+                        // Add has-mountains class to countries with dedicated mountains
+                        else if (mountainCountries.includes(d.properties.name)) {
+                            classes += " has-mountains";
+                        }
+                        
+                        return classes;
+                    })
+                    .attr("d", path)
+                    .attr("data-name", d => d.properties.name);
+
+                // Add World Mountains as static background (non-interactive, bottom layer)
+                const worldMountainsGroup = svg.append("g").attr("class", "world-mountains-overlay");
+
+                // Calculate position for World Mountains
+                const worldMountainsPos = projection([worldMountains.lon, worldMountains.lat]);
+                
+                if (worldMountainsPos) {
+                    worldMountainsGroup.append("image")
+                        .attr("href", "world_mountains.svg")
+                        .attr("x", worldMountainsPos[0] - worldMountains.width / 2)
+                        .attr("y", worldMountainsPos[1] - worldMountains.height / 2)
+                        .attr("width", worldMountains.width)
+                        .attr("height", worldMountains.height)
+                        .style("pointer-events", "none")
+                        .style("opacity", 1);
+                }
+
+                // Add USA Rockies SVG overlay first
+                const usaRockiesGroup = svg.append("g").attr("class", "usa-rockies-overlay");
+
+                // Calculate position for USA Rockies
+                const usaRockiesPos = projection([usaRockies.lon, usaRockies.lat]);
+                
+                let usaRockiesImage = null;
+                if (usaRockiesPos) {
+                    // Add the SVG as an image
+                    usaRockiesImage = usaRockiesGroup.append("image")
+                        .attr("href", "USA_rockies.svg")
+                        .attr("x", usaRockiesPos[0] - usaRockies.width / 2)
+                        .attr("y", usaRockiesPos[1] - usaRockies.height / 2)
+                        .attr("width", usaRockies.width)
+                        .attr("height", usaRockies.height)
+                        .style("pointer-events", "none")
+                        .style("opacity", 0.9);
+                }
+
+                // Add European Alps SVG overlay
+                const europeanAlpsGroup = svg.append("g").attr("class", "european-alps-overlay");
+
+                // Calculate position for European Alps
+                const europeanAlpsPos = projection([europeanAlps.lon, europeanAlps.lat]);
+                
+                let europeanAlpsImage = null;
+                if (europeanAlpsPos) {
+                    // Add the SVG as an image
+                    europeanAlpsImage = europeanAlpsGroup.append("image")
+                        .attr("href", "european_alps.svg")
+                        .attr("x", europeanAlpsPos[0] - europeanAlps.width / 2)
+                        .attr("y", europeanAlpsPos[1] - europeanAlps.height / 2)
+                        .attr("width", europeanAlps.width)
+                        .attr("height", europeanAlps.height)
+                        .style("pointer-events", "none")
+                        .style("opacity", 0.9);
+                }
+
+                // Add Japanese Alps SVG overlay
+                const japaneseAlpsGroup = svg.append("g").attr("class", "japanese-alps-overlay");
+
+                // Calculate position for Japanese Alps
+                const japaneseAlpsPos = projection([japaneseAlps.lon, japaneseAlps.lat]);
+                
+                let japaneseAlpsImage = null;
+                if (japaneseAlpsPos) {
+                    // Add the SVG as an image
+                    japaneseAlpsImage = japaneseAlpsGroup.append("image")
+                        .attr("href", "Japanese_alps.svg")
+                        .attr("x", japaneseAlpsPos[0] - japaneseAlps.width / 2)
+                        .attr("y", japaneseAlpsPos[1] - japaneseAlps.height / 2)
+                        .attr("width", japaneseAlps.width)
+                        .attr("height", japaneseAlps.height)
+                        .style("pointer-events", "none")
+                        .style("opacity", 0.9);
+                }
+
+                // Add Canadian Rockies SVG overlay on top (renders after, so appears on top)
+                const rockiesGroup = svg.append("g").attr("class", "rockies-overlay");
+
+                // Calculate position for Canadian Rockies
+                const rockiesPos = projection([canadianRockies.lon, canadianRockies.lat]);
+                
+                let rockiesImage = null;
+                if (rockiesPos) {
+                    // Add the SVG as an image
+                    rockiesImage = rockiesGroup.append("image")
+                        .attr("href", "Canadian_rockies.svg")
+                        .attr("x", rockiesPos[0] - canadianRockies.width / 2)
+                        .attr("y", rockiesPos[1] - canadianRockies.height / 2)
+                        .attr("width", canadianRockies.width)
+                        .attr("height", canadianRockies.height)
+                        .style("pointer-events", "none")
+                        .style("opacity", 0.9);
+                }
+
+                // Add event listeners to countries
+                countryPaths
+                    .on("mouseenter", function(event, d) {
+                        const countryName = d.properties.name;
+                        
+                        // Check if this is an EU country
+                        if (euCountries.includes(countryName)) {
+                            tooltip.text("EU").classed("active", true);
+                            // Highlight ALL EU countries
+                            svg.selectAll(".eu-country").classed("eu-highlight", true);
+                            // Light up European Alps
+                            if (europeanAlpsImage) {
+                                europeanAlpsGroup.classed("european-alps-highlight", true);
+                            }
+                        } else {
+                            tooltip.text(countryName).classed("active", true);
+                            
+                            // Light up Canadian Rockies when hovering over Canada
+                            if (countryName === "Canada" && rockiesImage) {
+                                rockiesGroup.classed("rockies-highlight", true);
+                            }
+                            
+                            // Light up USA Rockies when hovering over United States
+                            if (countryName === "United States of America" && usaRockiesImage) {
+                                usaRockiesGroup.classed("usa-rockies-highlight", true);
+                            }
+                            
+                            // Light up Japanese Alps when hovering over Japan
+                            if (countryName === "Japan" && japaneseAlpsImage) {
+                                japaneseAlpsGroup.classed("japanese-alps-highlight", true);
+                            }
+                        }
+                    })
+                    .on("mousemove", function(event) {
+                        tooltip
+                            .style("left", (event.clientX + 15) + "px")
+                            .style("top", (event.clientY + 15) + "px");
+                    })
+                    .on("mouseleave", function(event, d) {
+                        tooltip.classed("active", false);
+                        const countryName = d.properties.name;
+                        
+                        // Check if this is an EU country
+                        if (euCountries.includes(countryName)) {
+                            // Remove highlight from ALL EU countries
+                            svg.selectAll(".eu-country").classed("eu-highlight", false);
+                            // Remove highlight from European Alps
+                            if (europeanAlpsImage) {
+                                europeanAlpsGroup.classed("european-alps-highlight", false);
+                            }
+                        } else {
+                            // Remove highlight from Canadian Rockies
+                            if (countryName === "Canada" && rockiesImage) {
+                                rockiesGroup.classed("rockies-highlight", false);
+                            }
+                            
+                            // Remove highlight from USA Rockies
+                            if (countryName === "United States of America" && usaRockiesImage) {
+                                usaRockiesGroup.classed("usa-rockies-highlight", false);
+                            }
+                            
+                            // Remove highlight from Japanese Alps
+                            if (countryName === "Japan" && japaneseAlpsImage) {
+                                japaneseAlpsGroup.classed("japanese-alps-highlight", false);
+                            }
+                        }
+                    })
+                    .on("click", function(event, d) {
+                        const countryName = d.properties.name;
+                        
+                        // If EU country, show EU photos
+                        if (euCountries.includes(countryName)) {
+                            scatterPolaroids('EU');
+                        } 
+                        // If Canada, USA, or Japan, show their photos
+                        else if (countryName === "Canada" || countryName === "United States of America" || countryName === "Japan") {
+                            scatterPolaroids(countryName);
+                        }
+                        // Other countries don't have photo albums
+                    });
+            })
+            .catch(error => {
+                console.error("Error loading map data:", error);
+                document.getElementById("loading").innerHTML = 
+                    "Error loading map data. Please check your internet connection.";
+            });
+    </script>
+</body>
+</html>
