@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photoglobe</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Indie+Flower&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+    <style>
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-pink: #ff006e;
+            --neon-purple: #b537f2;
+            --neon-green: #39ff14;
+            --neon-orange: #ff9500;
+            --neon-yellow: #ffff00;
+            --neon-red: #ff073a;
+        }
+ 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background: #000000;
+            color: var(--neon-blue);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        header {
+            text-align: center;
+            padding: 3rem 2rem 2rem;
+            max-width: 900px;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 900;
+            letter-spacing: 0.15em;
+            margin-bottom: 1rem;
+            color: var(--neon-pink);
+            text-shadow: 
+                0 0 10px var(--neon-pink),
+                0 0 20px var(--neon-pink),
+                0 0 30px var(--neon-pink),
+                0 0 40px var(--neon-pink);
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            color: var(--neon-blue);
+            font-weight: 400;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            text-shadow: 
+                0 0 5px var(--neon-blue),
+                0 0 10px var(--neon-blue);
+            animation: fadeIn 1.5s ease-out;
+        }
+
+        .map-container {
+            position: relative;
+            width: 90%;
+            max-width: 1000px;
+            padding: 2rem;
+            animation: fadeIn 2s ease-out;
+        }
+
+        #map {
+            width: 100%;
+            height: auto;
+            background: #0a0014;
+            border-radius: 50%;
+            box-shadow: 
+                0 0 40px rgba(0, 243, 255, 0.4),
+                0 0 80px rgba(0, 243, 255, 0.3),
+                0 0 120px rgba(0, 243, 255, 0.2),
+                inset 0 0 80px rgba(0, 0, 0, 0.8);
+        }
+
+        .country {
+            fill: #000000;
+            stroke: #333333;
+            stroke-width: 0.8;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .country:hover {
+            /* Default: no hover effect for countries without photos */
+        }
+
+        /* Canada - Cyan/Blue */
+        .country.canada {
+            fill: #000000;
+            stroke: var(--neon-blue);
+            stroke-width: 4;
+        }
+
+        .country.canada:hover,
+        .country.canada.viewing-photos {
+            fill: #000000;
+            stroke: var(--neon-blue);
+            stroke-width: 6;
+        }
+
+        /* USA - Green */
+        .country.usa {
+            fill: #000000;
+            stroke: var(--neon-green);
+            stroke-width: 4;
+        }
+
+        .country.usa:hover,
+        .country.usa.viewing-photos {
+            fill: #000000;
+            stroke: var(--neon-green);
+            stroke-width: 6;
+        }
+
+        /* Japan - Red */
+        .country.japan {
+            fill: #000000;
+            stroke: var(--neon-red);
+            stroke-width: 4;
+        }
+
+        .country.japan:hover,
+        .country.japan.viewing-photos {
+            fill: #000000;
+            stroke: var(--neon-red);
+            stroke-width: 6;
+        }
+
+        /* EU - Purple */
+        .country.eu-country {
+            fill: #000000;
+            stroke: var(--neon-purple);
+            stroke-width: 4;
+        }
+
+        .country.eu-country:hover,
+        .country.eu-country.eu-highlight,
+        .country.eu-country.viewing-photos {
+            fill: #000000;
+            stroke: var(--neon-purple);
+            stroke-width: 6;
+        }
+
+        /* Legacy classes for compatibility */
+        .country.has-mountains {
+            fill: #000000;
+        }
+
+        .graticule {
+            fill: none;
+            stroke: var(--neon-purple);
+            stroke-width: 0.5;
+            opacity: 0.6;
+        }
+
+        .ocean {
+            fill: #0a0014;
+        }
+
+        .tooltip {
+            position: fixed;
+            background: #000000;
+            color: var(--neon-green);
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 2px solid var(--neon-green);
+            font-size: 1rem;
+            font-weight: 700;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 1001;
+            box-shadow: 
+                0 0 10px var(--neon-green),
+                0 0 20px var(--neon-green),
+                inset 0 0 10px rgba(57, 255, 20, 0.2);
+            text-shadow: 0 0 5px var(--neon-green);
+        }
+
+        .tooltip.active {
+            opacity: 1;
+        }
+
+        #loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5rem;
+            color: var(--neon-blue);
+            text-shadow: 
+                0 0 10px var(--neon-blue),
+                0 0 20px var(--neon-blue);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Polaroid Styles */
+        .polaroid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: none;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .polaroid-overlay.active {
+            display: block;
+        }
+
+        /* Enable pointer events on container when fullscreen is active */
+        .polaroid-overlay.has-fullscreen {
+            pointer-events: auto;
+        }
+
+        .polaroid-overlay.has-fullscreen .polaroid:not(.fullscreen) {
+            pointer-events: none;
+        }
+
+        .polaroid-overlay.has-fullscreen .polaroid.fullscreen {
+            pointer-events: auto;
+        }
+
+        .close-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #000000;
+            color: var(--neon-pink);
+            border: 2px solid var(--neon-pink);
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            z-index: 2001;
+            border-radius: 8px;
+            font-family: 'Orbitron', sans-serif;
+            box-shadow: 
+                0 0 10px var(--neon-pink),
+                0 0 20px var(--neon-pink);
+            transition: all 0.3s ease;
+            display: none;
+        }
+
+        .close-button:hover {
+            background: var(--neon-pink);
+            color: #000000;
+            box-shadow: 
+                0 0 20px var(--neon-pink),
+                0 0 40px var(--neon-pink);
+        }
+
+        .close-button.active {
+            display: block;
+        }
+
+        .polaroid {
+            position: absolute;
+            width: 200px;
+            background: #000000;
+            padding: 10px;
+            padding-bottom: 40px;
+            box-shadow: 
+                0 0 15px var(--neon-blue),
+                0 0 30px var(--neon-blue),
+                0 8px 24px rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+            pointer-events: auto;
+            transform-origin: center;
+            opacity: 0;
+            transition: all 0.4s ease-out;
+            border: 2px solid var(--neon-blue);
+        }
+
+        .polaroid.tossed {
+            animation: polaroidToss 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+        /* Disable animation transition when entering fullscreen */
+        .polaroid.fullscreen {
+            animation: none !important;
+        }
+
+        .polaroid img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            background: #1a1a1a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .polaroid video {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            background: #000;
+        }
+
+        .polaroid-caption {
+            text-align: center;
+            margin-top: 10px;
+            font-family: 'Indie Flower', cursive;
+            color: var(--neon-green);
+            font-size: 16px;
+            text-shadow: 0 0 5px var(--neon-green);
+        }
+
+        @keyframes polaroidToss {
+            0% {
+                opacity: 1;
+                left: var(--start-x);
+                top: var(--start-y);
+                transform: rotate(var(--start-rotation)) scale(0.8);
+            }
+            100% {
+                opacity: 1;
+                left: var(--final-x);
+                top: var(--final-y);
+                transform: rotate(var(--rotation)) scale(1);
+            }
+        }
+
+        .polaroid:hover {
+            z-index: 3000;
+            transform: scale(1.1) rotate(0deg) !important;
+            transition: all 0.3s ease;
+            box-shadow: 
+                0 0 25px var(--neon-pink),
+                0 0 50px var(--neon-pink),
+                0 8px 24px rgba(0, 0, 0, 0.5);
+            border-color: var(--neon-pink);
+        }
+
+        /* Fullscreen polaroid styles */
+        .polaroid.fullscreen {
+            position: fixed !important;
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%) rotate(0deg) scale(1) !important;
+            width: 90vw !important;
+            max-width: 1200px !important;
+            height: auto !important;
+            z-index: 6000 !important;
+            animation: none !important;
+            padding: 20px !important;
+            padding-bottom: 60px !important;
+            box-shadow: 
+                0 0 40px var(--neon-blue),
+                0 0 80px var(--neon-blue),
+                0 20px 80px rgba(0, 0, 0, 0.8) !important;
+            opacity: 1 !important;
+            background: #000000 !important;
+            border: 3px solid var(--neon-blue) !important;
+        }
+
+        .polaroid.fullscreen img,
+        .polaroid.fullscreen video {
+            width: 100% !important;
+            height: auto !important;
+            max-height: 70vh !important;
+            object-fit: contain !important;
+        }
+
+        .polaroid.fullscreen .polaroid-caption {
+            font-size: 22px !important;
+            margin-top: 20px !important;
+            color: var(--neon-green) !important;
+            text-shadow: 0 0 10px var(--neon-green) !important;
+        }
+
+        .polaroid.fullscreen:hover {
+            transform: translate(-50%, -50%) rotate(0deg) scale(1) !important;
+        }
+
+        footer {
+            margin-top: auto;
+            padding: 2rem;
+            text-align: center;
+            color: var(--neon-blue);
+            font-size: 0.9rem;
+            text-shadow: 0 0 5px var(--neon-blue);
+        }
+
+        footer a {
+            color: var(--neon-pink);
+            text-decoration: none;
+            text-shadow: 0 0 5px var(--neon-pink);
+        }
+
+        footer a:hover {
+            text-shadow: 
+                0 0 10px var(--neon-pink),
+                0 0 20px var(--neon-pink);
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">LOADING NEON GLOBE...</div>
+    
+    <header>
+        <h1>PHOTOGLOBE</h1>
+        <p>Click on <span style="color: var(--neon-pink); text-shadow: 0 0 5px var(--neon-pink);">neon regions</span> to view photo collections</p>
+    </header>
+
+    <div class="map-container">
+        <svg id="map" viewBox="0 0 960 960" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+
+    <div class="tooltip"></div>
+    
+    <!-- Polaroid overlay for photos -->
+    <div class="polaroid-overlay" id="polaroid-overlay"></div>
+    <button class="close-button" id="close-polaroids">CLOSE</button>
+
+    <footer>
+    <p class="subtitle">Northern Hemisphere / Polar Projection</p>
+    </footer>
+
+    <script>
+        // Cloudinary configuration
+        const CLOUDINARY_CLOUD_NAME = 'dwob5ehbo';
+        
+        // Map regions to Cloudinary tags
+        const regionCloudinaryTags = {
+            'Canada': 'canada',
+            'United States of America': 'usa',
+            'Japan': 'japan',
+            'EU': 'europe'
+        };
+
+        // Cache for loaded photos
+        const photoCache = {};
+
+        // Fetch photos AND videos from Cloudinary by tag
+        async function fetchCloudinaryPhotos(tag) {
+            // Check cache first
+            if (photoCache[tag]) {
+                return photoCache[tag];
+            }
+
+            try {
+                let allMedia = [];
+                
+                // Fetch images
+                const imageUrl = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/list/${tag}.json`;
+                console.log('Fetching images from:', imageUrl);
+                
+                try {
+                    const imageResponse = await fetch(imageUrl);
+                    console.log('Image response status:', imageResponse.status);
+                    
+                    if (imageResponse.ok) {
+                        const imageText = await imageResponse.text();
+                        if (imageText && imageText.trim() !== '') {
+                            const imageData = JSON.parse(imageText);
+                            console.log('Image data:', imageData);
+                            
+                            if (imageData.resources && imageData.resources.length > 0) {
+                                const images = imageData.resources.map(resource => {
+                                    let caption = resource.public_id.split('/').pop().replace(/_/g, ' ').replace(/\.\w+$/, '');
+                                    if (resource.context && resource.context.custom && resource.context.custom.caption) {
+                                        caption = resource.context.custom.caption;
+                                    }
+                                    
+                                    return {
+                                        url: `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/upload/w_800,q_auto,f_auto/${resource.public_id}`,
+                                        caption: caption,
+                                        isVideo: false
+                                    };
+                                });
+                                allMedia = allMedia.concat(images);
+                                console.log(`Found ${images.length} images`);
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.log('No images found or error fetching images:', error);
+                }
+                
+                // Fetch videos
+                const videoUrl = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/list/${tag}.json`;
+                console.log('Fetching videos from:', videoUrl);
+                
+                try {
+                    const videoResponse = await fetch(videoUrl);
+                    console.log('Video response status:', videoResponse.status);
+                    
+                    if (videoResponse.ok) {
+                        const videoText = await videoResponse.text();
+                        if (videoText && videoText.trim() !== '') {
+                            const videoData = JSON.parse(videoText);
+                            console.log('Video data:', videoData);
+                            
+                            if (videoData.resources && videoData.resources.length > 0) {
+                                const videos = videoData.resources.map(resource => {
+                                    let caption = resource.public_id.split('/').pop().replace(/_/g, ' ').replace(/\.\w+$/, '');
+                                    if (resource.context && resource.context.custom && resource.context.custom.caption) {
+                                        caption = resource.context.custom.caption;
+                                    }
+                                    
+                                    return {
+                                        url: `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/w_800,q_auto/${resource.public_id}`,
+                                        caption: caption,
+                                        isVideo: true,
+                                        format: resource.format || 'mp4'
+                                    };
+                                });
+                                allMedia = allMedia.concat(videos);
+                                console.log(`Found ${videos.length} videos`);
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.log('No videos found or error fetching videos:', error);
+                }
+                
+                console.log(`Total media found for tag "${tag}":`, allMedia.length, allMedia);
+                
+                if (allMedia.length > 0) {
+                    // Cache the results
+                    photoCache[tag] = allMedia;
+                    return allMedia;
+                }
+            } catch (error) {
+                console.error('Error fetching Cloudinary media:', error);
+                console.error('Tag:', tag);
+            }
+            
+            console.log(`No media found for tag: ${tag}`);
+            return [];
+        }
+
+        // Polaroid functionality - now async to fetch from Cloudinary
+        async function scatterPolaroids(regionName) {
+            const container = document.getElementById('polaroid-overlay');
+            const closeBtn = document.getElementById('close-polaroids');
+            
+            // Clear existing polaroids
+            container.innerHTML = '';
+            
+            // Remove all previous viewing-photos highlights
+            d3.selectAll('.country').classed('viewing-photos', false);
+            
+            // Show overlay
+            container.classList.add('active');
+            
+            // Show loading message
+            container.innerHTML = '<div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--neon-blue); font-size: 1.5rem; text-align: center; text-shadow: 0 0 10px var(--neon-blue);">Loading media...</div>';
+            
+            // Get tag for this region
+            const tag = regionCloudinaryTags[regionName];
+            
+            if (!tag) {
+                container.innerHTML = '';
+                container.classList.remove('active');
+                return;
+            }
+            
+            // Fetch photos from Cloudinary by tag
+            const photos = await fetchCloudinaryPhotos(tag);
+            
+            // Clear loading message
+            container.innerHTML = '';
+            
+            if (photos.length === 0) {
+                // No photos found - show message
+                container.innerHTML = '<div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--neon-pink); font-size: 1.5rem; text-align: center; text-shadow: 0 0 10px var(--neon-pink);">No media found for this region</div>';
+                closeBtn.classList.add('active');
+                return;
+            }
+            
+            // Highlight the clicked region
+            if (regionName === 'EU') {
+                // Highlight all EU countries
+                d3.selectAll('.eu-country').classed('viewing-photos', true);
+            } else {
+                // Highlight specific country
+                d3.selectAll('.country')
+                    .filter(d => d.properties.name === regionName)
+                    .classed('viewing-photos', true);
+            }
+            
+            // Create polaroids with random positions and rotations
+            for (let i = 0; i < photos.length; i++) {
+                const polaroid = document.createElement('div');
+                polaroid.className = 'polaroid';
+                
+                // Random final position
+                const finalX = Math.random() * (window.innerWidth - 220) + 10;
+                const finalY = Math.random() * (window.innerHeight - 280) + 10;
+                
+                // Random starting position (off-screen from various edges)
+                const edge = Math.floor(Math.random() * 4); // 0=top, 1=right, 2=bottom, 3=left
+                let startX, startY;
+                
+                switch(edge) {
+                    case 0: // from top
+                        startX = Math.random() * window.innerWidth;
+                        startY = -300;
+                        break;
+                    case 1: // from right
+                        startX = window.innerWidth + 300;
+                        startY = Math.random() * window.innerHeight;
+                        break;
+                    case 2: // from bottom
+                        startX = Math.random() * window.innerWidth;
+                        startY = window.innerHeight + 300;
+                        break;
+                    case 3: // from left
+                        startX = -300;
+                        startY = Math.random() * window.innerHeight;
+                        break;
+                }
+                
+                // Random rotation between -20 and 20 degrees (final)
+                const rotation = (Math.random() - 0.5) * 40;
+                
+                // Random starting rotation (more dramatic spin)
+                const startRotation = (Math.random() - 0.5) * 360;
+                
+                // Set CSS variables for animation
+                polaroid.style.setProperty('--start-x', startX + 'px');
+                polaroid.style.setProperty('--start-y', startY + 'px');
+                polaroid.style.setProperty('--final-x', finalX + 'px');
+                polaroid.style.setProperty('--final-y', finalY + 'px');
+                polaroid.style.setProperty('--rotation', rotation + 'deg');
+                polaroid.style.setProperty('--start-rotation', startRotation + 'deg');
+                
+                // Create polaroid with real photo/video from Cloudinary
+                const photo = photos[i];
+                
+                let mediaContent;
+                if (photo.isVideo) {
+                    // Video element with controls
+                    mediaContent = `
+                        <video controls loop muted playsinline>
+                            <source src="${photo.url}.${photo.format}" type="video/${photo.format}">
+                            Your browser does not support video.
+                        </video>
+                    `;
+                } else {
+                    // Image element
+                    mediaContent = `<img src="${photo.url}" alt="${photo.caption}" style="width: 100%; height: 180px; object-fit: cover;">`;
+                }
+                
+                polaroid.innerHTML = `
+                    ${mediaContent}
+                    <div class="polaroid-caption">${photo.caption}</div>
+                `;
+                
+                // Add click handler for fullscreen
+                polaroid.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const container = document.getElementById('polaroid-overlay');
+                    
+                    if (this.classList.contains('fullscreen')) {
+                        // Exit fullscreen
+                        this.classList.remove('fullscreen');
+                        container.classList.remove('has-fullscreen');
+                        
+                        // Pause video if it's playing
+                        const video = this.querySelector('video');
+                        if (video) {
+                            video.pause();
+                        }
+                    } else {
+                        // Remove fullscreen from any other polaroid
+                        document.querySelectorAll('.polaroid.fullscreen').forEach(p => {
+                            p.classList.remove('fullscreen');
+                        });
+                        
+                        // Enter fullscreen
+                        this.classList.add('fullscreen');
+                        container.classList.add('has-fullscreen');
+                        
+                        // Play video if it's a video
+                        const video = this.querySelector('video');
+                        if (video) {
+                            video.play();
+                        }
+                    }
+                });
+                
+                container.appendChild(polaroid);
+                
+                // Trigger animation after a delay
+                setTimeout(() => {
+                    polaroid.classList.add('tossed');
+                }, i * 150);
+            }
+            
+            // Show close button
+            closeBtn.classList.add('active');
+        }
+
+        // Close polaroids
+        document.getElementById('close-polaroids').addEventListener('click', () => {
+            document.getElementById('polaroid-overlay').classList.remove('active');
+            document.getElementById('polaroid-overlay').innerHTML = '';
+            document.getElementById('close-polaroids').classList.remove('active');
+            d3.selectAll('.country').classed('viewing-photos', false);
+        });
+
+        // Click outside polaroid to exit fullscreen
+        document.getElementById('polaroid-overlay').addEventListener('click', function(e) {
+            // Only if clicking the container itself (not a polaroid)
+            if (e.target === this) {
+                document.querySelectorAll('.polaroid.fullscreen').forEach(polaroid => {
+                    polaroid.classList.remove('fullscreen');
+                    
+                    // Pause video if playing
+                    const video = polaroid.querySelector('video');
+                    if (video) {
+                        video.pause();
+                    }
+                });
+                this.classList.remove('has-fullscreen');
+            }
+        });
+
+        // Map creation
+        const width = 960;
+        const height = 960;
+
+        const svg = d3.select("#map");
+        const tooltip = d3.select(".tooltip");
+
+        // Polar projection centered on North Pole
+        const projection = d3.geoAzimuthalEqualArea()
+            .rotate([0, -90])
+            .translate([width / 2, height / 2])
+            .scale(450)
+            .clipAngle(90);
+
+        const path = d3.geoPath().projection(projection);
+
+        // EU countries list
+        const euCountries = [
+            "Austria", "Belgium", "Bulgaria", "Croatia", "Cyprus", "Czechia",
+            "Denmark", "Estonia", "Finland", "France", "Germany", "Greece",
+            "Hungary", "Ireland", "Italy", "Latvia", "Lithuania", "Luxembourg",
+            "Malta", "Netherlands", "Poland", "Portugal", "Romania", "Slovakia",
+            "Slovenia", "Spain", "Sweden"
+        ];
+
+        // Countries with dedicated photo collections
+        const mountainCountries = ["Canada", "United States of America", "Japan"];
+
+        // Load and display map
+        Promise.all([
+            d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json")
+        ])
+            .then(([world]) => {
+                document.getElementById("loading").style.display = "none";
+
+                const countries = topojson.feature(world, world.objects.countries);
+
+                // Add ocean background
+                svg.append("path")
+                    .datum({type: "Sphere"})
+                    .attr("class", "ocean")
+                    .attr("d", path);
+
+                // Add graticule (grid lines)
+                const graticule = d3.geoGraticule()
+                    .step([15, 15]);
+
+                svg.append("path")
+                    .datum(graticule)
+                    .attr("class", "graticule")
+                    .attr("d", path);
+
+                // Add SVG filter definitions for glows (more performant than CSS)
+                const defs = svg.append("defs");
+                
+                // Blue glow for Canada
+                const blueGlow = defs.append("filter")
+                    .attr("id", "blue-glow")
+                    .attr("height", "300%")
+                    .attr("width", "300%")
+                    .attr("x", "-100%")
+                    .attr("y", "-100%");
+                
+                blueGlow.append("feGaussianBlur")
+                    .attr("stdDeviation", "4")
+                    .attr("result", "coloredBlur");
+                
+                const blueMerge = blueGlow.append("feMerge");
+                blueMerge.append("feMergeNode").attr("in", "coloredBlur");
+                blueMerge.append("feMergeNode").attr("in", "SourceGraphic");
+
+                // Green glow for USA
+                const greenGlow = defs.append("filter")
+                    .attr("id", "green-glow")
+                    .attr("height", "300%")
+                    .attr("width", "300%")
+                    .attr("x", "-100%")
+                    .attr("y", "-100%");
+                
+                greenGlow.append("feGaussianBlur")
+                    .attr("stdDeviation", "4")
+                    .attr("result", "coloredBlur");
+                
+                const greenMerge = greenGlow.append("feMerge");
+                greenMerge.append("feMergeNode").attr("in", "coloredBlur");
+                greenMerge.append("feMergeNode").attr("in", "SourceGraphic");
+
+                // Red glow for Japan
+                const redGlow = defs.append("filter")
+                    .attr("id", "red-glow")
+                    .attr("height", "300%")
+                    .attr("width", "300%")
+                    .attr("x", "-100%")
+                    .attr("y", "-100%");
+                
+                redGlow.append("feGaussianBlur")
+                    .attr("stdDeviation", "4")
+                    .attr("result", "coloredBlur");
+                
+                const redMerge = redGlow.append("feMerge");
+                redMerge.append("feMergeNode").attr("in", "coloredBlur");
+                redMerge.append("feMergeNode").attr("in", "SourceGraphic");
+
+                // Purple glow for EU
+                const purpleGlow = defs.append("filter")
+                    .attr("id", "purple-glow")
+                    .attr("height", "300%")
+                    .attr("width", "300%")
+                    .attr("x", "-100%")
+                    .attr("y", "-100%");
+                
+                purpleGlow.append("feGaussianBlur")
+                    .attr("stdDeviation", "4")
+                    .attr("result", "coloredBlur");
+                
+                const purpleMerge = purpleGlow.append("feMerge");
+                purpleMerge.append("feMergeNode").attr("in", "coloredBlur");
+                purpleMerge.append("feMergeNode").attr("in", "SourceGraphic");
+
+                // Add countries
+                const countryPaths = svg.append("g")
+                    .selectAll("path")
+                    .data(countries.features)
+                    .enter()
+                    .append("path")
+                    .attr("class", d => {
+                        let classes = "country";
+                        const countryName = d.properties.name;
+                        
+                        // Add specific class for each interactive region
+                        if (countryName === "Canada") {
+                            classes += " canada has-mountains";
+                        } else if (countryName === "United States of America") {
+                            classes += " usa has-mountains";
+                        } else if (countryName === "Japan") {
+                            classes += " japan has-mountains";
+                        } else if (euCountries.includes(countryName)) {
+                            classes += " eu-country has-mountains";
+                        }
+                        
+                        return classes;
+                    })
+                    .attr("d", path)
+                    .attr("data-name", d => d.properties.name);
+
+                // Add event listeners to countries
+                countryPaths
+                    .on("mouseenter", function(event, d) {
+                        const countryName = d.properties.name;
+                        
+                        // Check if this is an EU country
+                        if (euCountries.includes(countryName)) {
+                            tooltip.text("EU").classed("active", true);
+                            // Highlight ALL EU countries
+                            svg.selectAll(".eu-country").classed("eu-highlight", true);
+                            // Apply glow filter
+                            svg.selectAll(".eu-country").attr("filter", "url(#purple-glow)");
+                        } else {
+                            tooltip.text(countryName).classed("active", true);
+                            
+                            // Apply appropriate glow filter
+                            if (countryName === "Canada") {
+                                d3.select(this).attr("filter", "url(#blue-glow)");
+                            } else if (countryName === "United States of America") {
+                                d3.select(this).attr("filter", "url(#green-glow)");
+                            } else if (countryName === "Japan") {
+                                d3.select(this).attr("filter", "url(#red-glow)");
+                            }
+                        }
+                    })
+                    .on("mousemove", function(event) {
+                        tooltip
+                            .style("left", (event.clientX + 15) + "px")
+                            .style("top", (event.clientY + 15) + "px");
+                    })
+                    .on("mouseleave", function(event, d) {
+                        tooltip.classed("active", false);
+                        const countryName = d.properties.name;
+                        
+                        // Check if this is an EU country
+                        if (euCountries.includes(countryName)) {
+                            // Remove highlight from ALL EU countries
+                            svg.selectAll(".eu-country").classed("eu-highlight", false);
+                            // Remove glow filter
+                            svg.selectAll(".eu-country").attr("filter", null);
+                        } else {
+                            // Remove glow filter
+                            d3.select(this).attr("filter", null);
+                        }
+                    })
+                    .on("click", function(event, d) {
+                        const countryName = d.properties.name;
+                        
+                        // If EU country, show EU photos
+                        if (euCountries.includes(countryName)) {
+                            scatterPolaroids('EU');
+                        } 
+                        // If Canada, USA, or Japan, show their photos
+                        else if (countryName === "Canada" || countryName === "United States of America" || countryName === "Japan") {
+                            scatterPolaroids(countryName);
+                        }
+                        // Other countries don't have photo albums
+                    });
+            })
+            .catch(error => {
+                console.error("Error loading map data:", error);
+                document.getElementById("loading").innerHTML = 
+                    "ERROR LOADING MAP DATA";
+            });
+    </script>
+</body>
+</html>
