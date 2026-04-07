@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shopping List</title>
+</head>
+<body>
+<style>
+:root {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --color-background-primary: #ffffff;
+  --color-background-secondary: #f2f2f7;
+  --color-text-primary: #1c1c1e;
+  --color-text-secondary: #6c6c70;
+  --color-text-tertiary: #aeaeb2;
+  --color-border-primary: #c7c7cc;
+  --color-border-secondary: #d1d1d6;
+  --color-border-tertiary: #e5e5ea;
+  --border-radius-md: 10px;
+  --border-radius-lg: 14px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+}
+:root[data-theme="dark"] {
+  --color-background-primary: #1c1c1e;
+  --color-background-secondary: #000000;
+  --color-text-primary: #f2f2f7;
+  --color-text-secondary: #aeaeb2;
+  --color-text-tertiary: #636366;
+  --color-border-primary: #48484a;
+  --color-border-secondary: #3a3a3c;
+  --color-border-tertiary: #2c2c2e;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.35);
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="device"] {
+    --color-background-primary: #1c1c1e;
+    --color-background-secondary: #000000;
+    --color-text-primary: #f2f2f7;
+    --color-text-secondary: #aeaeb2;
+    --color-text-tertiary: #636366;
+    --color-border-primary: #48484a;
+    --color-border-secondary: #3a3a3c;
+    --color-border-tertiary: #2c2c2e;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.35);
+  }
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); background: var(--color-background-secondary); color: var(--color-text-primary); }
+.app { padding: 1rem 0.75rem; max-width: 680px; margin: 0 auto; }
+.tabs { display: flex; gap: 6px; margin-bottom: 1.25rem; }
+.tab { flex: 1; padding: 8px 4px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); font-size: 13px; font-weight: 500; color: var(--color-text-secondary); cursor: pointer; transition: all 0.15s; box-shadow: var(--shadow-sm); }
+.tab.active { background: var(--color-background-primary); color: var(--color-text-primary); border-color: var(--color-border-primary); }
+.tab.tab-staple { background: #C2581A; color: #fff; border-color: #C2581A; }
+.tab.tab-list { background: #0f1f5c; color: #fff; border-color: #0f1f5c; }
+.tab.tab-cog { flex: 0; padding: 0 10px; font-size: 30px; color: var(--color-text-tertiary); line-height: 1; display: flex; align-items: center; justify-content: center; }
+.tab.tab-cog.active { background: var(--color-background-secondary); color: var(--color-text-primary); border-color: var(--color-border-primary); }
+.settings-panel { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 14px; margin-bottom: 1.25rem; box-shadow: var(--shadow-sm); }
+.settings-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.settings-row:last-child { border-bottom: none; padding-bottom: 0; }
+.settings-row > div { flex: 1; }
+.settings-btn { font-size: 13px; padding: 6px 14px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: transparent; color: var(--color-text-primary); cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+.settings-btn:hover { background: var(--color-background-secondary); }
+.ing-staple-pill { font-size: 11px; padding: 2px 7px; border-radius: 99px; background: #fdf3ec; color: #C2581A; font-weight: 500; flex-shrink: 0; border: 0.5px solid #e8a882; }
+.section-label { font-size: 12px; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; font-weight: 500; }
+.item-list { display: flex; flex-direction: column; gap: 3px; margin-bottom: 1.25rem; }
+.item-row { display: flex; align-items: center; gap: 10px; padding: 8px 14px; background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); box-shadow: var(--shadow-sm); }
+.item-row:hover { border-color: var(--color-border-secondary); }
+.item-name { flex: 1; font-size: 16px; color: var(--color-text-primary); }
+.icon-btn { width: 28px; height: 28px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-tertiary); background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: all 0.12s; flex-shrink: 0; }
+.icon-btn:hover { background: var(--color-background-secondary); border-color: var(--color-border-secondary); }
+.btn-orange { color: #D85A30; }
+.btn-del { color: var(--color-text-tertiary); }
+.add-row { display: flex; gap: 8px; align-items: center; margin-bottom: 1.5rem; }
+.add-row input, .add-row select { font-size: 14px; height: 36px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); padding: 0 10px; }
+.add-row input { flex: 1; min-width: 0; }
+.add-row select { width: 120px; flex-shrink: 0; }
+.add-row button { height: 36px; padding: 0 16px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: transparent; color: var(--color-text-primary); font-size: 14px; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+.add-row button:hover { background: var(--color-background-secondary); }
+.empty { text-align: center; padding: 2rem; color: var(--color-text-tertiary); font-size: 14px; border: 0.5px dashed var(--color-border-tertiary); border-radius: var(--border-radius-lg); }
+.badge { font-size: 11px; padding: 2px 7px; border-radius: 99px; font-weight: 500; }
+.cat-cupboard { background: #FAEEDA; color: #854F0B; }
+.cat-fridge   { background: #E6F1FB; color: #185FA5; }
+.cat-freezer  { background: #EEEDFE; color: #534AB7; }
+.staple-badge { background: #EAF3DE; color: #3B6D11; }
+.actions-bar { display: flex; gap: 8px; margin-bottom: 1.25rem; flex-wrap: wrap; }
+.actions-bar button { font-size: 13px; padding: 6px 12px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-secondary); cursor: pointer; box-shadow: var(--shadow-sm); }
+.actions-bar button:hover { background: var(--color-background-secondary); color: var(--color-text-primary); }
+.actions-bar button.primary { border-color: #1D9E75; color: #1D9E75; }
+.actions-bar button.primary:hover { background: #EAF3DE; }
+.divider { border: none; border-top: 0.5px solid var(--color-border-tertiary); margin: 1.25rem 0; }
+.checked .item-name { text-decoration: line-through; color: var(--color-text-tertiary); }
+.recipe-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); margin-bottom: 6px; overflow: hidden; box-shadow: var(--shadow-sm); }
+.recipe-header { display: flex; align-items: center; gap: 10px; padding: 10px 14px; cursor: pointer; }
+.recipe-header:hover { background: var(--color-background-secondary); }
+.recipe-title { flex: 1; font-size: 15px; font-weight: 500; color: var(--color-text-primary); }
+.recipe-meta { font-size: 13px; color: var(--color-text-tertiary); }
+.chevron { font-size: 11px; color: var(--color-text-tertiary); transition: transform 0.15s; }
+.chevron.open { transform: rotate(90deg); }
+.recipe-body { border-top: 0.5px solid var(--color-border-tertiary); padding: 12px 14px; display: none; }
+.recipe-body.open { display: block; }
+.ingredient-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; border-bottom: 0.5px solid var(--color-border-tertiary); cursor: pointer; }
+.ingredient-row:hover .ing-name { color: var(--color-text-secondary); }
+.ingredient-row:last-child { border-bottom: none; }
+.ing-name { flex: 1; font-size: 16px; color: var(--color-text-primary); }
+.ing-status { font-size: 12px; padding: 2px 8px; border-radius: 99px; font-weight: 500; }
+.in-stock-pill  { background: #EAF3DE; color: #3B6D11; }
+.out-stock-pill { background: #FCEBEB; color: #A32D2D; }
+.recipe-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.recipe-actions button { font-size: 13px; padding: 6px 12px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: transparent; color: var(--color-text-secondary); cursor: pointer; }
+.recipe-actions button:hover { background: var(--color-background-secondary); color: var(--color-text-primary); }
+.recipe-actions button.primary { border-color: #1D9E75; color: #1D9E75; }
+.recipe-actions button.primary:hover { background: #EAF3DE; }
+.new-recipe-form { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 14px; margin-bottom: 1.25rem; box-shadow: var(--shadow-sm); }
+.new-recipe-form input { width: 100%; font-size: 14px; height: 36px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); padding: 0 10px; margin-bottom: 10px; }
+.ing-pill-list { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; min-height: 28px; }
+.ing-pill { display: flex; align-items: center; gap: 4px; font-size: 12px; padding: 3px 8px; border-radius: 99px; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); color: var(--color-text-primary); }
+.ing-pill button { background: none; border: none; cursor: pointer; font-size: 13px; color: var(--color-text-tertiary); padding: 0; line-height: 1; }
+.save-recipe-btn { width: 100%; height: 36px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: transparent; color: var(--color-text-primary); font-size: 14px; cursor: pointer; margin-top: 4px; }
+.save-recipe-btn:hover { background: var(--color-background-secondary); }
+.ing-add-row { display: flex; gap: 6px; margin-bottom: 6px; }
+.ing-add-row select, .ing-add-row input { font-size: 13px; height: 32px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); padding: 0 8px; }
+.ing-add-row select { width: 160px; flex-shrink: 0; }
+.ing-add-row input { flex: 1; min-width: 0; }
+.ing-add-row button { height: 32px; padding: 0 12px; font-size: 13px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: transparent; color: var(--color-text-primary); cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+.ing-add-row button:hover { background: var(--color-background-secondary); }
+.staple-row { cursor: pointer; user-select: none; transition: background 0.12s, border-color 0.12s; }
+.staple-card-list { display: flex; flex-direction: column; gap: 2px; margin-bottom: 0.75rem; }
+.staple-card-row { display: flex; align-items: center; gap: 10px; padding: 6px 14px; background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); box-shadow: var(--shadow-sm); cursor: pointer; transition: border-color 0.12s; }
+.staple-card-row:hover { border-color: var(--color-border-secondary); }
+.staple-card-name { flex: 1; font-size: 16px; color: var(--color-text-primary); }
+.staple-card-onlist { color: var(--color-text-secondary); }
+.status-key { display: flex; gap: 14px; margin-bottom: 10px; align-items: center; justify-content: center; }
+.key-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--color-text-secondary); }
+.staple-row:hover { background: var(--color-background-secondary); border-color: var(--color-border-secondary); }
+.staple-row:active { background: var(--color-border-tertiary); }
+.staple-row .item-name { color: var(--color-text-primary); }
+.add-hint { font-size: 12px; font-weight: 500; color: var(--color-text-secondary); opacity: 0; transition: opacity 0.12s; flex-shrink: 0; }
+.staple-row:hover .add-hint { opacity: 1; }
+.recipe-actions button.active-edit { border-color: var(--color-border-primary); color: var(--color-text-primary); }
+.staple-name { color: var(--color-text-primary) !important; }
+.recipe-name-input { flex: 1; font-size: 15px; font-weight: 500; color: var(--color-text-primary); border: none; border-bottom: 1px solid var(--color-border-secondary); background: transparent; padding: 2px 4px; outline: none; min-width: 0; }
+.recipe-name-input:focus { border-bottom-color: var(--color-border-primary); }
+.recipe-ratio { font-size: 12px; color: var(--color-text-tertiary); flex-shrink: 0; }
+.to-buy-pill { background: #fef3c7; color: #92400e; border: 0.5px solid #fcd34d; }
+.meal-plan-grid { display: flex; flex-direction: column; gap: 4px; margin-bottom: 1rem; }
+.meal-drop-zone { display: flex; align-items: flex-start; gap: 10px; padding: 7px 14px; background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); min-height: 38px; transition: border-color 0.12s, background 0.12s; box-shadow: var(--shadow-sm); }
+.meal-drop-zone.drag-over { border-color: var(--color-border-primary); background: var(--color-background-secondary); }
+.meal-drop-day { font-size: 14px; font-weight: 500; color: var(--color-text-primary); width: 90px; flex-shrink: 0; padding-top: 3px; }
+.meal-drop-contents { flex: 1; display: flex; flex-wrap: wrap; gap: 5px; align-items: center; min-height: 24px; }
+.meal-drop-hint { font-size: 13px; color: var(--color-text-tertiary); font-style: italic; }
+.meal-chip.dragging { opacity: 0.4; }
+.meal-chip-drag { color: var(--color-text-tertiary); font-size: 12px; flex-shrink: 0; }
+.meal-chip button { background: none; border: none; cursor: pointer; font-size: 14px; color: var(--color-text-tertiary); padding: 0; line-height: 1; }
+.meal-chip button:hover { color: var(--color-text-primary); }
+.meal-recipe-list { display: flex; flex-direction: column; gap: 4px; }
+.meal-recipe-card { display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); cursor: grab; user-select: none; transition: border-color 0.12s, opacity 0.12s; box-shadow: var(--shadow-sm); }
+.meal-recipe-card:hover { border-color: var(--color-border-secondary); }
+.meal-recipe-card.dragging { opacity: 0.4; }
+.meal-recipe-drag { color: var(--color-text-tertiary); font-size: 16px; flex-shrink: 0; }
+.meal-recipe-name { flex: 1; font-size: 15px; color: var(--color-text-primary); }
+.meal-assigned-badge { font-size: 11px; padding: 2px 7px; border-radius: 99px; background: var(--color-background-secondary); color: var(--color-text-secondary); font-weight: 500; flex-shrink: 0; border: 0.5px solid var(--color-border-secondary); }
+.meal-chip { display: flex; align-items: center; gap: 5px; font-size: 13px; padding: 3px 8px; border-radius: 99px; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-secondary); color: var(--color-text-primary); cursor: grab; user-select: none; }
+.seg-ctrl { display: flex; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); overflow: hidden; flex-shrink: 0; }
+.seg-ctrl button { flex: 1; padding: 5px 12px; font-size: 12px; font-weight: 500; border: none; background: transparent; color: var(--color-text-secondary); cursor: pointer; border-right: 0.5px solid var(--color-border-secondary); }
+.seg-ctrl button:last-child { border-right: none; }
+.seg-ctrl button.active { background: var(--color-border-secondary); color: var(--color-text-primary); }
+.toggle-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.toggle-chip { font-size: 12px; padding: 4px 10px; border-radius: 99px; border: 0.5px solid var(--color-border-secondary); background: transparent; color: var(--color-text-secondary); cursor: pointer; }
+.toggle-chip.hidden-tab { background: var(--color-background-secondary); color: var(--color-text-tertiary); text-decoration: line-through; }
+</style>
+
+<div class="app" id="root"></div>
+
+<script>
+const CATEGORIES = ['Cupboard','Fridge','Freezer'];
+const CAT_CLASS = { Cupboard:'cat-cupboard', Fridge:'cat-fridge', Freezer:'cat-freezer' };
+const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+
+const DEFAULT_ITEMS = [
+  { id:1,  name:'Pasta',           cat:'Cupboard', inStock:false, checked:false, staple:true },
+  { id:2,  name:'Peanut butter',   cat:'Cupboard', inStock:true,  checked:false, staple:true },
+  { id:3,  name:'Olive oil',       cat:'Cupboard', inStock:true,  checked:false, staple:true },
+  { id:4,  name:'Tinned tomatoes', cat:'Cupboard', inStock:false, checked:false, staple:true },
+  { id:5,  name:'Rice',            cat:'Cupboard', inStock:true,  checked:false, staple:true },
+  { id:6,  name:'Eggs',            cat:'Fridge',   inStock:true,  checked:false, staple:true },
+  { id:7,  name:'Milk',            cat:'Fridge',   inStock:false, checked:false, staple:true },
+  { id:8,  name:'Butter',          cat:'Fridge',   inStock:true,  checked:false, staple:true },
+  { id:9,  name:'Chicken breast',  cat:'Fridge',   inStock:false, checked:false, staple:false },
+  { id:10, name:'Spinach',         cat:'Fridge',   inStock:false, checked:false, staple:false },
+  { id:11, name:'Frozen peas',     cat:'Freezer',  inStock:false, checked:false, staple:true },
+  { id:12, name:'Bananas',         cat:'Cupboard', inStock:true,  checked:false, staple:false },
+  { id:13, name:'Garlic',          cat:'Cupboard', inStock:true,  checked:false, staple:true },
+  { id:14, name:'Onions',          cat:'Cupboard', inStock:true,  checked:false, staple:true },
+  { id:15, name:'Parmesan',        cat:'Fridge',   inStock:false, checked:false, staple:false },
+];
+
+const DEFAULT_RECIPES = [
+  { id:1, name:'Spaghetti bolognese', open:false, itemIds:[1,4,9,14,13,3] },
+  { id:2, name:'Egg fried rice',      open:false, itemIds:[5,11,14,13,3] },
+];
+
+let state = {
+  tab: 'list',
+  items: JSON.parse(JSON.stringify(DEFAULT_ITEMS)),
+  recipes: JSON.parse(JSON.stringify(DEFAULT_RECIPES)),
+  newName:'', newCat:'Cupboard', stapleCat:'Cupboard',
+  nextItemId:30, nextRecipeId:10,
+  showNewRecipe:false, newRecipeName:'', newRecipeIngs:[],
+  mealPlan: { Monday:[], Tuesday:[], Wednesday:[], Thursday:[], Friday:[], Saturday:[], Sunday:[] },
+  editingRecipeId: null,
+  mealSearch: '',
+  theme: 'device',
+  hiddenTabs: [],
+  hideKey: false,
+};
+
+function save() {
+  try {
+    localStorage.setItem('shoplist8_items', JSON.stringify(state.items));
+    localStorage.setItem('shoplist8_recipes', JSON.stringify(state.recipes));
+    localStorage.setItem('shoplist8_mealplan', JSON.stringify(state.mealPlan));
+  } catch(e) {}
+}
+function saveSettings() {
+  try {
+    localStorage.setItem('shoplist8_settings', JSON.stringify({
+      theme: state.theme, hiddenTabs: state.hiddenTabs, hideKey: state.hideKey,
+    }));
+  } catch(e) {}
+}
+function applyTheme() {
+  document.documentElement.setAttribute('data-theme', state.theme || 'device');
+}
+function setTheme(t) { state.theme = t; applyTheme(); saveSettings(); render(); }
+function toggleTab(t) {
+  const idx = state.hiddenTabs.indexOf(t);
+  if (idx >= 0) state.hiddenTabs.splice(idx, 1);
+  else state.hiddenTabs.push(t);
+  if (state.hiddenTabs.includes(state.tab)) {
+    const allTabs = ['list','stock','meals','recipes'];
+    state.tab = allTabs.find(x => !state.hiddenTabs.includes(x)) || 'settings';
+  }
+  saveSettings(); render();
+}
+function toggleHideKey() { state.hideKey = !state.hideKey; saveSettings(); render(); }
+
+function load() {
+  try {
+    const it = localStorage.getItem('shoplist8_items');
+    const re = localStorage.getItem('shoplist8_recipes');
+    const mp = localStorage.getItem('shoplist8_mealplan');
+    const st = localStorage.getItem('shoplist8_settings');
+    if (st) {
+      const s = JSON.parse(st);
+      if (s.theme) state.theme = s.theme;
+      if (s.hiddenTabs) state.hiddenTabs = s.hiddenTabs;
+      if (typeof s.hideKey === 'boolean') state.hideKey = s.hideKey;
+    }
+    if(it) state.items = JSON.parse(it);
+    if(re) state.recipes = JSON.parse(re);
+    if(mp) {
+      const parsed = JSON.parse(mp);
+      // Migrate old format (single id or null) to arrays
+      DAYS.forEach(d => {
+        const v = parsed[d];
+        state.mealPlan[d] = Array.isArray(v) ? v : (v ? [v] : []);
+      });
+    }
+
+    // FIX: Update the counters so new items don't get duplicate IDs
+    if (state.items.length > 0) {
+      state.nextItemId = Math.max(...state.items.map(i => i.id)) + 1;
+    }
+    if (state.recipes.length > 0) {
+      state.nextRecipeId = Math.max(...state.recipes.map(r => r.id)) + 1;
+    }
+  } catch(e) {}
+}
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function catBadge(cat){ return `<span class="badge ${CAT_CLASS[cat]||''}">${cat}</span>`; }
+function setTab(t){ state.tab=t; state.newName=''; render(); }
+function toggleCheck(id){ const i=state.items.find(x=>x.id===id); if(i){i.checked=!i.checked; save(); render();} }
+function moveToList(id){ 
+  const i = state.items.find(x => x.id === id); 
+  if(i) {
+    i.inStock = false; 
+    i.onList = true; // This ensures it shows up in the Shopping List tab
+    save(); 
+    render();
+  } 
+}
+function addStapleItem() {
+  const input = document.getElementById('stapleSearch');
+  if (!input) return;
+  const name = input.value.trim();
+  if (!name) return;
+  const cat = state.stapleCat || 'Cupboard';
+  let item = state.items.find(i => i.name.toLowerCase() === name.toLowerCase());
+  if (!item) {
+    item = { id: state.nextItemId++, name, cat, inStock: true, onList: false, checked: false, staple: true };
+    state.items.push(item);
+  } else {
+    item.staple = true;
+    item.inStock = true;
+    item.cat = cat;
+  }
+  save(); render();
+  setTimeout(() => { const el = document.getElementById('stapleSearch'); if(el){el.value='';el.focus();} }, 50);
+}
+function toggleStapleOnList(id) {
+  const item = state.items.find(x => x.id === id);
+  if (!item) return;
+  if (item.onList) {
+    item.onList = false;
+    item.checked = false;
+    item.inStock = true;
+  } else {
+    item.inStock = false;
+    item.onList = true;
+    item.checked = false;
+  }
+  save(); render();
+}
+function deleteItem(id){
+  const item = state.items.find(x => x.id === id);
+  if (!item) return;
+  const inRecipe = state.recipes.some(r => r.itemIds.includes(id));
+  if (state.tab === 'stock') {
+    // Demote from staple — keep in database but remove staple status
+    item.staple = false;
+    item.inStock = false;
+  } else if (state.tab === 'list' && (item.staple || inRecipe)) {
+    // Just remove from shopping list, keep in database
+    item.onList = false;
+    item.checked = false;
+    if (item.staple) item.inStock = true;
+  } else {
+    // Fully delete
+    state.items = state.items.filter(x => x.id !== id);
+    state.recipes.forEach(r => r.itemIds = r.itemIds.filter(x => x !== id));
+  }
+  save(); render();
+}
+
+function addItem(){
+  // This helper finds the item or creates a new one
+  const result = resolveIngredientAdd('newName', 'newText', 'newCat');
+  if (!result) return;
+
+  const item = state.items.find(i => i.id === result.id);
+  
+  if (state.tab === 'stock') {
+    // Adding from the "In Stock" (Staples) tab
+    item.staple = true;
+    item.inStock = true;
+    item.onList = false; 
+  } else {
+    // Adding from the "Shopping List" tab
+    item.inStock = false;
+    item.onList = true; // This ensures it actually shows up on the list
+  }
+
+  state.newName = ''; 
+  save(); 
+  render();
+  
+  // Keep the focus on the input so you can type the next item immediately
+  setTimeout(() => {
+    const el = document.getElementById('newName');
+    if(el) el.focus();
+  }, 50);
+}
+
+function completeShop(){
+  const checked = state.items.filter(i => i.onList && i.checked);
+  if(!checked.length){ alert('Tick the items you bought first.'); return; }
+  
+  checked.forEach(i => {
+    i.checked = false;
+    i.onList = false;
+
+    if (i.staple) {
+      // Staples go back to being "In Stock" (Green)
+      i.inStock = true;
+    } else {
+      // One-offs go to "To Buy" (Yellow)
+      i.inStock = false;
+    }
+  });
+  
+  save(); 
+  render();
+}
+
+function checkAll(){
+  const shopping = state.items.filter(i => i.onList);
+  const allChecked = shopping.every(i => i.checked);
+  shopping.forEach(i => i.checked = !allChecked);
+  save(); render();
+}
+
+function resetAll() {
+  if (confirm('Clear all items from the shopping list?')) {
+    state.items.forEach(i => {
+      if (i.onList) {
+        i.onList = false;
+        i.checked = false;
+        // Keep staples as In Stock, move others to To Buy
+        i.inStock = i.staple ? true : false;
+      }
+    });
+    save();
+    render();
+  }
+}
+function toggleRecipe(id){ const r=state.recipes.find(x=>x.id===id); if(r){r.open=!r.open; if(!r.open) state.editingRecipeId=null; render();} }
+function toggleEditRecipe(id){ state.editingRecipeId = state.editingRecipeId===id ? null : id; render(); }
+function deleteRecipe(id){ state.recipes=state.recipes.filter(x=>x.id!==id); if(state.editingRecipeId===id) state.editingRecipeId=null; save(); render(); }
+function addRecipeToList(rid){
+  const r = state.recipes.find(x => x.id === rid);
+  if(!r) return;
+  r.itemIds.forEach(id => {
+    const it = state.items.find(i => i.id === id);
+    // If we don't have it, put it on the list
+    if(it && !it.inStock) {
+      it.onList = true;
+      it.checked = false;
+    }
+  });
+  save(); 
+  render();
+}
+function removeRecipeFromList(rid){
+  const r = state.recipes.find(x => x.id === rid);
+  if(!r) return;
+  r.itemIds.forEach(id => {
+    const it = state.items.find(i => i.id === id);
+    if(it && it.onList && !it.inStock) {
+      it.onList = false;
+      it.checked = false;
+      if(it.staple) it.inStock = true;
+    }
+  });
+  save();
+  render();
+}
+function removeIngFromRecipe(rid,iid){ const r=state.recipes.find(x=>x.id===rid); if(r){r.itemIds=r.itemIds.filter(x=>x!==iid); save(); render();} }
+
+function resolveIngredientAdd(selectorId, textInputId, catInputId) {
+  const inputEl = document.getElementById(selectorId);
+  const name = inputEl ? inputEl.value.trim() : '';
+  if (!name) return null;
+
+  const existingItem = state.items.find(it => it.name.toLowerCase() === name.toLowerCase());
+  if (existingItem) return { id: existingItem.id, isNew: false };
+
+  const catEl = document.getElementById(catInputId);
+  const cat = catEl ? catEl.value : 'Cupboard';
+  
+  // NEW: inStock is false (you need it), onList is false (it's not on the list yet)
+  const newItem = { 
+    id: state.nextItemId++, 
+    name, 
+    cat, 
+    inStock: false, 
+    onList: false, 
+    checked: false, 
+    staple: false 
+  };
+  
+  state.items.push(newItem);
+  return { id: newItem.id, isNew: true };
+}
+
+function addIngToExistingRecipe(rid){
+  // 1. Get the result from the resolver
+  const result = resolveIngredientAdd('addIngSelect_'+rid, 'addIngText_'+rid, 'addIngCat_'+rid);
+  if (!result) return;
+
+  // 2. Find the recipe in the state
+  const r = state.recipes.find(x => x.id === rid);
+  
+  if (r) {
+    // 3. Only add the ID if it's not already in this recipe
+    if (!r.itemIds.includes(result.id)) {
+      r.itemIds.push(result.id);
+      
+      // 4. IMPORTANT: If it's a new item, ensure it starts as "In Stock" 
+      // so it doesn't immediately jump onto your shopping list 
+      // until you click "Add missing to shopping list"
+      const item = state.items.find(i => i.id === result.id);
+      if (result.isNew) {
+        item.inStock = false; 
+      }
+      
+      save(); 
+      render();
+    }
+  }
+}
+
+function removeIngFromNewRecipe(iid){ state.newRecipeIngs=state.newRecipeIngs.filter(x=>x!==iid); render(); }
+
+function addIngToNewRecipe(){
+  const result = resolveIngredientAdd('ingSelect', 'ingText', 'ingCat');
+  if (!result) return;
+  if (!state.newRecipeIngs.includes(result.id)) state.newRecipeIngs.push(result.id);
+  render();
+}
+
+function saveNewRecipe(){
+  const name=(document.getElementById('newRecipeName')?.value||'').trim();
+  if(!name){alert('Please enter a recipe name.'); return;}
+  if(!state.newRecipeIngs.length){alert('Add at least one ingredient.'); return;}
+  state.recipes.push({id:state.nextRecipeId++,name,open:false,itemIds:[...state.newRecipeIngs]});
+  state.showNewRecipe=false; state.newRecipeIngs=[]; save(); render();
+}
+function cancelNewRecipe(){ state.showNewRecipe=false; state.newRecipeIngs=[]; render(); }
+function createNewRecipe(){
+  const id = state.nextRecipeId++;
+  state.recipes.push({id, name:'New recipe', open:true, itemIds:[]});
+  state.editingRecipeId = id;
+  save(); render();
+  setTimeout(()=>{ const el=document.getElementById('recipe-name-'+id); if(el){el.focus();el.select();} },50);
+}
+function recipePieSvgStatic(inStockCount, onListCount, total, ings) {
+  const size = 20; const cx = 10; const cy = 10; const rOuter = 9; const rInner = 6.5;
+  const onListItems = ings ? ings.filter(i => !i.inStock && i.onList) : [];
+  const stapleOnList = onListItems.filter(i => i.staple).length;
+  const nonStapleOnList = onListItems.filter(i => !i.staple).length;
+  const outerRing = `<circle cx="${cx}" cy="${cy}" r="${rOuter}" fill="none" stroke="#aab" stroke-width="1"/>`;
+  if (total === 0) return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${outerRing}</svg>`;
+  function wedge(count, tot, color, offset) {
+    if (count === 0) return '';
+    if (count === tot) return `<circle cx="${cx}" cy="${cy}" r="${rInner}" fill="${color}"/>`;
+    const a1 = (offset / tot) * 2 * Math.PI - Math.PI / 2;
+    const a2 = ((offset + count) / tot) * 2 * Math.PI - Math.PI / 2;
+    const x1 = cx + rInner * Math.cos(a1); const y1 = cy + rInner * Math.sin(a1);
+    const x2 = cx + rInner * Math.cos(a2); const y2 = cy + rInner * Math.sin(a2);
+    const large = (count / tot) > 0.5 ? 1 : 0;
+    return `<path d="M${cx},${cy} L${x1.toFixed(2)},${y1.toFixed(2)} A${rInner},${rInner} 0 ${large} 1 ${x2.toFixed(2)},${y2.toFixed(2)} Z" fill="${color}" fill-rule="nonzero"/>`;
+  }
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="flex-shrink:0;">
+    ${outerRing}
+    ${wedge(inStockCount, total, '#C2581A', 0)}
+    ${wedge(stapleOnList, total, '#0f1f5c', inStockCount)}
+    ${wedge(nonStapleOnList, total, '#0f1f5c', inStockCount + stapleOnList)}
+  </svg>`;
+}
+function ingCircleSvg(item, recipeId) {
+  const onList = item.onList;
+  const inStock = item.inStock;
+  const color = onList ? '#0f1f5c' : (inStock ? (item.staple ? '#C2581A' : '#0f1f5c') : 'none');
+  const stroke = item.staple ? '#C2581A' : ((onList || inStock) ? '#0f1f5c' : '#aab');
+  const fn = onList
+    ? `removeIngFromListFromRecipe(${item.id})`
+    : `addIngToListFromRecipe(${item.id})`;
+  return `<button onclick="event.stopPropagation();${fn}" style="background:none;border:none;padding:0;cursor:pointer;flex-shrink:0;display:flex;align-items:center;">
+    <svg width="18" height="18" viewBox="0 0 18 18">
+      <circle cx="9" cy="9" r="8.5" fill="none" stroke="${stroke}" stroke-width="1"/>
+      <circle cx="9" cy="9" r="6" fill="${color}" stroke="none"/>
+    </svg>
+  </button>`;
+}
+
+function recipePieSvg(inStockCount, onListCount, total, recipeId, ings) {
+  const size = 24; const cx = 12; const cy = 12; const rOuter = 11; const rInner = 8;
+  const onListItems = ings ? ings.filter(i => !i.inStock && i.onList) : [];
+  const stapleOnList = onListItems.filter(i => i.staple).length;
+  const nonStapleOnList = onListItems.filter(i => !i.staple).length;
+  const isFull = (inStockCount + onListCount) === total;
+  const click = isFull
+    ? `onclick="event.stopPropagation();removeRecipeFromList(${recipeId})" style="cursor:pointer;"`
+    : `onclick="event.stopPropagation();addRecipeToList(${recipeId})" style="cursor:pointer;"`;
+  const outerRing = `<circle cx="${cx}" cy="${cy}" r="${rOuter}" fill="none" stroke="#aab" stroke-width="1"/>`;
+  if (total === 0) return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${outerRing}</svg>`;
+  function wedge(count, tot, color, offset) {
+    if (count === 0) return '';
+    if (count === tot) return `<circle cx="${cx}" cy="${cy}" r="${rInner}" fill="${color}"/>`;
+    const a1 = (offset / tot) * 2 * Math.PI - Math.PI / 2;
+    const a2 = ((offset + count) / tot) * 2 * Math.PI - Math.PI / 2;
+    const x1 = cx + rInner * Math.cos(a1); const y1 = cy + rInner * Math.sin(a1);
+    const x2 = cx + rInner * Math.cos(a2); const y2 = cy + rInner * Math.sin(a2);
+    const large = (count / tot) > 0.5 ? 1 : 0;
+    return `<path d="M${cx},${cy} L${x1.toFixed(2)},${y1.toFixed(2)} A${rInner},${rInner} 0 ${large} 1 ${x2.toFixed(2)},${y2.toFixed(2)} Z" fill="${color}" fill-rule="nonzero"/>`;
+  }
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" ${click}>
+    ${outerRing}
+    ${wedge(inStockCount, total, '#C2581A', 0)}
+    ${wedge(stapleOnList, total, '#0f1f5c', inStockCount)}
+    ${wedge(nonStapleOnList, total, '#0f1f5c', inStockCount + stapleOnList)}
+  </svg>`;
+}
+
+function addIngToListFromRecipe(itemId) {
+  const id = parseInt(itemId);
+  const item = state.items.find(i => i.id === id);
+  console.log('addIngToList', id, item);
+  if (!item) return;
+  item.inStock = false;
+  item.onList = true;
+  item.checked = false;
+  save(); render();
+}
+function removeIngFromListFromRecipe(itemId) {
+  const id = parseInt(itemId);
+  const item = state.items.find(i => i.id === id);
+  if (!item) return;
+  item.onList = false;
+  item.checked = false;
+  if (item.staple) item.inStock = true;
+  save(); render();
+}
+
+function saveRecipeName(id){
+  const el = document.getElementById('recipe-name-'+id);
+  if(!el) return;
+  const name = el.value.trim();
+  const r = state.recipes.find(x=>x.id===id);
+  if(r && name) r.name = name;
+  save(); render();
+}
+
+function ingAddWidget(selectId, textId, catId, btnOnclick, usedIds, showCat = true, showAll = false) {
+  const allRecipeItemIds = new Set();
+  state.recipes.forEach(r => r.itemIds.forEach(id => allRecipeItemIds.add(id)));
+
+  const availableItems = state.items.filter(i => 
+    (showAll || i.staple || allRecipeItemIds.has(i.id)) && !usedIds.has(i.id)
+  );
+
+  const listId = "list_" + selectId;
+
+  return `
+  <div id="ingWidget_${selectId}">
+    <div class="ing-add-row">
+      <input id="${selectId}" 
+             list="${listId}" 
+             placeholder="Type to search or add new..." 
+             oninput="ingWidgetToggle('${selectId}','${textId}','${catId}', ${showCat}); ingCheckExact('${selectId}', function(){${btnOnclick}})"
+             onkeydown="if(event.key==='Enter'){event.preventDefault();${btnOnclick}}"
+             style="flex:1;">
+      <datalist id="${listId}">
+        ${availableItems.map(it => `<option value="${esc(it.name)}" data-id="${it.id}">`).join('')}
+      </datalist>
+      <button onclick="${btnOnclick}">Add</button>
+    </div>
+    <div id="ingNewFields_${selectId}" style="display:none; margin-top:4px;">
+      <div class="ing-add-row">
+        <select id="${catId}" style="width:100%; display: ${showCat ? 'block' : 'none'};">
+          ${CATEGORIES.map(c => `<option>${c}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+  </div>`;
+}
+
+function ingCheckExact(selectId, fn) {
+  const input = document.getElementById(selectId);
+  if (!input) return;
+  const val = input.value.trim();
+  const match = state.items.find(it => it.name.toLowerCase() === val.toLowerCase());
+  if (match) fn();
+}
+
+function ingWidgetToggle(selectId, textId, catId, showCat) {
+  const input = document.getElementById(selectId);
+  const fields = document.getElementById('ingNewFields_' + selectId);
+  if (!input || !fields) return;
+
+  const exists = state.items.some(it => it.name.toLowerCase() === input.value.toLowerCase());
+  // Only show the fields area if it's a new item AND we actually want to show the category
+  fields.style.display = (input.value.length > 0 && !exists && showCat) ? 'block' : 'none';
+}
+
+function clearMealPlan() {
+  DAYS.forEach(d => state.mealPlan[d] = []);
+  save(); render();
+}
+
+function handleMealDrop(event, day) {
+  event.preventDefault();
+  document.querySelectorAll('.drag-over').forEach(el=>el.classList.remove('drag-over'));
+  const recipeId = parseInt(event.dataTransfer.getData('recipeId'));
+  const sourceDay = event.dataTransfer.getData('sourceDay');
+  if (!recipeId) return;
+  if (sourceDay && sourceDay !== day) {
+    state.mealPlan[sourceDay] = state.mealPlan[sourceDay].filter(id => id !== recipeId);
+  }
+  if (!state.mealPlan[day].includes(recipeId)) state.mealPlan[day].push(recipeId);
+  save(); render();
+}
+
+function removeMealFromDay(day, recipeId) {
+  state.mealPlan[day] = state.mealPlan[day].filter(id => id !== recipeId);
+  save(); render();
+}
+function addMealToDay(day, recipeId) {
+  if (!state.mealPlan[day].includes(recipeId)) state.mealPlan[day].push(recipeId);
+  save(); render();
+}
+function setMealPlan(day, recipeId) {
+  state.mealPlan[day] = recipeId ? [parseInt(recipeId)] : [];
+  save(); render();
+}
+function addMealPlanToList() {
+  let added = 0;
+  DAYS.forEach(day => {
+    state.mealPlan[day].forEach(rid => {
+      const r = state.recipes.find(x => x.id === rid);
+      if (!r) return;
+      r.itemIds.forEach(id => {
+        const it = state.items.find(i => i.id === id);
+        if (it && !it.inStock && !it.onList) { it.onList = true; it.checked = false; added++; }
+      });
+    });
+  });
+  save(); render();
+  if (!added) alert('All ingredients are already in stock or on the list.');
+}
+
+function exportData() {
+  const data = {
+    items: state.items,
+    recipes: state.recipes,
+    mealPlan: state.mealPlan,
+    nextItemId: state.nextItemId,
+    nextRecipeId: state.nextRecipeId,
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'shopping-list-backup.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (data.items) state.items = data.items;
+        if (data.recipes) state.recipes = data.recipes;
+        if (data.mealPlan) {
+          DAYS.forEach(d => {
+            const v = data.mealPlan[d];
+            state.mealPlan[d] = Array.isArray(v) ? v : (v ? [v] : []);
+          });
+        }
+        if (data.nextItemId) state.nextItemId = data.nextItemId;
+        if (data.nextRecipeId) state.nextRecipeId = data.nextRecipeId;
+        save(); render();
+      } catch(err) { alert('Invalid backup file.'); }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+function render(){
+  const root=document.getElementById('root');
+  const shopping= state.items.filter(i => i.onList);
+  const inStock = state.items.filter(i => i.inStock && i.staple);
+  const tabDefs = [
+    { id:'list',    label:`Shopping list (${shopping.length})`, cls:'tab-list' },
+    { id:'stock',   label:'Staples',  cls:'tab-staple' },
+    { id:'meals',   label:'Meal plan', cls:'' },
+    { id:'recipes', label:`Recipes (${state.recipes.length})`, cls:'' },
+  ];
+  let html = `<div class="tabs">`;
+  tabDefs.forEach(t => {
+    if (state.hiddenTabs.includes(t.id)) return;
+    html += `<button class="tab ${t.cls} ${state.tab===t.id?'active':''}" onclick="setTab('${t.id}')">${t.label}</button>`;
+  });
+  html += `<button class="tab tab-cog ${state.tab==='settings'?'active':''}" onclick="setTab('settings')" title="Settings">⚙</button>`;
+  html += `</div>`;
+
+if(state.tab==='list'){
+    html+=`<div class="actions-bar">
+      <button class="primary" onclick="completeShop()">Clear checked</button>
+      <button onclick="checkAll()">Check all</button>
+    </div>
+    <div class="add-row-container" style="margin-bottom: 1.5rem;">
+      <div class="section-label">Add Item</div>
+      ${ingAddWidget('newName', 'newText', 'newCat', 'addItem()', new Set(), false)}
+    </div>`;
+
+    if(!shopping.length){
+      html+=`<div class="empty">Your shopping list is empty.</div>`;
+    } else {
+      html+=`<div class="item-list">`;
+      shopping.forEach(item=>{
+        html+=`<div class="item-row ${item.checked?'checked':''}" onclick="toggleCheck(${item.id})" style="cursor:pointer;">
+          <input type="checkbox" ${item.checked?'checked':''} onchange="toggleCheck(${item.id})" onclick="event.stopPropagation()" style="width:16px;height:16px;flex-shrink:0;cursor:pointer;">
+          <span class="item-name ${item.staple?'staple-name':''}">${esc(item.name)}</span>
+          <button class="icon-btn btn-del" title="Remove from list" onclick="event.stopPropagation();deleteItem(${item.id})">×</button>
+        </div>`;
+      });
+      html+=`</div>`;
+      html+=`<p style="font-size:13px;color:var(--color-text-tertiary);margin-top:8px;">Tick what you bought, then tap <strong style="font-weight:500;">Clear checked</strong>.</p>`;
+    }
+
+  } else if(state.tab==='stock'){
+    if (!state.hideKey) html += `<div class="status-key">
+      <span class="key-item"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6.5" fill="none" stroke="#C2581A" stroke-width="1"/><circle cx="7" cy="7" r="4.5" fill="#C2581A"/></svg> In stock</span>
+      <span class="key-item"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6.5" fill="none" stroke="#C2581A" stroke-width="1"/><circle cx="7" cy="7" r="4.5" fill="#0f1f5c"/></svg> On list</span>
+    </div>`;
+    const allStaples = state.items.filter(i => i.staple);
+    const usedIds = new Set(allStaples.map(i => i.id));
+    const stapleListId = 'list_stapleSearch';
+    const allItems = state.items.filter(i => !usedIds.has(i.id));
+    html += `<div class="ing-add-row" style="margin-bottom:10px;">
+      <input id="stapleSearch" list="${stapleListId}" placeholder="Type to search or add new..." oninput="ingCheckExact('stapleSearch', addStapleItem)" onchange="addStapleItem()" onkeydown="if(event.key==='Enter'){event.preventDefault();addStapleItem()}" style="flex:1;font-size:13px;height:32px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);padding:0 8px;">
+      <datalist id="${stapleListId}">${allItems.map(it=>`<option value="${esc(it.name)}">`).join('')}</datalist>
+      <select id="stapleCat" onchange="state.stapleCat=this.value" style="width:110px;font-size:13px;height:32px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);padding:0 8px;flex-shrink:0;">
+        ${CATEGORIES.map(c=>`<option ${state.stapleCat===c?'selected':''}>${c}</option>`).join('')}
+      </select>
+      <button onclick="addStapleItem()" style="height:32px;padding:0 12px;font-size:13px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-primary);cursor:pointer;white-space:nowrap;flex-shrink:0;">Add</button>
+    </div>`;
+
+    if(!allStaples.length){
+      html+=`<div class="empty">No staples yet.</div>`;
+    } else {
+      const byGroup={}; CATEGORIES.forEach(c=>byGroup[c]=[]);
+      allStaples.forEach(i=>{ if(!byGroup[i.cat]) byGroup[i.cat]=[]; byGroup[i.cat].push(i); });
+      CATEGORIES.forEach(cat=>{
+        const grp=byGroup[cat]; if(!grp||!grp.length) return;
+        html+=`<div class="section-label">${cat}</div><div class="staple-card-list">`;
+        grp.forEach(item=>{
+          const onList = item.onList;
+          const fill = onList ? '#0f1f5c' : '#C2581A';
+          const stroke = '#C2581A';
+          const circleBtn = `<button onclick="event.stopPropagation();toggleStapleOnList(${item.id})" style="background:none;border:none;padding:0;cursor:pointer;flex-shrink:0;display:flex;align-items:center;">
+            <svg width="18" height="18" viewBox="0 0 18 18">
+              <circle cx="9" cy="9" r="8.5" fill="none" stroke="${stroke}" stroke-width="1"/>
+              <circle cx="9" cy="9" r="6" fill="${fill}" stroke="none"/>
+            </svg>
+          </button>`;
+          html+=`<div class="staple-card-row" onclick="toggleStapleOnList(${item.id})">
+            <span class="staple-card-name ${onList?'staple-card-onlist':''}">${esc(item.name)}</span>
+            ${circleBtn}
+            <button class="icon-btn btn-del" title="Remove staple" onclick="event.stopPropagation();deleteItem(${item.id})">×</button>
+          </div>`;
+        });
+        html+=`</div>`;
+      });
+    }
+    html+=`<hr class="divider"><p style="font-size:13px;color:var(--color-text-tertiary);">Tap the circle to add to your shopping list.</p>`;
+
+  } else if(state.tab==='meals'){
+    if (!state.hideKey) html += `<div class="status-key">
+      <span class="key-item"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6.5" fill="none" stroke="#aab" stroke-width="1"/><circle cx="7" cy="7" r="4.5" fill="#C2581A"/></svg> In stock</span>
+      <span class="key-item"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6.5" fill="none" stroke="#aab" stroke-width="1"/><circle cx="7" cy="7" r="4.5" fill="#0f1f5c"/></svg> On list</span>
+    </div>`;
+    html+=`<div class="actions-bar"><button class="primary" onclick="addMealPlanToList()">+ Add ingredients to shopping list</button><button onclick="clearMealPlan()">Clear meal plan</button></div>`;
+
+    html+=`<div class="meal-plan-grid">`;
+    DAYS.forEach(day => {
+      const rids = state.mealPlan[day] || [];
+      const recipes = rids.map(id => state.recipes.find(r=>r.id===id)).filter(Boolean);
+      html+=`<div class="meal-drop-zone" id="drop-${day}"
+        ondragover="event.preventDefault();this.classList.add('drag-over')"
+        ondragleave="this.classList.remove('drag-over')"
+        ondrop="handleMealDrop(event,'${day}')">
+        <div class="meal-drop-day">${day}</div>
+        <div class="meal-drop-contents">
+          ${recipes.map(r=>{
+            const cIngs = r.itemIds.map(id=>state.items.find(i=>i.id===id)).filter(Boolean);
+            const cStock = cIngs.filter(i=>i.inStock).length;
+            const cList = cIngs.filter(i=>!i.inStock&&i.onList).length;
+            return `<div class="meal-chip" draggable="true"
+              ondragstart="event.stopPropagation();event.dataTransfer.setData('recipeId','${r.id}');event.dataTransfer.setData('sourceDay','${day}');this.classList.add('dragging')"
+              ondragend="this.classList.remove('dragging');document.querySelectorAll('.drag-over').forEach(el=>el.classList.remove('drag-over'))">
+              ${cIngs.length>0 ? recipePieSvgStatic(cStock, cList, cIngs.length, cIngs) : ''}
+              <span>${esc(r.name)}</span>
+              <button onclick="removeMealFromDay('${day}',${r.id})" title="Remove">×</button>
+            </div>`;
+          }).join('')}
+          ${!recipes.length ? `<div class="meal-drop-hint">Drop here</div>` : ''}
+        </div>
+      </div>`;
+    });
+    html+=`</div>`;
+
+    if(state.recipes.length === 0){
+      html+=`<div class="empty">Add some recipes first.</div>`;
+    } else {
+      html+=`<hr class="divider">`;
+      html+=`<div class="ing-add-row" style="margin-bottom:8px;">
+        <input id="mealSearchInput" placeholder="Search recipes by name or ingredient" value="${esc(state.mealSearch)}"
+          oninput="state.mealSearch=this.value;render();setTimeout(()=>{const el=document.getElementById('mealSearchInput');if(el){el.focus();el.setSelectionRange(el.value.length,el.value.length);}},0)"
+          style="flex:1;font-size:14px;">
+        ${state.mealSearch ? `<button onclick="state.mealSearch='';render()">Clear</button>` : ''}
+      </div>`;
+      const q = state.mealSearch.toLowerCase().trim();
+      const filtered = state.recipes.filter(r => {
+        if (!q) return true;
+        if (r.name.toLowerCase().includes(q)) return true;
+        return r.itemIds.some(id => { const it=state.items.find(i=>i.id===id); return it&&it.name.toLowerCase().includes(q); });
+      });
+      if(!filtered.length){
+        html+=`<div class="empty">No recipes match.</div>`;
+      } else {
+        html+=`<div class="meal-recipe-list">`;
+        filtered.forEach(r => {
+          const assignedDays = DAYS.filter(d => (state.mealPlan[d]||[]).includes(r.id));
+          const ings = r.itemIds.map(id=>state.items.find(i=>i.id===id)).filter(Boolean);
+          const inStockCount = ings.filter(i=>i.inStock).length;
+          const onListCount = ings.filter(i=>!i.inStock&&i.onList).length;
+          const total = ings.length;
+          html+=`<div class="meal-recipe-card" draggable="true"
+            ondragstart="event.dataTransfer.setData('recipeId','${r.id}');this.classList.add('dragging')"
+            ondragend="this.classList.remove('dragging');document.querySelectorAll('.drag-over').forEach(el=>el.classList.remove('drag-over'))">
+            <span class="meal-recipe-drag">⠿</span>
+            ${total>0 ? recipePieSvgStatic(inStockCount, onListCount, total, ings) : ''}
+            <span class="meal-recipe-name">${esc(r.name)}</span>
+            ${assignedDays.map(d=>`<span class="meal-assigned-badge">${d.slice(0,3)}</span>`).join('')}
+          </div>`;
+        });
+        html+=`</div>`;
+      }
+    }
+
+  } else if(state.tab==='recipes') {
+    if (!state.hideKey) html += `<div class="status-key">
+      <span class="key-item"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6.5" fill="none" stroke="#aab" stroke-width="1"/><circle cx="7" cy="7" r="4.5" fill="#C2581A"/></svg> In stock</span>
+      <span class="key-item"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6.5" fill="none" stroke="#aab" stroke-width="1"/><circle cx="7" cy="7" r="4.5" fill="#0f1f5c"/></svg> On list</span>
+    </div>`;
+    html+=`<div class="actions-bar"><button onclick="createNewRecipe()">+ New recipe</button></div>`;
+
+    if(!state.recipes.length){
+      html+=`<div class="empty">No recipes yet. Add one above.</div>`;
+    } else {
+      state.recipes.forEach(recipe=>{
+        const ings=recipe.itemIds.map(iid=>state.items.find(x=>x.id===iid)).filter(Boolean);
+        const inStockCount=ings.filter(i=>i.inStock).length;
+        const onListCount=ings.filter(i=>!i.inStock&&i.onList).length;
+        const total=ings.length;
+        const usedIds=new Set(recipe.itemIds);
+        const editing = state.editingRecipeId === recipe.id;
+        html+=`<div class="recipe-card">
+          <div class="recipe-header" onclick="toggleRecipe(${recipe.id})">
+            ${editing
+              ? `<input id="recipe-name-${recipe.id}" class="recipe-name-input" value="${esc(recipe.name)}" onclick="event.stopPropagation()" onblur="saveRecipeName(${recipe.id})" onkeydown="if(event.key==='Enter'){event.preventDefault();saveRecipeName(${recipe.id});}">`
+              : `<span class="recipe-title">${esc(recipe.name)}</span>`
+            }
+            ${total>0 ? `<span class="recipe-ratio">${inStockCount+onListCount}/${total}</span>${recipePieSvg(inStockCount, onListCount, total, recipe.id, ings)}` : ''}
+            <span class="chevron ${recipe.open?'open':''}">▶</span>
+          </div>
+          <div class="recipe-body ${recipe.open?'open':''}">
+            <div class="item-list" style="margin-bottom:10px;">
+              ${ings.length?ings.map(item=>`
+              <div class="ingredient-row" onclick="event.stopPropagation();${item.onList ? `removeIngFromListFromRecipe(${item.id})` : `addIngToListFromRecipe(${item.id})`}">
+                <span class="ing-name ${item.staple?'staple-name':''}">${esc(item.name)}</span>
+                ${item.staple ? `<span class="ing-staple-pill">staple</span>` : ''}
+                ${ingCircleSvg(item, recipe.id)}
+                ${editing ? `<button class="icon-btn btn-del" onclick="removeIngFromRecipe(${recipe.id},${item.id})">×</button>` : `<button class="icon-btn btn-del" style="visibility:hidden;" tabindex="-1">×</button>`}
+              </div>`).join(''):`<p style="font-size:13px;color:var(--color-text-tertiary);">No ingredients yet.</p>`}
+            </div>
+            ${editing ? ingAddWidget('addIngSelect_'+recipe.id, 'addIngText_'+recipe.id, 'addIngCat_'+recipe.id, `addIngToExistingRecipe(${recipe.id})`, usedIds, false) : ''}
+            <div class="recipe-actions" style="margin-top:10px;">
+              <button class="${editing?'active-edit':''}" onclick="event.stopPropagation();toggleEditRecipe(${recipe.id})">${editing?'Done':'Edit recipe'}</button>
+              ${editing ? `<button onclick="deleteRecipe(${recipe.id})">Delete recipe</button>` : ''}
+            </div>
+          </div>
+        </div>`;
+      });
+    }
+  } else if(state.tab==='settings'){
+    html+=`<div class="settings-panel">
+      <div class="settings-row">
+        <div>
+          <div style="font-size:14px;font-weight:500;">Appearance</div>
+          <div style="font-size:12px;color:var(--color-text-tertiary);margin-top:2px;">Light, dark or follow your device</div>
+        </div>
+        <div class="seg-ctrl">
+          <button class="${state.theme==='light'?'active':''}" onclick="setTheme('light')">Light</button>
+          <button class="${state.theme==='device'?'active':''}" onclick="setTheme('device')">Device</button>
+          <button class="${state.theme==='dark'?'active':''}" onclick="setTheme('dark')">Dark</button>
+        </div>
+      </div>
+      <div class="settings-row">
+        <div>
+          <div style="font-size:14px;font-weight:500;">Tabs</div>
+          <div style="font-size:12px;color:var(--color-text-tertiary);margin-top:2px;">Tap to show or hide</div>
+        </div>
+        <div class="toggle-row">
+          ${[['list','Shopping list'],['stock','Staples'],['meals','Meal plan'],['recipes','Recipes']].map(([id,label])=>
+            `<button class="toggle-chip ${state.hiddenTabs.includes(id)?'hidden-tab':''}" onclick="toggleTab('${id}')">${label}</button>`
+          ).join('')}
+        </div>
+      </div>
+      <div class="settings-row">
+        <div>
+          <div style="font-size:14px;font-weight:500;">Legend key</div>
+          <div style="font-size:12px;color:var(--color-text-tertiary);margin-top:2px;">In stock / on list indicator</div>
+        </div>
+        <button class="settings-btn" onclick="toggleHideKey()">${state.hideKey ? 'Show key' : 'Hide key'}</button>
+      </div>
+      <div class="settings-row">
+        <div>
+          <div style="font-size:14px;font-weight:500;">Export data</div>
+          <div style="font-size:12px;color:var(--color-text-tertiary);margin-top:2px;">Download a backup of all your data</div>
+        </div>
+        <button class="settings-btn" onclick="exportData()">Export</button>
+      </div>
+      <div class="settings-row">
+        <div>
+          <div style="font-size:14px;font-weight:500;">Import data</div>
+          <div style="font-size:12px;color:var(--color-text-tertiary);margin-top:2px;">Restore from a backup file</div>
+        </div>
+        <button class="settings-btn" onclick="importData()">Import</button>
+      </div>
+    </div>`;
+  }
+
+  root.innerHTML=html;
+}
+load();
+applyTheme();
+render();
+</script>
