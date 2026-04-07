@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping List App — How It Works</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Work+Sans:wght@300;400;500&family=Orbitron:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --vibrant-orange: #ff6b35;
+            --vibrant-pink: #ff66cc;
+            --vibrant-cyan: #00d4ff;
+            --vibrant-yellow: #ffd700;
+            --vibrant-green: #7ed957;
+            --vibrant-blue: #4a90e2;
+            --deep-navy: #1a1f3a;
+            --rich-blue: #2d3561;
+            --charcoal: #2c2c2c;
+            --lead-gray: #3a3a3a;
+            --neon-pink: #ff006e;
+            --neon-cyan: #00f5ff;
+            --neon-purple: #b537f2;
+            --neon-green: #39ff14;
+            --neon-orange: #ff3503;
+            --neon-blue: #0affff;
+            --cyber-dark: #0a0e27;
+            --cyber-darker: #050816;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Work Sans', sans-serif;
+            background: linear-gradient(180deg, var(--deep-navy) 0%, var(--rich-blue) 50%, var(--deep-navy) 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            position: relative;
+            transition: background 0.5s ease;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background:
+                radial-gradient(ellipse at 15% 20%, rgba(255, 107, 53, 0.15) 0%, transparent 40%),
+                radial-gradient(ellipse at 85% 15%, rgba(255, 102, 204, 0.12) 0%, transparent 40%),
+                radial-gradient(ellipse at 70% 60%, rgba(0, 212, 255, 0.15) 0%, transparent 40%),
+                radial-gradient(ellipse at 25% 75%, rgba(126, 217, 87, 0.12) 0%, transparent 40%),
+                radial-gradient(ellipse at 50% 40%, rgba(255, 215, 0, 0.1) 0%, transparent 40%);
+            pointer-events: none;
+            z-index: 0;
+            animation: colorPulse 15s ease-in-out infinite;
+        }
+
+        @keyframes colorPulse {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+
+        .lead-lines {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0.1;
+            pointer-events: none;
+            z-index: 1;
+            background-image:
+                repeating-linear-gradient(0deg, transparent, transparent 100px, var(--lead-gray) 100px, var(--lead-gray) 103px),
+                repeating-linear-gradient(90deg, transparent, transparent 100px, var(--lead-gray) 100px, var(--lead-gray) 103px);
+        }
+
+        .container {
+            position: relative;
+            z-index: 2;
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        header { text-align: center; margin-bottom: 3rem; animation: fadeInDown 1s ease-out; }
+
+        h1 {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(2.2rem, 6vw, 4rem);
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            margin-bottom: 0.75rem;
+            background: linear-gradient(135deg, #ffffff 0%, var(--vibrant-cyan) 50%, var(--vibrant-pink) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 0.95rem;
+            font-weight: 300;
+            letter-spacing: 0.4em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 2rem;
+        }
+
+        .glass-divider {
+            width: 120px;
+            height: 4px;
+            margin: 1.5rem auto;
+            background: linear-gradient(90deg,
+                var(--vibrant-orange), var(--vibrant-pink), var(--vibrant-cyan),
+                var(--vibrant-blue), var(--vibrant-green), var(--vibrant-yellow), var(--vibrant-orange)
+            );
+            background-size: 300% 100%;
+            animation: rainbowFlow 12s linear infinite;
+        }
+
+        @keyframes rainbowFlow { to { background-position: 300% 0; } }
+
+        /* App link button */
+        .app-link-btn {
+            display: inline-block;
+            margin-top: 0.5rem;
+            padding: 0.65rem 2rem;
+            font-family: 'Cinzel', serif;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #ffffff;
+            background: linear-gradient(135deg, rgba(0,212,255,0.2), rgba(255,102,204,0.2));
+            border: 1.5px solid var(--vibrant-cyan);
+            border-radius: 8px;
+            text-decoration: none;
+            letter-spacing: 0.08em;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(0,212,255,0.2);
+        }
+
+        .app-link-btn:hover {
+            background: linear-gradient(135deg, rgba(0,212,255,0.35), rgba(255,102,204,0.35));
+            box-shadow: 0 0 35px rgba(0,212,255,0.45);
+            transform: translateY(-2px);
+        }
+
+        /* Feature cards grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(370px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .glass-window {
+            position: relative;
+            padding: 1.75rem 1.75rem;
+            background: rgba(42, 47, 75, 0.7);
+            backdrop-filter: blur(12px);
+            clip-path: polygon(12% 0, 88% 0, 100% 12%, 100% 88%, 88% 100%, 12% 100%, 0 88%, 0 12%);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            animation: fadeInUp 0.8s ease-out backwards;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-window::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 5px;
+            background: var(--glow-color, var(--vibrant-cyan));
+            box-shadow: 0 0 18px var(--glow-color, var(--vibrant-cyan));
+        }
+
+        .glass-window:nth-child(1) { --glow-color: var(--vibrant-orange); animation-delay: 0.1s; }
+        .glass-window:nth-child(2) { --glow-color: var(--vibrant-cyan);   animation-delay: 0.2s; }
+        .glass-window:nth-child(3) { --glow-color: var(--vibrant-pink);   animation-delay: 0.3s; }
+        .glass-window:nth-child(4) { --glow-color: var(--vibrant-green);  animation-delay: 0.4s; }
+
+        .glass-window:hover {
+            transform: translateY(-6px);
+            border-color: var(--glow-color, var(--vibrant-cyan));
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+        }
+
+        .window-icon-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .tab-icon {
+            font-size: 1.6rem;
+        }
+
+        .window-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .window-content {
+            font-size: 0.9rem;
+            line-height: 1.8;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 300;
+        }
+
+        .window-content ul {
+            padding-left: 1.2rem;
+            margin-top: 0.4rem;
+        }
+
+        .window-content li {
+            margin-bottom: 0.2rem;
+        }
+
+        /* Export warning tile */
+        .export-tile {
+            padding: 2rem 2rem;
+            background: rgba(255, 107, 53, 0.12);
+            border: 2px solid var(--vibrant-orange);
+            border-radius: 4px;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.8s ease-out 0.5s backwards;
+            box-shadow: 0 0 30px rgba(255, 107, 53, 0.2), inset 0 0 30px rgba(255, 107, 53, 0.05);
+        }
+
+        .export-tile::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 5px;
+            background: var(--vibrant-orange);
+            box-shadow: 0 0 20px var(--vibrant-orange);
+        }
+
+        .export-tile h2 {
+            font-family: 'Cinzel', serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--vibrant-orange);
+            margin-bottom: 0.6rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .export-tile p {
+            font-size: 0.9rem;
+            line-height: 1.75;
+            color: rgba(255, 255, 255, 0.85);
+            font-weight: 300;
+        }
+
+        .export-tile strong {
+            color: #ffffff;
+            font-weight: 500;
+        }
+
+        /* Offline tile */
+        .project-tile {
+            padding: 2rem;
+            background: rgba(42, 47, 75, 0.6);
+            backdrop-filter: blur(10px);
+            border-left: 5px solid transparent;
+            border-image: linear-gradient(180deg, var(--vibrant-cyan), var(--vibrant-pink)) 1;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.8s ease-out 0.6s backwards;
+            transition: all 0.3s ease;
+        }
+
+        .project-tile::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0,212,255,0.08), rgba(255,102,204,0.08), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .project-tile:hover::before { left: 100%; }
+        .project-tile:hover { background: rgba(42, 47, 75, 0.8); transform: translateX(10px); }
+
+        .project-tile h2 {
+            font-family: 'Cinzel', serif;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .project-tile p {
+            font-size: 0.9rem;
+            line-height: 1.8;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 300;
+            margin-bottom: 0.6rem;
+        }
+
+        .project-tile ol {
+            padding-left: 1.4rem;
+            color: rgba(255,255,255,0.8);
+            font-size: 0.9rem;
+            line-height: 1.9;
+            font-weight: 300;
+        }
+
+        .project-tile strong {
+            color: #ffffff;
+            font-weight: 500;
+        }
+
+        .section-header {
+            text-align: center;
+            margin: 3rem 0 2rem;
+            animation: fadeInUp 0.8s ease-out 0.3s backwards;
+        }
+
+        .section-title {
+            font-family: 'Cinzel', serif;
+            font-size: 2rem;
+            background: linear-gradient(90deg, var(--vibrant-cyan), var(--vibrant-pink), var(--vibrant-yellow));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .bottom-link-wrap {
+            text-align: center;
+            margin: 3rem 0 2rem;
+            animation: fadeInUp 0.8s ease-out 0.7s backwards;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem 0 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            animation: fadeIn 1s ease-out 0.8s backwards;
+        }
+
+        footer p {
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 300;
+            font-size: 0.85rem;
+            letter-spacing: 0.15em;
+        }
+
+        footer a {
+            color: var(--vibrant-cyan);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        footer a:hover { color: var(--vibrant-pink); }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-40px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+        @media (max-width: 700px) {
+            .container { padding: 2rem 1rem; }
+            h1 { font-size: 2rem; }
+            .features-grid { grid-template-columns: 1fr; }
+            .glass-window { clip-path: none; border-radius: 6px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="lead-lines"></div>
+
+    <div class="container">
+        <header>
+            <h1>Shopping List</h1>
+            <p class="subtitle">How It Works</p>
+            <div class="glass-divider"></div>
+            <a href="shopping_list_app.html" class="app-link-btn">Open the App →</a>
+        </header>
+
+        <div class="section-header">
+            <h2 class="section-title">The Four Tabs</h2>
+            <div class="glass-divider"></div>
+        </div>
+
+        <div class="features-grid">
+            <div class="glass-window">
+                <div class="window-icon-row">
+                    <span class="tab-icon">🛒</span>
+                    <h3 class="window-title">Shopping List</h3>
+                </div>
+                <div class="window-content">
+                    Your active list for the shop. Add items manually or pull them in from Recipes and Staples. Tap any item to check it off as you go. Use <em>Clear checked</em> when you're done.
+                </div>
+            </div>
+
+            <div class="glass-window">
+                <div class="window-icon-row">
+                    <span class="tab-icon">📦</span>
+                    <h3 class="window-title">Stock</h3>
+                </div>
+                <div class="window-content">
+                    Track what you have at home. Items are grouped as <strong>Cupboard</strong>, <strong>Fridge</strong>, or <strong>Freezer</strong>. Mark your essentials as <strong>Staples</strong> — things you always want in the house — so you can quickly spot what needs restocking and add it to your list with one tap.
+                </div>
+            </div>
+
+            <div class="glass-window">
+                <div class="window-icon-row">
+                    <span class="tab-icon">📖</span>
+                    <h3 class="window-title">Recipes</h3>
+                </div>
+                <div class="window-content">
+                    Build recipes from your items. Each recipe shows which ingredients you already have in stock and which need buying. Hit <em>Add missing to list</em> to send only the gaps to your shopping list.
+                </div>
+            </div>
+
+            <div class="glass-window">
+                <div class="window-icon-row">
+                    <span class="tab-icon">📅</span>
+                    <h3 class="window-title">Meal Planner</h3>
+                </div>
+                <div class="window-content">
+                    Drag recipes onto days of the week to plan your meals. Once your week is planned, add all the missing ingredients to your shopping list in one go.
+                </div>
+            </div>
+        </div>
+
+        <!-- Export Warning -->
+        <div class="export-tile">
+            <h2>⚠ Export to Save Your Data Permanently</h2>
+            <p>
+                The app stores everything in your browser's local storage — which means <strong>your recipes, items, and meal plans will be lost</strong> if you clear your browser data, switch devices, or reinstall the app.
+            </p>
+            <p style="margin-top: 0.6rem;">
+                Go to <strong>Settings (⚙)</strong> and tap <strong>Export</strong> regularly to download a backup file. You can restore everything at any time with <strong>Import</strong>. Do this before clearing your browser, switching phones, or sharing your recipes with someone else.
+            </p>
+        </div>
+
+        <!-- Offline & Home Screen -->
+        <div class="project-tile">
+            <h2>📱 Use It Like an App on Android</h2>
+            <p>In Chrome on Android you can install the app to your home screen and use it fully offline:</p>
+            <ol>
+                <li>Open the app in <strong>Chrome</strong>.</li>
+                <li>Tap the <strong>three-dot menu</strong> (top right) → <strong>"Add to Home screen"</strong>.</li>
+                <li>Tap <strong>Add</strong> — it appears on your home screen like a native app.</li>
+                <li>For reliable offline access, also <strong>download the page</strong>: three-dot menu → <strong>"Download page"</strong>. A downloaded file on your device is more dependable than browser cache, which can be cleared at any time.</li>
+            </ol>
+        </div>
+
+        <div class="bottom-link-wrap">
+            <div class="glass-divider"></div>
+            <a href="shopping_list_app.html" class="app-link-btn">Open the Shopping List App →</a>
+        </div>
+
+        <footer>
+            <p>← <a href="../index.html">jackwallman.com</a></p>
+        </footer>
+    </div>
+</body>
+</html>

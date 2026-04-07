@@ -50,7 +50,7 @@ body { font-family: var(--font-sans); background: var(--color-background-seconda
 .app { padding: 1rem 0.75rem; max-width: 680px; margin: 0 auto; }
 .tabs { display: flex; gap: 6px; margin-bottom: 1.25rem; }
 .tab { flex: 1; padding: 8px 4px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); font-size: 13px; font-weight: 500; color: var(--color-text-secondary); cursor: pointer; transition: all 0.15s; box-shadow: var(--shadow-sm); }
-.tab.active { background: var(--color-background-primary); color: var(--color-text-primary); border-color: var(--color-border-primary); }
+.tab.active { background: var(--color-background-primary); color: var(--color-text-primary); border-color: var(--color-border-primary); box-shadow: var(--shadow-sm), inset 0 -3px 0 currentColor; }
 .tab.tab-staple { background: #C2581A; color: #fff; border-color: #C2581A; }
 .tab.tab-list { background: #0f1f5c; color: #fff; border-color: #0f1f5c; }
 .tab.tab-cog { flex: 0; padding: 0 10px; font-size: 30px; color: var(--color-text-tertiary); line-height: 1; display: flex; align-items: center; justify-content: center; }
@@ -178,26 +178,110 @@ const CAT_CLASS = { Cupboard:'cat-cupboard', Fridge:'cat-fridge', Freezer:'cat-f
 const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
 
 const DEFAULT_ITEMS = [
-  { id:1,  name:'Pasta',           cat:'Cupboard', inStock:false, checked:false, staple:true },
+  { id:1,  name:'Pasta',           cat:'Cupboard', inStock:false, checked:false, staple:true, onList:true },
   { id:2,  name:'Peanut butter',   cat:'Cupboard', inStock:true,  checked:false, staple:true },
   { id:3,  name:'Olive oil',       cat:'Cupboard', inStock:true,  checked:false, staple:true },
-  { id:4,  name:'Tinned tomatoes', cat:'Cupboard', inStock:false, checked:false, staple:true },
+  { id:4,  name:'Tinned tomatoes', cat:'Cupboard', inStock:false, checked:false, staple:true, onList:true },
   { id:5,  name:'Rice',            cat:'Cupboard', inStock:true,  checked:false, staple:true },
   { id:6,  name:'Eggs',            cat:'Fridge',   inStock:true,  checked:false, staple:true },
-  { id:7,  name:'Milk',            cat:'Fridge',   inStock:false, checked:false, staple:true },
+  { id:7,  name:'Milk',            cat:'Fridge',   inStock:false, checked:false, staple:true, onList:true },
   { id:8,  name:'Butter',          cat:'Fridge',   inStock:true,  checked:false, staple:true },
   { id:9,  name:'Chicken breast',  cat:'Fridge',   inStock:false, checked:false, staple:false },
   { id:10, name:'Spinach',         cat:'Fridge',   inStock:false, checked:false, staple:false },
-  { id:11, name:'Frozen peas',     cat:'Freezer',  inStock:false, checked:false, staple:true },
+  { id:11, name:'Frozen peas',     cat:'Freezer',  inStock:false, checked:false, staple:true, onList:true },
   { id:12, name:'Bananas',         cat:'Cupboard', inStock:true,  checked:false, staple:false },
   { id:13, name:'Garlic',          cat:'Cupboard', inStock:true,  checked:false, staple:true },
   { id:14, name:'Onions',          cat:'Cupboard', inStock:true,  checked:false, staple:true },
   { id:15, name:'Parmesan',        cat:'Fridge',   inStock:false, checked:false, staple:false },
+  { id:16, name:'Carrots',         cat:'Fridge',   inStock:false, checked:false, staple:false },
+  { id:17, name:'Celery',          cat:'Fridge',   inStock:false, checked:false, staple:false },
+  { id:18, name:'Mushrooms',       cat:'Fridge',   inStock:false, checked:false, staple:false },
+  { id:19, name:'Bread',               cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:20, name:'Plain flour',         cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:21, name:'Self-raising flour',  cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:22, name:'Caster sugar',        cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:23, name:'Granulated sugar',    cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:24, name:'Salt',                cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:25, name:'Black pepper',        cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:26, name:'Vegetable oil',       cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:27, name:'Noodles',             cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:28, name:'Porridge oats',       cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:29, name:'Cereal',              cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:30, name:'Baked beans',         cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:31, name:'Passata',             cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:32, name:'Tomato puree',        cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:33, name:'Tinned tuna',         cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:34, name:'Tinned sweetcorn',    cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:35, name:'Chickpeas',           cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:36, name:'Kidney beans',        cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:37, name:'Red lentils',         cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:38, name:'Coconut milk',        cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:39, name:'Chicken stock cubes', cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:40, name:'Sunflower oil',       cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:41, name:'Soy sauce',           cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:42, name:'Worcestershire sauce',cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:43, name:'Tomato ketchup',      cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:44, name:'Mayonnaise',          cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:45, name:'English mustard',     cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:46, name:'Malt vinegar',        cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:47, name:'Honey',               cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:48, name:'Jam',                 cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:49, name:'Marmite',             cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:50, name:'Gravy granules',      cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:51, name:'Breadcrumbs',         cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:52, name:'Mixed herbs',         cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:53, name:'Paprika',             cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:54, name:'Cumin',               cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:55, name:'Chilli flakes',       cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:56, name:'Curry powder',        cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:57, name:'Turmeric',            cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:58, name:'Cocoa powder',        cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:59, name:'Tea bags',            cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:60, name:'Coffee',              cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:61, name:'Potatoes',            cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:62, name:'Sweet potatoes',      cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:63, name:'Crackers',            cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:64, name:'Crisps',              cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:65, name:'Biscuits',            cat:'Cupboard', inStock:false, checked:false, staple:false },
+  { id:66, name:'Cheddar cheese',      cat:'Fridge',   inStock:false, checked:false, staple:false },
+  { id:67, name:'Mozzarella',          cat:'Fridge',   inStock:false, checked:false, staple:false },
+  { id:68, name:'Cream cheese',        cat:'Fridge',   inStock:false, checked:false, staple:false },
+  { id:69, name:'Greek yogurt',        cat:'Fridge',   inStock:false, checked:false, staple:false },
+  { id:70, name:'Double cream',        cat:'Fridge',   inStock:false, checked:false, staple:false },
+  { id:71, name:'Sour cream',          cat:'Fridge',   inStock:false, checked:false, staple:false },
+  { id:72, name:'Crème fraîche',       cat:'Fridge',   inStock:false, checked:false, staple:false },
+  { id:73, name:'Orange juice',        cat:'Fridge',   inStock:false, checked:false, staple:false },
+  { id:74, name:'Back bacon',          cat:'Fridge',   inStock:false, checked:false, staple:false },
+  { id:75, name:'Sausages',            cat:'Fridge',   inStock:false, checked:false, staple:false },
+  { id:76, name:'Beef mince',          cat:'Fridge',   inStock:false, checked:false, staple:false },
+  { id:77, name:'Pork chops',          cat:'Fridge',   inStock:false, checked:false, staple:false },
+  { id:78, name:'Cooked ham',          cat:'Fridge',   inStock:false, checked:false, staple:false },
+  { id:79, name:'Salmon fillets',      cat:'Fridge',   inStock:false, checked:false, staple:false },
+  { id:80, name:'Cod fillets',         cat:'Fridge',   inStock:false, checked:false, staple:false },
+  { id:81, name:'Prawns',              cat:'Fridge',   inStock:false, checked:false, staple:false },
+  { id:82, name:'Broccoli',            cat:'Fridge',   inStock:false, checked:false, staple:false },
+  { id:83, name:'Lettuce',             cat:'Fridge',   inStock:false, checked:false, staple:false },
+  { id:84, name:'Cucumber',            cat:'Fridge',   inStock:false, checked:false, staple:false },
+  { id:85, name:'Tomatoes',            cat:'Fridge',   inStock:false, checked:false, staple:false },
+  { id:86, name:'Peppers',             cat:'Fridge',   inStock:false, checked:false, staple:false },
+  { id:87, name:'Courgette',           cat:'Fridge',   inStock:false, checked:false, staple:false },
+  { id:88, name:'Leeks',               cat:'Fridge',   inStock:false, checked:false, staple:false },
+  { id:89, name:'Spring onions',       cat:'Fridge',   inStock:false, checked:false, staple:false },
+  { id:90, name:'Apples',              cat:'Fridge',   inStock:false, checked:false, staple:false },
+  { id:91, name:'Strawberries',        cat:'Fridge',   inStock:false, checked:false, staple:false },
+  { id:92, name:'Grapes',              cat:'Fridge',   inStock:false, checked:false, staple:false },
+  { id:93, name:'Lemon',               cat:'Fridge',   inStock:false, checked:false, staple:false },
+  { id:94, name:'Lime',                cat:'Fridge',   inStock:false, checked:false, staple:false },
+  { id:95, name:'Hummus',              cat:'Fridge',   inStock:false, checked:false, staple:false },
+  { id:96, name:'Chips',               cat:'Freezer',  inStock:false, checked:false, staple:false },
+  { id:97, name:'Sweetcorn',           cat:'Freezer',  inStock:false, checked:false, staple:false },
+  { id:98, name:'Fish fingers',        cat:'Freezer',  inStock:false, checked:false, staple:false },
+  { id:99, name:'Frozen berries',      cat:'Freezer',  inStock:false, checked:false, staple:false },
+  { id:100,name:'Ice cream',           cat:'Freezer',  inStock:false, checked:false, staple:false },
 ];
 
 const DEFAULT_RECIPES = [
-  { id:1, name:'Spaghetti bolognese', open:false, itemIds:[1,4,9,14,13,3] },
-  { id:2, name:'Egg fried rice',      open:false, itemIds:[5,11,14,13,3] },
+  { id:1, name:'Spaghetti bolognese', open:false, itemIds:[1,4,14,13,3,16,17,18] },
 ];
 
 let state = {
@@ -275,6 +359,11 @@ function load() {
     if (state.recipes.length > 0) {
       state.nextRecipeId = Math.max(...state.recipes.map(r => r.id)) + 1;
     }
+
+    // FIX: Staples must always be either in stock or on the list — never neither
+    state.items.forEach(i => {
+      if (i.staple && !i.inStock && !i.onList) i.onList = true;
+    });
   } catch(e) {}
 }
 
@@ -788,17 +877,21 @@ function render(){
 if(state.tab==='list'){
     html+=`<div class="actions-bar">
       <button class="primary" onclick="completeShop()">Clear checked</button>
-      <button onclick="checkAll()">Check all</button>
     </div>
     <div class="add-row-container" style="margin-bottom: 1.5rem;">
       <div class="section-label">Add Item</div>
-      ${ingAddWidget('newName', 'newText', 'newCat', 'addItem()', new Set(), false)}
+      ${ingAddWidget('newName', 'newText', 'newCat', 'addItem()', new Set(), false, true)}
     </div>`;
 
     if(!shopping.length){
       html+=`<div class="empty">Your shopping list is empty.</div>`;
     } else {
-      html+=`<div class="item-list">`;
+      const allChecked = shopping.every(i => i.checked);
+      html+=`<div class="item-list">
+        <div class="item-row" onclick="checkAll()" style="cursor:pointer;border-color:var(--color-border-secondary);">
+          <input type="checkbox" ${allChecked?'checked':''} onclick="event.stopPropagation();checkAll()" style="width:16px;height:16px;flex-shrink:0;cursor:pointer;">
+          <span class="item-name" style="color:var(--color-text-secondary);font-size:14px;">${allChecked?'Uncheck all':'Check all'}</span>
+        </div>`;
       shopping.forEach(item=>{
         html+=`<div class="item-row ${item.checked?'checked':''}" onclick="toggleCheck(${item.id})" style="cursor:pointer;">
           <input type="checkbox" ${item.checked?'checked':''} onchange="toggleCheck(${item.id})" onclick="event.stopPropagation()" style="width:16px;height:16px;flex-shrink:0;cursor:pointer;">
@@ -812,8 +905,8 @@ if(state.tab==='list'){
 
   } else if(state.tab==='stock'){
     if (!state.hideKey) html += `<div class="status-key">
-      <span class="key-item"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6.5" fill="none" stroke="#C2581A" stroke-width="1"/><circle cx="7" cy="7" r="4.5" fill="#C2581A"/></svg> In stock</span>
       <span class="key-item"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6.5" fill="none" stroke="#C2581A" stroke-width="1"/><circle cx="7" cy="7" r="4.5" fill="#0f1f5c"/></svg> On list</span>
+      <span class="key-item"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6.5" fill="none" stroke="#C2581A" stroke-width="1"/><circle cx="7" cy="7" r="4.5" fill="#C2581A"/></svg> In stock</span>
     </div>`;
     const allStaples = state.items.filter(i => i.staple);
     const usedIds = new Set(allStaples.map(i => i.id));
@@ -859,8 +952,8 @@ if(state.tab==='list'){
 
   } else if(state.tab==='meals'){
     if (!state.hideKey) html += `<div class="status-key">
-      <span class="key-item"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6.5" fill="none" stroke="#aab" stroke-width="1"/><circle cx="7" cy="7" r="4.5" fill="#C2581A"/></svg> In stock</span>
       <span class="key-item"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6.5" fill="none" stroke="#aab" stroke-width="1"/><circle cx="7" cy="7" r="4.5" fill="#0f1f5c"/></svg> On list</span>
+      <span class="key-item"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6.5" fill="none" stroke="#aab" stroke-width="1"/><circle cx="7" cy="7" r="4.5" fill="#C2581A"/></svg> In stock</span>
     </div>`;
     html+=`<div class="actions-bar"><button class="primary" onclick="addMealPlanToList()">+ Add ingredients to shopping list</button><button onclick="clearMealPlan()">Clear meal plan</button></div>`;
 
@@ -933,8 +1026,8 @@ if(state.tab==='list'){
 
   } else if(state.tab==='recipes') {
     if (!state.hideKey) html += `<div class="status-key">
-      <span class="key-item"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6.5" fill="none" stroke="#aab" stroke-width="1"/><circle cx="7" cy="7" r="4.5" fill="#C2581A"/></svg> In stock</span>
       <span class="key-item"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6.5" fill="none" stroke="#aab" stroke-width="1"/><circle cx="7" cy="7" r="4.5" fill="#0f1f5c"/></svg> On list</span>
+      <span class="key-item"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6.5" fill="none" stroke="#aab" stroke-width="1"/><circle cx="7" cy="7" r="4.5" fill="#C2581A"/></svg> In stock</span>
     </div>`;
     html+=`<div class="actions-bar"><button onclick="createNewRecipe()">+ New recipe</button></div>`;
 
@@ -967,7 +1060,7 @@ if(state.tab==='list'){
                 ${editing ? `<button class="icon-btn btn-del" onclick="removeIngFromRecipe(${recipe.id},${item.id})">×</button>` : `<button class="icon-btn btn-del" style="visibility:hidden;" tabindex="-1">×</button>`}
               </div>`).join(''):`<p style="font-size:13px;color:var(--color-text-tertiary);">No ingredients yet.</p>`}
             </div>
-            ${editing ? ingAddWidget('addIngSelect_'+recipe.id, 'addIngText_'+recipe.id, 'addIngCat_'+recipe.id, `addIngToExistingRecipe(${recipe.id})`, usedIds, false) : ''}
+            ${editing ? ingAddWidget('addIngSelect_'+recipe.id, 'addIngText_'+recipe.id, 'addIngCat_'+recipe.id, `addIngToExistingRecipe(${recipe.id})`, usedIds, false, true) : ''}
             <div class="recipe-actions" style="margin-top:10px;">
               <button class="${editing?'active-edit':''}" onclick="event.stopPropagation();toggleEditRecipe(${recipe.id})">${editing?'Done':'Edit recipe'}</button>
               ${editing ? `<button onclick="deleteRecipe(${recipe.id})">Delete recipe</button>` : ''}
