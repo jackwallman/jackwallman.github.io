@@ -971,7 +971,7 @@ if(state.tab==='list'){
             const cIngs = r.itemIds.map(id=>state.items.find(i=>i.id===id)).filter(Boolean);
             const cStock = cIngs.filter(i=>i.inStock).length;
             const cList = cIngs.filter(i=>!i.inStock&&i.onList).length;
-            return `<div class="meal-chip" draggable="true"
+            return `<div class="meal-chip" draggable="true" data-recipe-id="${r.id}" data-source-day="${day}"
               ondragstart="event.stopPropagation();event.dataTransfer.setData('recipeId','${r.id}');event.dataTransfer.setData('sourceDay','${day}');this.classList.add('dragging')"
               ondragend="this.classList.remove('dragging');document.querySelectorAll('.drag-over').forEach(el=>el.classList.remove('drag-over'))">
               ${cIngs.length>0 ? recipePieSvgStatic(cStock, cList, cIngs.length, cIngs) : ''}
@@ -1011,7 +1011,7 @@ if(state.tab==='list'){
           const inStockCount = ings.filter(i=>i.inStock).length;
           const onListCount = ings.filter(i=>!i.inStock&&i.onList).length;
           const total = ings.length;
-          html+=`<div class="meal-recipe-card" draggable="true"
+          html+=`<div class="meal-recipe-card" draggable="true" data-recipe-id="${r.id}"
             ondragstart="event.dataTransfer.setData('recipeId','${r.id}');this.classList.add('dragging')"
             ondragend="this.classList.remove('dragging');document.querySelectorAll('.drag-over').forEach(el=>el.classList.remove('drag-over'))">
             <span class="meal-recipe-drag">⠿</span>
@@ -1119,6 +1119,54 @@ if(state.tab==='list'){
 
   root.innerHTML=html;
 }
+// Touch drag-and-drop for meal plan (mobile)
+(function() {
+  let drag = null;
+
+  document.addEventListener('touchstart', function(e) {
+    const el = e.target.closest('[data-recipe-id]');
+    if (!el) return;
+    drag = {
+      el,
+      recipeId: parseInt(el.dataset.recipeId),
+      sourceDay: el.dataset.sourceDay || null,
+    };
+    el.classList.add('dragging');
+  }, { passive: true });
+
+  document.addEventListener('touchmove', function(e) {
+    if (!drag) return;
+    e.preventDefault();
+    const t = e.touches[0];
+    drag.el.style.visibility = 'hidden';
+    const under = document.elementFromPoint(t.clientX, t.clientY);
+    drag.el.style.visibility = '';
+    document.querySelectorAll('.meal-drop-zone').forEach(z => z.classList.remove('drag-over'));
+    const zone = under && under.closest('.meal-drop-zone');
+    if (zone) zone.classList.add('drag-over');
+  }, { passive: false });
+
+  document.addEventListener('touchend', function(e) {
+    if (!drag) return;
+    const t = e.changedTouches[0];
+    drag.el.classList.remove('dragging');
+    drag.el.style.visibility = 'hidden';
+    const under = document.elementFromPoint(t.clientX, t.clientY);
+    drag.el.style.visibility = '';
+    document.querySelectorAll('.meal-drop-zone').forEach(z => z.classList.remove('drag-over'));
+    const zone = under && under.closest('.meal-drop-zone');
+    if (zone) {
+      const day = zone.id.replace('drop-', '');
+      const { recipeId, sourceDay } = drag;
+      if (sourceDay && sourceDay !== day)
+        state.mealPlan[sourceDay] = state.mealPlan[sourceDay].filter(id => id !== recipeId);
+      if (!state.mealPlan[day].includes(recipeId)) state.mealPlan[day].push(recipeId);
+      save(); render();
+    }
+    drag = null;
+  }, { passive: true });
+})();
+
 load();
 applyTheme();
 render();
