@@ -52,7 +52,7 @@ body { font-family: var(--font-sans); background: var(--color-background-seconda
 .tab { flex: 1; padding: 8px 4px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); font-size: 13px; font-weight: 500; color: var(--color-text-secondary); cursor: pointer; transition: all 0.15s; box-shadow: var(--shadow-sm); }
 .tab.active { background: var(--color-background-primary); color: var(--color-text-primary); border-color: var(--color-border-primary); box-shadow: var(--shadow-sm), inset 0 -3px 0 currentColor; }
 .tab.tab-staple { background: #C2581A; color: #fff; border-color: #C2581A; }
-.tab.tab-list { background: #0f1f5c; color: #fff; border-color: #0f1f5c; }
+.tab.tab-list { background: #2563eb; color: #fff; border-color: #2563eb; }
 .tab.tab-cog { flex: 0; padding: 0 10px; font-size: 30px; color: var(--color-text-tertiary); line-height: 1; display: flex; align-items: center; justify-content: center; }
 .tab.tab-cog.active { background: var(--color-background-secondary); color: var(--color-text-primary); border-color: var(--color-border-primary); }
 .settings-panel { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 14px; margin-bottom: 1.25rem; box-shadow: var(--shadow-sm); }
@@ -634,15 +634,15 @@ function recipePieSvgStatic(inStockCount, onListCount, total, ings) {
   return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="flex-shrink:0;">
     ${outerRing}
     ${wedge(inStockCount, total, '#C2581A', 0)}
-    ${wedge(stapleOnList, total, '#0f1f5c', inStockCount)}
-    ${wedge(nonStapleOnList, total, '#0f1f5c', inStockCount + stapleOnList)}
+    ${wedge(stapleOnList, total, '#2563eb', inStockCount)}
+    ${wedge(nonStapleOnList, total, '#2563eb', inStockCount + stapleOnList)}
   </svg>`;
 }
 function ingCircleSvg(item, recipeId) {
   const onList = item.onList;
   const inStock = item.inStock;
-  const color = onList ? '#0f1f5c' : (inStock ? (item.staple ? '#C2581A' : '#0f1f5c') : 'none');
-  const stroke = item.staple ? '#C2581A' : ((onList || inStock) ? '#0f1f5c' : '#aab');
+  const color = onList ? '#2563eb' : (inStock ? (item.staple ? '#C2581A' : '#2563eb') : 'none');
+  const stroke = item.staple ? '#C2581A' : ((onList || inStock) ? '#2563eb' : '#aab');
   const fn = onList
     ? `removeIngFromListFromRecipe(${item.id})`
     : `addIngToListFromRecipe(${item.id})`;
@@ -678,8 +678,8 @@ function recipePieSvg(inStockCount, onListCount, total, recipeId, ings) {
   return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" ${click}>
     ${outerRing}
     ${wedge(inStockCount, total, '#C2581A', 0)}
-    ${wedge(stapleOnList, total, '#0f1f5c', inStockCount)}
-    ${wedge(nonStapleOnList, total, '#0f1f5c', inStockCount + stapleOnList)}
+    ${wedge(stapleOnList, total, '#2563eb', inStockCount)}
+    ${wedge(nonStapleOnList, total, '#2563eb', inStockCount + stapleOnList)}
   </svg>`;
 }
 
@@ -728,7 +728,7 @@ function ingAddWidget(selectId, textId, catId, btnOnclick, usedIds, showCat = tr
       <input id="${selectId}" 
              list="${listId}" 
              placeholder="Type to search or add new..." 
-             oninput="ingWidgetToggle('${selectId}','${textId}','${catId}', ${showCat}); ingCheckExact('${selectId}', function(){${btnOnclick}})"
+             oninput="ingWidgetToggle('${selectId}','${textId}','${catId}', ${showCat})"
              onkeydown="if(event.key==='Enter'){event.preventDefault();${btnOnclick}}"
              style="flex:1;">
       <datalist id="${listId}">
@@ -905,7 +905,7 @@ if(state.tab==='list'){
 
   } else if(state.tab==='stock'){
     if (!state.hideKey) html += `<div class="status-key">
-      <span class="key-item"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6.5" fill="none" stroke="#C2581A" stroke-width="1"/><circle cx="7" cy="7" r="4.5" fill="#0f1f5c"/></svg> On list</span>
+      <span class="key-item"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6.5" fill="none" stroke="#C2581A" stroke-width="1"/><circle cx="7" cy="7" r="4.5" fill="#2563eb"/></svg> On list</span>
       <span class="key-item"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6.5" fill="none" stroke="#C2581A" stroke-width="1"/><circle cx="7" cy="7" r="4.5" fill="#C2581A"/></svg> In stock</span>
     </div>`;
     const allStaples = state.items.filter(i => i.staple);
@@ -931,7 +931,7 @@ if(state.tab==='list'){
         html+=`<div class="section-label">${cat}</div><div class="staple-card-list">`;
         grp.forEach(item=>{
           const onList = item.onList;
-          const fill = onList ? '#0f1f5c' : '#C2581A';
+          const fill = onList ? '#2563eb' : '#C2581A';
           const stroke = '#C2581A';
           const circleBtn = `<button onclick="event.stopPropagation();toggleStapleOnList(${item.id})" style="background:none;border:none;padding:0;cursor:pointer;flex-shrink:0;display:flex;align-items:center;">
             <svg width="18" height="18" viewBox="0 0 18 18">
@@ -952,7 +952,7 @@ if(state.tab==='list'){
 
   } else if(state.tab==='meals'){
     if (!state.hideKey) html += `<div class="status-key">
-      <span class="key-item"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6.5" fill="none" stroke="#aab" stroke-width="1"/><circle cx="7" cy="7" r="4.5" fill="#0f1f5c"/></svg> On list</span>
+      <span class="key-item"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6.5" fill="none" stroke="#aab" stroke-width="1"/><circle cx="7" cy="7" r="4.5" fill="#2563eb"/></svg> On list</span>
       <span class="key-item"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6.5" fill="none" stroke="#aab" stroke-width="1"/><circle cx="7" cy="7" r="4.5" fill="#C2581A"/></svg> In stock</span>
     </div>`;
     html+=`<div class="actions-bar"><button class="primary" onclick="addMealPlanToList()">+ Add ingredients to shopping list</button><button onclick="clearMealPlan()">Clear meal plan</button></div>`;
@@ -1026,7 +1026,7 @@ if(state.tab==='list'){
 
   } else if(state.tab==='recipes') {
     if (!state.hideKey) html += `<div class="status-key">
-      <span class="key-item"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6.5" fill="none" stroke="#aab" stroke-width="1"/><circle cx="7" cy="7" r="4.5" fill="#0f1f5c"/></svg> On list</span>
+      <span class="key-item"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6.5" fill="none" stroke="#aab" stroke-width="1"/><circle cx="7" cy="7" r="4.5" fill="#2563eb"/></svg> On list</span>
       <span class="key-item"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6.5" fill="none" stroke="#aab" stroke-width="1"/><circle cx="7" cy="7" r="4.5" fill="#C2581A"/></svg> In stock</span>
     </div>`;
     html+=`<div class="actions-bar"><button onclick="createNewRecipe()">+ New recipe</button></div>`;
