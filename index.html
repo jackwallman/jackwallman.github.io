@@ -262,13 +262,21 @@
             animation-delay: 0.4s;
             --glow-color: var(--vibrant-cyan);
         }
-        .glass-window:nth-child(3) { 
+        .glass-window:nth-child(3) {
             animation-delay: 0.6s;
-            --glow-color: var(--vibrant-pink);
+            --glow-color: var(--vibrant-orange);
         }
-        .glass-window:nth-child(4) { 
+        .glass-window:nth-child(4) {
             animation-delay: 0.8s;
             --glow-color: var(--vibrant-yellow);
+        }
+        .glass-window:nth-child(5) {
+            animation-delay: 1s;
+            --glow-color: var(--vibrant-pink);
+        }
+
+        .glass-window-full {
+            grid-column: 1 / -1;
         }
 
         /* Colored top border like lead came */
@@ -327,13 +335,17 @@
             animation-delay: 1s;
             filter: drop-shadow(0 0 15px rgba(0, 212, 255, 0.5));
         }
-        .glass-window:nth-child(3) .window-icon { 
+        .glass-window:nth-child(3) .window-icon {
             animation-delay: 2s;
-            filter: drop-shadow(0 0 15px rgba(255, 102, 204, 0.5));
+            filter: drop-shadow(0 0 15px rgba(255, 107, 53, 0.5));
         }
-        .glass-window:nth-child(4) .window-icon { 
+        .glass-window:nth-child(4) .window-icon {
             animation-delay: 3s;
             filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.5));
+        }
+        .glass-window:nth-child(5) .window-icon {
+            animation-delay: 4s;
+            filter: drop-shadow(0 0 15px rgba(255, 102, 204, 0.5));
         }
 
         .window-content-wrapper {
@@ -715,10 +727,13 @@
             --glow-color: var(--neon-cyan);
         }
         body.neon-theme .glass-window:nth-child(3) {
-            --glow-color: var(--neon-purple);
+            --glow-color: var(--neon-orange);
         }
         body.neon-theme .glass-window:nth-child(4) {
             --glow-color: var(--neon-green);
+        }
+        body.neon-theme .glass-window:nth-child(5) {
+            --glow-color: var(--neon-purple);
         }
 
         body.neon-theme .window-icon {
@@ -735,6 +750,10 @@
 
         body.neon-theme #photoglobe-icon {
             content: url('images/neonglobe.png');
+        }
+
+        body.neon-theme #speedyshopper-icon {
+            content: url('images/speedyshoperlogo_neon.svg?v=2');
         }
 
         body.neon-theme #games-icon {
@@ -918,18 +937,13 @@
             </div>
             
             <div class="glass-window">
-                <img src="images/yotei_rim.png" alt="Mount Yotei" class="window-icon" id="thissite-icon">
+                <img src="images/speedyshoperlogo_neon.svg?v=2" alt="Speedy Shopper" class="window-icon" id="speedyshopper-icon">
                 <div class="window-content-wrapper">
-                    <h2 class="window-title">This Site</h2>
+                    <h2 class="window-title">Speedy Shopper App</h2>
                     <p class="window-content">
-                        Once upon a time if you wanted a space on the web you made yourself a website.
-                        When I was 12 I had a small corner of my own on the site that my dad had for a racehorse called Ice Cracker.
-                        It was great, anything was possible.<br><br>
-                        Since then the dark shadow of social media has cast over the web and we have been straight jacketed into profiles and feeds.<br><br>
-                        Let a new light shine though! 
-                        Building a personal website with complete creative control is now as close to free as it is ever going to get.
-                        And I'm here for it!
-
+                        Speed up making shopping lists by rapidly comparing your meal plan for the week with whats in your cupboard!
+                        <br>
+                        <a href="shopping-list/how-to.html" class="project-link">Try Speedy Shopper</a>
                     </p>
                 </div>
             </div>
@@ -941,6 +955,22 @@
                     <p class="window-content">
                         I've made a few small games over the years, mostly small experiments with Dark Basic and Unity.
                         But, I've never published! This year I'm going to make some games (turning to Godot) and share them here.
+                    </p>
+                </div>
+            </div>
+
+            <div class="glass-window glass-window-full">
+                <img src="images/yotei_rim.png" alt="Mount Yotei" class="window-icon" id="thissite-icon">
+                <div class="window-content-wrapper">
+                    <h2 class="window-title">This Site</h2>
+                    <p class="window-content">
+                        Once upon a time if you wanted a space on the web you made yourself a website.
+                        When I was 12 I had a small corner of my own on the site that my dad had for a racehorse called Ice Cracker.
+                        It was great, anything was possible.<br><br>
+                        Since then the dark shadow of social media has cast over the web and we have been straight jacketed into profiles and feeds.<br><br>
+                        Let a new light shine though!
+                        Building a personal website with complete creative control is now as close to free as it is ever going to get.
+                        And I'm here for it!
                     </p>
                 </div>
             </div>
