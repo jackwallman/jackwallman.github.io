@@ -111,67 +111,46 @@
             /* Default: no hover effect for countries without photos */
         }
 
-        /* Canada - Cyan/Blue */
-        .country.canada {
-            fill: #000000;
-            stroke: var(--neon-blue);
-            stroke-width: 4;
-        }
-
-        .country.canada:hover,
-        .country.canada.viewing-photos {
-            fill: #000000;
-            stroke: var(--neon-blue);
-            stroke-width: 6;
-        }
-
-        /* USA - Green */
-        .country.usa {
-            fill: #000000;
-            stroke: var(--neon-green);
-            stroke-width: 4;
-        }
-
-        .country.usa:hover,
-        .country.usa.viewing-photos {
-            fill: #000000;
-            stroke: var(--neon-green);
-            stroke-width: 6;
-        }
-
-        /* Japan - Red */
-        .country.japan {
-            fill: #000000;
-            stroke: var(--neon-red);
-            stroke-width: 4;
-        }
-
-        .country.japan:hover,
-        .country.japan.viewing-photos {
-            fill: #000000;
-            stroke: var(--neon-red);
-            stroke-width: 6;
-        }
-
-        /* EU - Purple */
+        /* Countries in neon regions have no individual stroke */
+        .country.canada,
+        .country.usa,
+        .country.japan,
         .country.eu-country {
             fill: #000000;
-            stroke: var(--neon-purple);
-            stroke-width: 4;
+            stroke: #000000;
+            stroke-width: 0.5;
         }
 
-        .country.eu-country:hover,
-        .country.eu-country.eu-highlight,
-        .country.eu-country.viewing-photos {
-            fill: #000000;
-            stroke: var(--neon-purple);
+        /* Region outlines */
+        .region-outline {
+            fill: none;
+            stroke-width: 4;
+            pointer-events: all;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .region-outline:hover,
+        .region-outline.viewing-photos {
             stroke-width: 6;
         }
 
-        /* Legacy classes for compatibility */
-        .country.has-mountains {
-            fill: #000000;
+        .region-outline.canada-outline {
+            stroke: var(--neon-blue);
         }
+
+        .region-outline.usa-outline {
+            stroke: var(--neon-green);
+        }
+
+        .region-outline.japan-outline {
+            stroke: var(--neon-red);
+        }
+
+        .region-outline.eu-outline {
+            stroke: var(--neon-purple);
+        }
+
 
         .graticule {
             fill: none;
@@ -729,7 +708,7 @@
             container.innerHTML = '';
             
             // Remove all previous viewing-photos highlights
-            d3.selectAll('.country').classed('viewing-photos', false);
+            d3.selectAll('.region-outline').classed('viewing-photos', false);
             
             // Show overlay
             container.classList.add('active');
@@ -759,16 +738,10 @@
                 return;
             }
             
-            // Highlight the clicked region
-            if (regionName === 'EU') {
-                // Highlight all EU countries
-                d3.selectAll('.eu-country').classed('viewing-photos', true);
-            } else {
-                // Highlight specific country
-                d3.selectAll('.country')
-                    .filter(d => d.properties.name === regionName)
-                    .classed('viewing-photos', true);
-            }
+            // Highlight the clicked region outline
+            d3.selectAll('.region-outline')
+                .filter(function() { return d3.select(this).attr('data-region') === regionName; })
+                .classed('viewing-photos', true);
             
             // Determine if we need pagination (mobile with >5 photos)
             const isMobile = window.innerWidth <= 768;
@@ -817,11 +790,11 @@
                 let bestOverlapScore = Infinity;
                 
                 // Allow polaroids to go off-screen on mobile to reduce crowding
-                const edgeBuffer = isMobile ? -50 : 10; // Negative allows off-screen positioning
-                
+                const edgeBuffer = isMobile ? 0 : 40;
+
                 while (attempts < 50) {
-                    const x = Math.random() * (window.innerWidth - width + Math.abs(edgeBuffer) * 2) + edgeBuffer;
-                    const y = Math.random() * (window.innerHeight - height + Math.abs(edgeBuffer) * 2) + edgeBuffer;
+                    const x = edgeBuffer + Math.random() * (window.innerWidth - width - edgeBuffer * 2);
+                    const y = edgeBuffer + Math.random() * (window.innerHeight - height - edgeBuffer * 2);
                     
                     const overlapScore = calculateOverlap(x, y, width, height);
                     
@@ -1221,7 +1194,7 @@
                 purpleMerge.append("feMergeNode").attr("in", "coloredBlur");
                 purpleMerge.append("feMergeNode").attr("in", "SourceGraphic");
 
-                // Add countries
+                // Add countries (fill only, no neon strokes on individuals)
                 const countryPaths = svg.append("g")
                     .selectAll("path")
                     .data(countries.features)
@@ -1230,81 +1203,69 @@
                     .attr("class", d => {
                         let classes = "country";
                         const countryName = d.properties.name;
-                        
-                        // Add specific class for each interactive region
+
                         if (countryName === "Canada") {
-                            classes += " canada has-mountains";
+                            classes += " canada";
                         } else if (countryName === "United States of America") {
-                            classes += " usa has-mountains";
+                            classes += " usa";
                         } else if (countryName === "Japan") {
-                            classes += " japan has-mountains";
+                            classes += " japan";
                         } else if (euCountries.includes(countryName)) {
-                            classes += " eu-country has-mountains";
+                            classes += " eu-country";
                         }
-                        
+
                         return classes;
                     })
                     .attr("d", path)
                     .attr("data-name", d => d.properties.name);
 
-                // Add event listeners to countries
-                countryPaths
-                    .on("mouseenter", function(event, d) {
-                        const countryName = d.properties.name;
-                        
-                        // Check if this is an EU country
-                        if (euCountries.includes(countryName)) {
-                            tooltip.text("EU").classed("active", true);
-                            // Highlight ALL EU countries
-                            svg.selectAll(".eu-country").classed("eu-highlight", true);
-                            // Apply glow filter
-                            svg.selectAll(".eu-country").attr("filter", "url(#purple-glow)");
-                        } else {
-                            tooltip.text(countryName).classed("active", true);
-                            
-                            // Apply appropriate glow filter
-                            if (countryName === "Canada") {
-                                d3.select(this).attr("filter", "url(#blue-glow)");
-                            } else if (countryName === "United States of America") {
-                                d3.select(this).attr("filter", "url(#green-glow)");
-                            } else if (countryName === "Japan") {
-                                d3.select(this).attr("filter", "url(#red-glow)");
-                            }
-                        }
-                    })
-                    .on("mousemove", function(event) {
-                        tooltip
-                            .style("left", (event.clientX + 15) + "px")
-                            .style("top", (event.clientY + 15) + "px");
-                    })
-                    .on("mouseleave", function(event, d) {
-                        tooltip.classed("active", false);
-                        const countryName = d.properties.name;
-                        
-                        // Check if this is an EU country
-                        if (euCountries.includes(countryName)) {
-                            // Remove highlight from ALL EU countries
-                            svg.selectAll(".eu-country").classed("eu-highlight", false);
-                            // Remove glow filter
-                            svg.selectAll(".eu-country").attr("filter", null);
-                        } else {
-                            // Remove glow filter
+                // Build merged region outlines using topojson.merge
+                const geomObjects = world.objects.countries.geometries;
+
+                // Helper: get country name from geometry
+                function geomName(g) {
+                    const feat = topojson.feature(world, g);
+                    return feat.properties.name;
+                }
+
+                const regionDefs = [
+                    { names: ["Canada"], cls: "canada-outline", label: "Canada", glow: "blue-glow", region: "Canada" },
+                    { names: ["United States of America"], cls: "usa-outline", label: "United States of America", glow: "green-glow", region: "United States of America" },
+                    { names: ["Japan"], cls: "japan-outline", label: "Japan", glow: "red-glow", region: "Japan" },
+                    { names: euCountries, cls: "eu-outline", label: "EU", glow: "purple-glow", region: "EU" }
+                ];
+
+                const regionOutlinesGroup = svg.append("g").attr("class", "region-outlines");
+
+                regionDefs.forEach(def => {
+                    const matchingGeoms = geomObjects.filter(g => def.names.includes(geomName(g)));
+                    if (matchingGeoms.length === 0) return;
+
+                    const merged = topojson.merge(world, matchingGeoms);
+
+                    regionOutlinesGroup.append("path")
+                        .datum(merged)
+                        .attr("class", "region-outline " + def.cls)
+                        .attr("d", path)
+                        .attr("data-region", def.region)
+                        .attr("data-label", def.label)
+                        .on("mouseenter", function(event) {
+                            tooltip.text(def.label).classed("active", true);
+                            d3.select(this).attr("filter", "url(#" + def.glow + ")");
+                        })
+                        .on("mousemove", function(event) {
+                            tooltip
+                                .style("left", (event.clientX + 15) + "px")
+                                .style("top", (event.clientY + 15) + "px");
+                        })
+                        .on("mouseleave", function() {
+                            tooltip.classed("active", false);
                             d3.select(this).attr("filter", null);
-                        }
-                    })
-                    .on("click", function(event, d) {
-                        const countryName = d.properties.name;
-                        
-                        // If EU country, show EU photos
-                        if (euCountries.includes(countryName)) {
-                            scatterPolaroids('EU');
-                        } 
-                        // If Canada, USA, or Japan, show their photos
-                        else if (countryName === "Canada" || countryName === "United States of America" || countryName === "Japan") {
-                            scatterPolaroids(countryName);
-                        }
-                        // Other countries don't have photo albums
-                    });
+                        })
+                        .on("click", function() {
+                            scatterPolaroids(def.region);
+                        });
+                });
             })
             .catch(error => {
                 console.error("Error loading map data:", error);
