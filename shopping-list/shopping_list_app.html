@@ -726,10 +726,11 @@ function ingAddWidget(selectId, textId, catId, btnOnclick, usedIds, showCat = tr
   return `
   <div id="ingWidget_${selectId}">
     <div class="ing-add-row">
-      <input id="${selectId}" 
-             list="${listId}" 
-             placeholder="Type to search or add new..." 
-             oninput="ingWidgetToggle('${selectId}','${textId}','${catId}', ${showCat})"
+      <input id="${selectId}"
+             list="${listId}"
+             placeholder="Type to search or add new..."
+             oninput="ingWidgetToggle('${selectId}','${textId}','${catId}', ${showCat});ingCheckExact('${selectId}', function(){${btnOnclick}})"
+             onchange="ingCheckExact('${selectId}', function(){${btnOnclick}})"
              onkeydown="if(event.key==='Enter'){event.preventDefault();${btnOnclick}}"
              style="flex:1;">
       <datalist id="${listId}">
