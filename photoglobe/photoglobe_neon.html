@@ -85,7 +85,7 @@
         .map-container {
             position: relative;
             width: 90%;
-            max-width: 1000px;
+            max-width: min(850px, 70vh);
             padding: 2rem;
             animation: fadeIn 2s ease-out;
         }
@@ -534,6 +534,14 @@
             .polaroid-caption {
                 font-size: 13px;
                 margin-top: 8px;
+            }
+
+            body {
+                min-height: auto;
+            }
+
+            footer {
+                margin-top: 0.5rem;
             }
         }
 
