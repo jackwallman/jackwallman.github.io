@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Northern Hemisphere - Neon Polar View</title>
     <link rel="icon" type="image/png" href="../images/neonglobe.png">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Indie+Flower&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet"/>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
     <style>
@@ -26,7 +28,7 @@
         }
 
         body {
-            font-family: 'Orbitron', sans-serif;
+            font-family: 'Chakra Petch', system-ui, sans-serif;
             background: #000000;
             color: var(--neon-blue);
             min-height: 100vh;
@@ -43,9 +45,9 @@
         }
 
         h1 {
-            font-family: 'Orbitron', sans-serif;
+            font-family: 'Audiowide', sans-serif;
             font-size: 3.5rem;
-            font-weight: 900;
+            font-weight: 400;
             letter-spacing: 0.15em;
             margin-bottom: 1rem;
             color: var(--neon-pink);
@@ -266,7 +268,7 @@
             cursor: pointer;
             z-index: 2001;
             border-radius: 8px;
-            font-family: 'Orbitron', sans-serif;
+            font-family: 'Chakra Petch', system-ui, sans-serif;
             box-shadow: 
                 0 0 10px var(--neon-pink),
                 0 0 20px var(--neon-pink);
@@ -333,9 +335,10 @@
         .polaroid-caption {
             text-align: center;
             margin-top: 10px;
-            font-family: 'Indie Flower', cursive;
+            font-family: 'JetBrains Mono', monospace;
             color: var(--neon-blue);
-            font-size: 16px;
+            font-size: 13px;
+            letter-spacing: 0.05em;
             text-shadow: 0 0 5px var(--neon-blue);
         }
 
@@ -438,7 +441,7 @@
                 0 0 10px var(--neon-blue),
                 0 0 20px var(--neon-blue);
             transition: all 0.3s ease;
-            font-family: 'Orbitron', sans-serif;
+            font-family: 'Chakra Petch', system-ui, sans-serif;
         }
 
         .pagination-arrow:hover:not(:disabled) {

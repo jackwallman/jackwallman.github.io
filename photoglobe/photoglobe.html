@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Northern Hemisphere - Polar View with Mountains</title>
     <link rel="icon" type="image/png" href="../images/neonglobe.png">
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Montserrat:wght@300;400;500&family=Indie+Flower&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet"/>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://d3js.org/topojson.v3.min.js"></script>
     <style>
@@ -25,7 +27,7 @@
         }
 
         body {
-            font-family: 'Montserrat', sans-serif;
+            font-family: 'Chakra Petch', system-ui, sans-serif;
             background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
             color: var(--text-primary);
             min-height: 100vh;
@@ -42,9 +44,9 @@
         }
 
         h1 {
-            font-family: 'Cormorant Garamond', serif;
+            font-family: 'Audiowide', sans-serif;
             font-size: 3.5rem;
-            font-weight: 300;
+            font-weight: 400;
             letter-spacing: 0.05em;
             margin-bottom: 1rem;
             background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
@@ -336,9 +338,10 @@
         .polaroid-caption {
             text-align: center;
             margin-top: 10px;
-            font-family: 'Indie Flower', cursive;
+            font-family: 'JetBrains Mono', monospace;
             color: #333;
-            font-size: 16px;
+            font-size: 13px;
+            letter-spacing: 0.05em;
         }
 
         @keyframes polaroidToss {
@@ -405,7 +408,7 @@
             border: none;
             padding: 1rem 2rem;
             border-radius: 8px;
-            font-family: 'Montserrat', sans-serif;
+            font-family: 'Chakra Petch', system-ui, sans-serif;
             font-size: 1rem;
             font-weight: 500;
             cursor: pointer;
