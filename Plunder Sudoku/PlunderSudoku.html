@@ -445,8 +445,6 @@ const POWERUPS=[
    long:"Marks every empty cell that has only one number left it could possibly be."},
   {id:'reckoning',icon:'💡',  name:"Dead Reckoning",   desc:"Reveal one correct cell free",                 multi:true,  cost:1,
    long:"Instantly fills a random empty cell with the correct number, plus 10 plunder."},
-  {id:'anchor',   icon:'⚓',  name:"Iron Anchor",      desc:"One wrong guess forgiven",                     multi:true,  cost:2,
-   long:"Your next wrong guess won't cost a life. Covers one mistake."},
   {id:'luckycharm',icon:'🍀', name:"Lucky Charm",      desc:"Wrong guesses only burn 4s, not 5",            multi:false, cost:2,
    long:"While this charm is in yer hold, a wrong guess only knocks 4 seconds off the fuse instead of 5, for the rest of the run."},
   {id:'hourglass',icon:'⌛',  name:"Davy's Hourglass", desc:"Freeze fuse 15 seconds",                       multi:true,  cost:3,
@@ -476,7 +474,7 @@ let lives,plunder,doubloons,round,timeLeft,timerMax;
 let timerInterval,fuseExpires=0,gameOver=false,isBoss=false;
 let selCell=null;
 let frozen=false,freezeTid=null;
-let pardon=false,gambleOn=false,gambleMoves=0;
+let gambleOn=false,gambleMoves=0;
 let sonarOn=false,compassOn=false,compassUses=0,trackerOn=false,luckyOn=false,cannonOn=false,streak=0,kegCells=[],kegPlacing=false,painterPicking=false;
 let inv={};           // {id: total owned count}
 let surfaced={};      // {id: how many charges currently visible/usable}
@@ -497,7 +495,7 @@ function startRound(){
   round++;
   isBoss=(round%4===0);
   gameOver=false;selCell=null;
-  pardon=false;gambleOn=false;gambleMoves=0;
+  gambleOn=false;gambleMoves=0;
   sonarOn=false;compassOn=false;compassUses=0;cannonOn=false;streak=0;kegCells=[];kegPlacing=false;painterPicking=false;
   frozen=false;clearTimeout(freezeTid);fuseExpires=0;
   surfaced={};lastMilestone=0; // all charges hidden at round start, milestones re-surface them
@@ -722,8 +720,7 @@ function place(n,cell){
     if(checkWin()){clearInterval(timerInterval);setTimeout(showShop,400);}
   } else {
     streak=0;updateStreak();
-    if(pardon){pardon=false;refreshPanelBtn('anchor');}
-    else if(gambleOn){
+    if(gambleOn){
       gambleOn=false;gambleMoves=0;document.getElementById('gamble-ind').style.display='none';refreshPanelBtn('gamble');
       lives--;updateHearts();shakeHeart(lives);resetTimer();
       showToast('🎲 Gamble busted — crew lost!',1600);
@@ -899,7 +896,6 @@ function isPowActive(id){
     case 'cannon':return cannonOn;
     case 'keg':return kegPlacing;
     case 'painter':return painterPicking;
-    case 'anchor':return pardon;
     case 'hourglass':return frozen;
     case 'gamble':return gambleOn;
     case 'tally':return trackerOn;
@@ -1056,13 +1052,6 @@ function activatePow(id){
       plunder+=10;updateScoreEl();checkMilestone();
       if(trackerOn)updateTracker();
       if(checkWin()){clearInterval(timerInterval);setTimeout(showShop,400);}
-      break;}
-
-    case 'anchor':{
-      if(pardon){showToast('⚓ A pardon is already ready!');return;}
-      consumeCharge(id);refreshPanelBtn(id);pardon=true;
-      if(btn)btn.classList.add('active-effect');
-      showToast('⚓ Pardon ready — yer next wrong guess is forgiven');
       break;}
 
     case 'hourglass':{
