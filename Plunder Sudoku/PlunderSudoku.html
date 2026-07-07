@@ -1,0 +1,1298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PLUNDER SUDOKU — Roguelite</title>
+<link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=IM+Fell+English:ital@0;1&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#1a1208;--surface:#221a0a;--panel:#2a1f0e;
+  --border:#4a3820;--border-bright:#6a5030;
+  --gold:#c8922a;--gold-glow:#e8b84a;--amber:#d4701a;
+  --neon:#2ab8a0;--neon-dim:#1a6858;
+  --red:#cc2222;--green:#4a9a5a;
+  --text:#e8d8a8;--text-dim:#8a7050;
+  --cell-bg:#201608;--cell-given:#180e04;
+  --cell-highlight:#2e2010;
+  --timer-warn:#cc6622;--timer-crit:#cc1111;
+  --grid-thick:2px;--grid-thin:1px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Courier Prime',monospace;
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;overflow-x:hidden;position:relative;}
+body::before{content:'';position:fixed;inset:0;
+  background:radial-gradient(ellipse 90% 50% at 10% 0%,rgba(20,60,80,.18) 0%,transparent 55%),
+             radial-gradient(ellipse 70% 70% at 90% 100%,rgba(100,60,10,.12) 0%,transparent 55%);
+  pointer-events:none;}
+
+/* HEADER */
+.header{text-align:center;margin-bottom:10px;position:relative;z-index:1;}
+.title{font-family:'IM Fell English',serif;font-style:italic;font-size:11px;letter-spacing:.3em;color:var(--text-dim);}
+.subtitle{font-size:36px;font-family:'Pirata One',cursive;color:var(--gold);letter-spacing:.1em;
+  text-shadow:2px 3px 0 rgba(0,0,0,.6),0 0 30px rgba(200,146,42,.35);line-height:1;}
+
+/* ROUND BANNER */
+.round-banner{display:flex;align-items:center;justify-content:center;gap:14px;
+  width:min(614px,95vw);margin-bottom:6px;position:relative;z-index:1;flex-wrap:wrap;}
+.round-tag{font-family:'Pirata One',cursive;font-size:14px;color:var(--gold-glow);letter-spacing:.1em;}
+.round-tag.boss{color:var(--red);text-shadow:0 0 14px rgba(200,30,30,.6);animation:bossFlicker .8s ease infinite alternate;}
+@keyframes bossFlicker{from{opacity:1}to{opacity:.7}}
+.round-sep{color:var(--border-bright);font-size:11px;}
+
+/* STATUS BAR */
+.status-bar{display:flex;align-items:center;justify-content:space-between;
+  width:min(614px,95vw);margin-bottom:10px;padding:8px 16px;
+  background:linear-gradient(180deg,#2e2210 0%,#221808 100%);
+  border:2px solid var(--border-bright);border-radius:2px;
+  box-shadow:inset 0 1px 0 rgba(200,146,42,.15),0 3px 12px rgba(0,0,0,.5);
+  position:relative;z-index:1;}
+.lives{display:flex;gap:5px;align-items:center;}
+.life-label{font-family:'IM Fell English',serif;font-style:italic;font-size:10px;color:var(--text-dim);letter-spacing:.15em;margin-right:4px;}
+.heart{width:20px;height:20px;font-size:17px;display:flex;align-items:center;justify-content:center;transition:all .3s;}
+.heart.lost{opacity:.18;filter:grayscale(1);}
+.heart.shake{animation:heartShake .5s ease;}
+@keyframes heartShake{0%,100%{transform:scale(1) rotate(0)}20%{transform:scale(1.4) rotate(-10deg)}40%{transform:scale(.9) rotate(10deg)}60%{transform:scale(1.2) rotate(-5deg)}80%{transform:scale(1) rotate(3deg)}}
+.timer-wrap{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.timer-label{font-size:9px;color:var(--text-dim);letter-spacing:.25em;font-family:'IM Fell English',serif;font-style:italic;}
+.timer-display{font-size:22px;font-weight:700;font-family:'Pirata One',cursive;color:var(--gold);letter-spacing:.1em;transition:color .3s;text-shadow:0 0 12px rgba(200,146,42,.5);}
+.timer-display.warn{color:var(--timer-warn);text-shadow:0 0 12px rgba(204,102,34,.6);}
+.timer-display.crit{color:var(--timer-crit);text-shadow:0 0 16px rgba(204,17,17,.8);animation:timerPulse .5s ease infinite alternate;}
+@keyframes timerPulse{from{opacity:1}to{opacity:.6}}
+.timer-bar-wrap{width:100px;height:14px;position:relative;display:flex;align-items:center;}
+.timer-bar{height:6px;border-radius:2px 3px 3px 2px;
+  background:repeating-linear-gradient(90deg,#6b4c1e 0px,#6b4c1e 3px,#4a3010 3px,#4a3010 6px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.1),inset 0 -1px 0 rgba(0,0,0,.4);
+  transition:width .2s linear;position:relative;z-index:1;}
+.timer-bar::after{content:'';position:absolute;right:-4px;top:50%;transform:translateY(-50%);
+  width:8px;height:8px;border-radius:50%;
+  background:radial-gradient(circle,#fff 0%,#ffdd00 30%,#ff6600 60%,transparent 100%);
+  box-shadow:0 0 6px 3px rgba(255,120,0,.8),0 0 12px 5px rgba(255,60,0,.4);
+  animation:emberPulse .15s ease-in-out infinite alternate;}
+.timer-bar::before{content:'';position:absolute;right:-3px;top:-8px;width:4px;height:10px;
+  background:linear-gradient(to top,rgba(180,120,60,.6),transparent);border-radius:50%;
+  animation:smokeRise .6s ease-in-out infinite alternate;transform-origin:bottom center;}
+@keyframes emberPulse{from{opacity:1;box-shadow:0 0 6px 3px rgba(255,120,0,.9),0 0 14px 6px rgba(255,60,0,.5)}to{opacity:.8;box-shadow:0 0 4px 2px rgba(255,100,0,.6),0 0 10px 4px rgba(255,40,0,.3)}}
+@keyframes smokeRise{from{transform:translateX(-1px) scaleX(.8);opacity:.5}to{transform:translateX(1px) scaleX(1.2);opacity:.1}}
+.timer-bar-wrap::before{content:'';position:absolute;left:0;height:3px;width:100%;
+  background:repeating-linear-gradient(90deg,#1a0e04 0px,#1a0e04 4px,#120a02 4px,#120a02 8px);
+  border-radius:2px;z-index:0;}
+.timer-bar.fuse-warn::after{animation-duration:.08s;box-shadow:0 0 8px 4px rgba(255,140,0,1),0 0 18px 8px rgba(255,80,0,.6);}
+.timer-bar.fuse-crit::after{animation-duration:.05s;width:11px;height:11px;box-shadow:0 0 10px 6px rgba(255,60,0,1),0 0 22px 10px rgba(255,0,0,.7);}
+.timer-bar.frozen{background:repeating-linear-gradient(90deg,#2a6888 0px,#2a6888 3px,#1a4858 3px,#1a4858 6px);}
+.timer-bar.frozen::after{background:radial-gradient(circle,#fff 0%,#aaeeff 40%,#44aacc 70%,transparent 100%);box-shadow:0 0 8px 4px rgba(100,200,255,.8);animation:none;}
+.timer-bar.frozen::before{display:none;}
+.score-wrap{text-align:right;}
+.streak-display{font-family:'Pirata One',cursive;font-size:11px;text-align:right;margin-top:2px;letter-spacing:.05em;animation:streakPop .25s cubic-bezier(.34,1.56,.64,1);}
+@keyframes streakPop{from{transform:scale(.7);opacity:.4}to{transform:scale(1);opacity:1}}
+.streak-x2{color:#f0c040;}
+.streak-x3{color:#ff8c00;text-shadow:0 0 8px rgba(255,140,0,.7);}
+.streak-x4{color:#ff4400;text-shadow:0 0 10px rgba(255,68,0,.8);}
+.streak-x5{color:#ff00aa;text-shadow:0 0 12px rgba(255,0,170,.9);animation:streakPop .25s cubic-bezier(.34,1.56,.64,1),streakFlicker .4s ease infinite alternate;}
+@keyframes streakFlicker{from{opacity:1}to{opacity:.7}}
+/* Grid glow on streak */
+.sudoku-grid.streak-2{box-shadow:0 0 0 1px rgba(240,192,64,.3),0 0 0 5px #1a1208,0 0 0 7px rgba(100,70,20,.4),0 0 25px rgba(240,192,64,.2),inset 0 0 60px rgba(0,0,0,.5);}
+.sudoku-grid.streak-3{box-shadow:0 0 0 1px rgba(255,140,0,.4),0 0 0 5px #1a1208,0 0 0 7px rgba(120,60,0,.5),0 0 35px rgba(255,140,0,.3),inset 0 0 60px rgba(0,0,0,.5);}
+.sudoku-grid.streak-4{box-shadow:0 0 0 1px rgba(255,68,0,.5),0 0 0 5px #1a0e08,0 0 0 7px rgba(150,40,0,.5),0 0 45px rgba(255,68,0,.4),inset 0 0 60px rgba(0,0,0,.5);}
+.sudoku-grid.streak-5{box-shadow:0 0 0 2px rgba(255,0,170,.6),0 0 0 5px #1a0818,0 0 0 7px rgba(150,0,100,.5),0 0 55px rgba(255,0,170,.5),inset 0 0 60px rgba(0,0,0,.5);animation:gridStreakPulse .6s ease infinite alternate;}
+@keyframes gridStreakPulse{from{box-shadow:0 0 0 2px rgba(255,0,170,.6),0 0 0 5px #1a0818,0 0 0 7px rgba(150,0,100,.5),0 0 55px rgba(255,0,170,.5),inset 0 0 60px rgba(0,0,0,.5)}to{box-shadow:0 0 0 2px rgba(255,0,170,.9),0 0 0 5px #1a0818,0 0 0 7px rgba(150,0,100,.5),0 0 80px rgba(255,0,170,.7),inset 0 0 60px rgba(0,0,0,.5)}}
+.score-label{font-size:9px;color:var(--text-dim);letter-spacing:.25em;font-family:'IM Fell English',serif;font-style:italic;}
+.score-val{font-size:20px;color:var(--neon);text-shadow:0 0 10px rgba(42,184,160,.4);font-family:'Pirata One',cursive;}
+.gamble-indicator{position:absolute;top:-10px;left:50%;transform:translateX(-50%);
+  font-family:'Pirata One',cursive;font-size:10px;color:var(--amber);
+  background:var(--panel);border:1px solid var(--amber);padding:1px 8px;white-space:nowrap;display:none;}
+
+/* GAME ROW */
+.game-row{display:flex;align-items:flex-start;gap:14px;position:relative;z-index:1;}
+
+/* POWERUP PANEL */
+.powerup-panel{display:flex;flex-direction:column;gap:8px;width:90px;padding-top:4px;}
+.powerup-label{font-family:'IM Fell English',serif;font-style:italic;font-size:10px;color:var(--text-dim);
+  letter-spacing:.15em;text-align:center;opacity:0;transition:opacity .5s;}
+.powerup-panel.has-power .powerup-label{opacity:1;}
+.powerup-btn{display:none;flex-direction:column;align-items:center;gap:3px;
+  background:linear-gradient(160deg,#2e2210 0%,#1e1608 100%);border:2px solid var(--gold);
+  padding:8px 6px;cursor:pointer;transition:all .3s;position:relative;overflow:hidden;
+  animation:powerupAppear .5s cubic-bezier(.34,1.56,.64,1);}
+.powerup-btn.visible{display:flex;}
+.powerup-btn::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(200,146,42,.08) 0%,transparent 60%);pointer-events:none;}
+.powerup-btn:hover:not(:disabled){border-color:var(--gold-glow);box-shadow:0 0 16px rgba(200,146,42,.4);transform:translateY(-2px);}
+.powerup-btn:disabled{opacity:.35;cursor:default;border-color:var(--border);transform:none;box-shadow:none;}
+.powerup-btn.locked{filter:grayscale(1);opacity:.45;}
+.powerup-btn.locked:hover{transform:none;box-shadow:none;border-color:var(--border-bright);}
+.powerup-btn.active-effect{border-color:var(--neon);box-shadow:0 0 12px rgba(42,184,160,.5);}
+@keyframes powerupAppear{from{opacity:0;transform:scale(.6) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.powerup-icon{font-size:26px;line-height:1;filter:drop-shadow(0 0 4px rgba(200,146,42,.5));}
+.powerup-name{font-family:'Pirata One',cursive;font-size:10px;color:var(--gold);text-align:center;line-height:1.2;}
+.pow-lock{font-size:10px;opacity:.85;}
+.pow-quick{width:100%;margin-top:2px;padding:2px 0;display:flex;align-items:center;justify-content:center;
+  background:rgba(200,146,42,.12);border:1px solid var(--gold);border-radius:2px;color:var(--gold-glow);
+  font-family:'Pirata One',cursive;font-size:11px;line-height:1.4;cursor:pointer;z-index:2;transition:all .15s;}
+.pow-quick:hover{background:var(--gold);color:#1a0e04;box-shadow:0 0 10px rgba(200,146,42,.7);}
+.tracker-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin-top:4px;width:100%;}
+.tracker-num{font-family:'Pirata One',cursive;font-size:13px;text-align:center;padding:3px 0;border-radius:2px;
+  border:1px solid var(--border);background:rgba(0,0,0,.3);color:var(--text-dim);transition:all .4s;line-height:1;}
+.tracker-num.done{color:#111;border-color:#222;background:#111;text-shadow:none;}
+
+/* GRID */
+.grid-wrap{position:relative;z-index:1;flex-shrink:0;}
+.sudoku-grid{display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr);
+  width:min(500px,calc(95vw - 110px));height:min(500px,calc(95vw - 110px));aspect-ratio:1;
+  border:3px solid var(--gold);
+  box-shadow:0 0 0 1px rgba(200,146,42,.2),0 0 0 5px #1a1208,0 0 0 7px rgba(100,70,20,.4),0 8px 40px rgba(0,0,0,.7),inset 0 0 60px rgba(0,0,0,.5);
+  background:var(--cell-bg);position:relative;}
+.sudoku-grid.boss-grid{border-color:var(--red);
+  box-shadow:0 0 0 1px rgba(200,30,30,.3),0 0 0 5px #1a0808,0 0 0 7px rgba(150,20,20,.4),0 8px 40px rgba(0,0,0,.7),0 0 30px rgba(180,20,20,.2),inset 0 0 60px rgba(0,0,0,.5);}
+.cell{position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer;
+  font-size:clamp(25px,6.5vw,34px);line-height:1;font-family:'Courier Prime',monospace;font-weight:700;
+  color:var(--text);background:var(--cell-bg);
+  border-right:var(--grid-thin) solid var(--border);border-bottom:var(--grid-thin) solid var(--border);
+  user-select:none;transition:background .15s,color .15s;-webkit-tap-highlight-color:transparent;}
+.cell:nth-child(9n+1){border-left:none}.cell:nth-child(-n+9){border-top:none}
+.cell[data-col="2"],.cell[data-col="5"]{border-right:var(--grid-thick) solid var(--gold)}
+.cell[data-row="2"],.cell[data-row="5"]{border-bottom:var(--grid-thick) solid var(--gold)}
+.cell[data-col="8"]{border-right:none}.cell[data-row="8"]{border-bottom:none}
+.cell.given{color:var(--gold-glow);background:var(--cell-given);cursor:default;font-weight:700;}
+.cell.selected{background:var(--cell-highlight)!important;outline:2px solid var(--neon);outline-offset:-2px;z-index:2;}
+.cell.correct{animation:correctFlash .4s ease;}
+.cell.wrong{background:rgba(160,20,20,.4)!important;color:#ff6060!important;box-shadow:inset 0 0 0 1px rgba(200,40,40,.5);animation:wrongShake .4s ease;}
+@keyframes correctFlash{0%{filter:brightness(2.5)}100%{filter:brightness(1)}}
+@keyframes wrongShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-4px)}40%{transform:translateX(4px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+.cell.hi-row,.cell.hi-col{background:#231a0d;}
+.cell.hi-box{background:#1f1609;}
+.cell.same-num{color:var(--amber)!important;}
+.cell.naked-hint{outline:2px solid var(--neon)!important;outline-offset:-2px;animation:nakedPulse .8s ease infinite alternate;z-index:3;}
+@keyframes nakedPulse{from{outline-color:var(--neon-dim)}to{outline-color:var(--neon)}}
+.cell.pair-hl{outline:2px solid var(--gold-glow)!important;outline-offset:-2px;animation:pairPulse 1s ease infinite alternate;z-index:3;}
+@keyframes pairPulse{from{outline-color:var(--gold);box-shadow:inset 0 0 8px rgba(200,146,42,.2)}to{outline-color:var(--gold-glow);box-shadow:inset 0 0 14px rgba(232,184,74,.35)}}
+.cell.sonar-hl{outline:2px solid var(--amber)!important;outline-offset:-2px;z-index:3;}
+.sudoku-grid.keg-placing .cell:not(.given){cursor:crosshair;}
+.sudoku-grid.keg-placing .cell:not(.given):hover{outline:2px dashed #ff8800!important;outline-offset:-2px;}
+.sudoku-grid.painter-picking .cell{cursor:crosshair;}
+.sudoku-grid.painter-picking .cell:hover{outline:2px dashed #ff66cc!important;outline-offset:-2px;}
+.cell.keg-cell::after{content:'🧨';position:absolute;top:1px;right:2px;font-size:8px;pointer-events:none;z-index:5;}
+@keyframes kegPulse{from{outline-color:#ff4400;box-shadow:inset 0 0 10px rgba(255,68,0,.3)}to{outline-color:#ffaa00;box-shadow:inset 0 0 16px rgba(255,170,0,.4)}}
+.pair-hint-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:clamp(10px,1.8vw,15px);font-family:'Pirata One',cursive;color:var(--gold-glow);
+  pointer-events:none;text-shadow:0 0 6px rgba(232,184,74,.9),0 1px 3px rgba(0,0,0,.8);z-index:4;}
+.compass-grid{position:absolute;inset:1px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);pointer-events:none;z-index:4;}
+.compass-num{display:flex;align-items:center;justify-content:center;font-size:clamp(8px,1.4vw,13px);font-family:'Pirata One',cursive;color:var(--neon);opacity:.9;text-shadow:0 0 6px rgba(42,184,160,.9);font-weight:700;}
+
+/* DIAL */
+#dial-overlay{position:fixed;inset:0;z-index:100;pointer-events:none;}
+#dial-overlay.active{pointer-events:all;}
+.dial-bg{position:absolute;border-radius:50%;
+  background:radial-gradient(circle,rgba(40,28,10,.97) 0%,rgba(20,12,4,.96) 100%);
+  border:2px solid var(--gold);
+  box-shadow:0 0 0 1px rgba(200,146,42,.2),0 8px 60px rgba(0,0,0,.9),inset 0 0 20px rgba(0,0,0,.5);
+  transform:translate(-50%,-50%);pointer-events:all;}
+.dial-cancel{position:absolute;border-radius:50%;transform:translate(-50%,-50%);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-size:11px;
+  font-family:'IM Fell English',serif;font-style:italic;}
+.dial-num{position:absolute;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:18px;font-family:'Pirata One',cursive;color:var(--text);
+  background:var(--panel);border:1px solid var(--border-bright);cursor:pointer;
+  transform:translate(-50%,-50%);transition:all .12s ease;pointer-events:all;z-index:101;}
+.dial-num:hover{background:var(--gold);color:#1a0e04;border-color:var(--gold-glow);
+  box-shadow:0 0 16px rgba(200,146,42,.7);transform:translate(-50%,-50%) scale(1.25);}
+
+/* HINT BAR */
+.hint-bar{width:min(614px,95vw);text-align:center;margin-top:10px;font-size:11px;
+  font-family:'IM Fell English',serif;font-style:italic;color:var(--text-dim);letter-spacing:.1em;position:relative;z-index:1;}
+#btn-quit{background:transparent;border:1px solid var(--border-bright);color:var(--text-dim);
+  font-family:'IM Fell English',serif;font-style:italic;font-size:11px;padding:2px 10px;cursor:pointer;transition:all .2s;}
+#btn-quit:hover{border-color:var(--red);color:var(--red);}
+
+/* MODALS */
+.modal-bg{position:fixed;inset:0;background:rgba(5,3,1,.88);z-index:200;display:flex;
+  align-items:center;justify-content:center;backdrop-filter:blur(6px);
+  opacity:0;pointer-events:none;transition:opacity .4s;}
+.modal-bg.visible{opacity:1;pointer-events:all;}
+.modal{background:linear-gradient(160deg,#2e2210 0%,#1e1608 100%);
+  border:2px solid var(--gold);border-top:3px solid var(--gold-glow);
+  padding:36px 44px;text-align:center;max-width:480px;width:92%;
+  box-shadow:0 0 0 1px rgba(200,146,42,.1),0 0 0 8px rgba(10,8,2,.8),0 20px 80px rgba(0,0,0,.8);
+  position:relative;}
+.modal.boss-modal{border-color:var(--red);border-top-color:#ff4444;}
+.corner{position:absolute;font-size:14px;opacity:.35;line-height:1;}
+.corner.tl{top:8px;left:10px}.corner.tr{top:8px;right:10px}
+.corner.bl{bottom:8px;left:10px}.corner.br{bottom:8px;right:10px}
+.modal-glyph{font-size:48px;margin-bottom:10px;display:block;}
+.modal-title{font-family:'Pirata One',cursive;font-size:28px;color:var(--gold);letter-spacing:.1em;margin-bottom:6px;text-shadow:2px 2px 0 rgba(0,0,0,.5);}
+.modal-sub{font-family:'IM Fell English',serif;font-style:italic;font-size:13px;color:var(--text-dim);margin-bottom:16px;line-height:1.8;white-space:pre-line;}
+.modal-score{font-family:'Pirata One',cursive;font-size:36px;color:var(--neon);text-shadow:0 0 20px rgba(42,184,160,.5);margin-bottom:20px;}
+.btn-primary{background:transparent;border:2px solid var(--gold);color:var(--gold);
+  font-family:'Pirata One',cursive;font-size:16px;letter-spacing:.2em;padding:10px 32px;
+  cursor:pointer;transition:all .2s;display:block;margin:0 auto;}
+.btn-primary:hover{background:var(--gold);color:#1a0e04;box-shadow:0 0 20px rgba(200,146,42,.5);}
+
+/* SHOP */
+.shop-title{font-family:'Pirata One',cursive;font-size:22px;color:var(--gold);margin-bottom:4px;}
+.shop-doubloons{font-family:'Pirata One',cursive;font-size:28px;color:var(--gold-glow);
+  text-shadow:0 0 16px rgba(232,184,74,.6);margin-bottom:10px;letter-spacing:.05em;}
+.shop-sub{font-family:'IM Fell English',serif;font-style:italic;font-size:12px;color:var(--text-dim);margin-bottom:16px;}
+.shop-grid{display:flex;gap:10px;justify-content:center;margin-bottom:16px;flex-wrap:wrap;}
+.shop-item{background:linear-gradient(160deg,#2e2210 0%,#1e1608 100%);
+  border:2px solid var(--border-bright);padding:12px 8px;width:124px;cursor:pointer;
+  transition:all .2s;text-align:center;}
+.shop-item:hover:not(.cant-buy){border-color:var(--gold);box-shadow:0 0 16px rgba(200,146,42,.3);transform:translateY(-2px);}
+.shop-item.selected{border-color:var(--gold-glow);box-shadow:0 0 20px rgba(232,184,74,.5);background:linear-gradient(160deg,#3a2a14 0%,#2a1e0c 100%);}
+.shop-item.cant-buy{opacity:.45;}
+.shop-icon{font-size:26px;display:block;margin-bottom:5px;}
+.shop-name{font-family:'Pirata One',cursive;font-size:12px;color:var(--gold);margin-bottom:3px;}
+.shop-desc{font-family:'IM Fell English',serif;font-style:italic;font-size:10.5px;color:var(--text-dim);line-height:1.4;margin-bottom:5px;}
+.shop-badge{font-size:8px;font-family:'Courier Prime',monospace;padding:2px 5px;border-radius:2px;display:inline-block;}
+.shop-badge.new-badge{background:rgba(42,184,160,.2);color:var(--neon);border:1px solid var(--neon);}
+.shop-badge.owned-badge{background:rgba(200,146,42,.2);color:var(--gold);border:1px solid var(--gold);}
+.next-info{font-family:'IM Fell English',serif;font-style:italic;font-size:11px;color:var(--text-dim);margin-bottom:12px;}
+/* POWERUP DETAIL OVERLAY */
+.pow-overlay{position:fixed;inset:0;z-index:300;opacity:0;pointer-events:none;transition:opacity .2s;}
+.pow-overlay.visible{opacity:1;pointer-events:all;}
+.pow-card{position:absolute;max-width:260px;width:88vw;text-align:left;padding:16px 18px;
+  background:linear-gradient(160deg,#2e2210 0%,#1e1608 100%);
+  border:2px solid var(--gold);border-top:3px solid var(--gold-glow);
+  box-shadow:0 0 0 1px rgba(200,146,42,.1),0 12px 40px rgba(0,0,0,.7);}
+.pow-icon-big{font-size:30px;display:block;margin-bottom:4px;filter:drop-shadow(0 0 8px rgba(200,146,42,.5));}
+.pow-title{font-family:'Pirata One',cursive;font-size:19px;color:var(--gold);letter-spacing:.05em;
+  margin-bottom:6px;text-shadow:1px 1px 0 rgba(0,0,0,.5);}
+.pow-long{font-size:13px;line-height:1.45;color:var(--text);font-family:'IM Fell English',serif;margin-bottom:10px;}
+.pow-meta{font-size:10.5px;color:var(--text-dim);font-family:'Courier Prime',monospace;letter-spacing:.05em;margin-bottom:12px;}
+.pow-card .btn-primary{padding:7px 18px;font-size:12px;margin:0;}
+.pow-card .btn-primary:disabled{opacity:.4;cursor:default;}
+.pow-card .btn-primary:disabled:hover{background:transparent;color:var(--gold);box-shadow:none;}
+.pow-card .btn-buy-cant{border-color:var(--red);color:var(--red);}
+.pow-card .btn-buy-cant:hover{background:transparent;color:var(--red);box-shadow:none;}
+
+/* TOASTS */
+#toast-wrap{position:fixed;bottom:64px;left:50%;transform:translateX(-50%);z-index:400;
+  display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;}
+.toast{background:linear-gradient(160deg,#2e2210 0%,#1e1608 100%);border:1px solid var(--gold);
+  color:var(--text);font-family:'IM Fell English',serif;font-style:italic;font-size:14px;
+  padding:8px 20px;box-shadow:0 4px 20px rgba(0,0,0,.6),0 0 12px rgba(200,146,42,.2);
+  animation:toastIn .25s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis;}
+.toast.out{opacity:0;transform:translateY(8px);transition:opacity .4s,transform .4s;}
+@keyframes toastIn{from{opacity:0;transform:translateY(12px) scale(.9)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+/* MOBILE */
+@media (max-width:640px){
+  .game-row{flex-direction:column;align-items:center;gap:10px;}
+  .sudoku-grid{width:min(95vw,500px);height:min(95vw,500px);}
+  .powerup-panel{flex-direction:row;width:min(95vw,500px);overflow-x:auto;padding:4px 2px;gap:6px;}
+  .powerup-label{display:none;}
+  .powerup-btn{flex:0 0 auto;width:76px;}
+  .modal-title{font-size:22px;}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="title">☠ The Navigator's Cipher ☠</div>
+  <div class="subtitle">PLUNDER SUDOKU</div>
+</div>
+
+<div class="round-banner">
+  <span class="round-tag" id="round-tag">Round 1</span>
+  <span class="round-sep">·</span>
+  <span id="clues-tag" style="font-family:'IM Fell English',serif;font-style:italic;font-size:12px;color:var(--text-dim);">50 clues</span>
+  <span class="round-sep">·</span>
+  <span id="fuse-tag" style="font-family:'IM Fell English',serif;font-style:italic;font-size:12px;color:var(--text-dim);">20s fuse</span>
+</div>
+
+<div class="status-bar">
+  <div class="gamble-indicator" id="gamble-ind">🎲 GAMBLE — <span id="gamble-left">3</span> moves</div>
+  <div class="lives">
+    <span class="life-label">CREW</span>
+    <div class="heart" id="h1">💀</div><div class="heart" id="h2">💀</div>
+    <div class="heart" id="h3">💀</div><div class="heart" id="h4">💀</div>
+    <div class="heart" id="h5">💀</div>
+  </div>
+  <div class="timer-wrap">
+    <div class="timer-label">⏳ Fuse Burnin'</div>
+    <div class="timer-display" id="timer-display">20</div>
+    <div class="timer-bar-wrap"><div class="timer-bar" id="timer-bar"></div></div>
+  </div>
+  <div class="score-wrap">
+    <div class="score-label">🏴‍☠️ Plunder</div>
+    <div class="score-val" id="score-display">0000</div>
+    <div class="streak-display" id="streak-display" style="display:none;"></div>
+  </div>
+</div>
+
+<div class="game-row">
+  <div class="grid-wrap">
+    <div class="sudoku-grid" id="grid"></div>
+  </div>
+  <div class="powerup-panel" id="powerup-panel">
+    <div class="powerup-label">⚗ Powers</div>
+  </div>
+</div>
+
+<div class="hint-bar">
+  💣 TAP A CELL · SPIN THE COMPASS · OR TYPE 1–9 &nbsp;·&nbsp;
+  <button id="btn-quit" onclick="quitToMenu()">🏴‍☠️ Abandon Ship</button>
+</div>
+
+<!-- Toasts -->
+<div id="toast-wrap"></div>
+
+<!-- Powerup Detail Overlay -->
+<div class="pow-overlay" id="pow-detail">
+  <div class="pow-card">
+    <span class="pow-icon-big" id="pd-icon"></span>
+    <div class="pow-title" id="pd-name"></div>
+    <div class="pow-long" id="pd-long"></div>
+    <div class="pow-meta" id="pd-meta"></div>
+    <button class="btn-primary" id="pd-action"></button>
+  </div>
+</div>
+
+<!-- Dial -->
+<div id="dial-overlay">
+  <div class="dial-bg" id="dial-bg" style="display:none;"></div>
+  <div class="dial-cancel" id="dial-cancel" style="display:none;"></div>
+</div>
+
+<!-- Start Modal -->
+<div class="modal-bg" id="modal-start">
+  <div class="modal">
+    <div class="corner tl">☠</div><div class="corner tr">☠</div>
+    <div class="corner bl">⚓</div><div class="corner br">⚓</div>
+    <span class="modal-glyph">💣</span>
+    <div class="modal-title">PLUNDER SUDOKU</div>
+    <div class="modal-sub">Survive the numbered seas, scallywag.
+Complete each round to earn a power-up.
+Every 4th round: Boss Round — fuse burns faster.
+Lose all 5 crew and meet Davy Jones.</div>
+    <button class="btn-primary" id="btn-start">⚓ SET SAIL</button>
+  </div>
+</div>
+
+<!-- Shop Modal -->
+<div class="modal-bg" id="modal-shop">
+  <div class="modal">
+    <div class="corner tl">☠</div><div class="corner tr">☠</div>
+    <div class="corner bl">⚓</div><div class="corner br">⚓</div>
+    <span class="modal-glyph" id="shop-glyph">🏴‍☠️</span>
+    <div class="shop-title" id="shop-title">ROUND COMPLETE!</div>
+    <div class="shop-doubloons">🪙 <span id="shop-doubloon-count">0</span> Doubloons</div>
+    <div class="shop-sub" id="shop-sub">Tap an item to inspect &amp; buy:</div>
+    <div class="shop-grid" id="shop-grid"></div>
+    <div class="next-info" id="next-info"></div>
+    <button class="btn-primary" id="btn-next-round">⚓ NEXT ROUND</button>
+  </div>
+</div>
+
+<!-- Game Over Modal -->
+<div class="modal-bg" id="modal-over">
+  <div class="modal">
+    <div class="corner tl">☠</div><div class="corner tr">☠</div>
+    <div class="corner bl">⚓</div><div class="corner br">⚓</div>
+    <span class="modal-glyph">💀</span>
+    <div class="modal-title">DAVY JONES'ER LOCKER</div>
+    <div class="modal-sub" id="over-sub">Arr... the seas have claimed ye.</div>
+    <div class="modal-score" id="over-score"></div>
+    <button class="btn-primary" id="btn-restart">⚓ SAIL AGAIN</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+//  SUDOKU ENGINE
+// ═══════════════════════════════════════
+function genFull(){const b=Array.from({length:9},()=>Array(9).fill(0));fill(b);return b;}
+function fill(b){
+  for(let r=0;r<9;r++)for(let c=0;c<9;c++){
+    if(b[r][c]===0){
+      for(const n of shuffle([1,2,3,4,5,6,7,8,9])){
+        if(valid(b,r,c,n)){b[r][c]=n;if(fill(b))return true;b[r][c]=0;}
+      }return false;}}return true;}
+function valid(b,row,col,num){
+  for(let i=0;i<9;i++){if(b[row][i]===num||b[i][col]===num)return false;}
+  const br=Math.floor(row/3)*3,bc=Math.floor(col/3)*3;
+  for(let r=br;r<br+3;r++)for(let c=bc;c<bc+3;c++)if(b[r][c]===num)return false;
+  return true;}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=0|Math.random()*(i+1);[a[i],a[j]]=[a[j],a[i]];}return a;}
+function makePuzzle(sol,clues){
+  const p=sol.map(r=>[...r]),cells=[];
+  for(let r=0;r<9;r++)for(let c=0;c<9;c++)cells.push([r,c]);
+  shuffle(cells);let rm=0,tgt=81-clues;
+  for(const[r,c]of cells){if(rm>=tgt)break;p[r][c]=0;rm++;}return p;}
+
+const NUM_COLORS={
+  1:{bg:'rgba(180,60,60,.22)',  b:'rgba(180,60,60,.45)'},
+  2:{bg:'rgba(180,110,40,.22)', b:'rgba(180,110,40,.45)'},
+  3:{bg:'rgba(160,150,30,.22)', b:'rgba(160,150,30,.45)'},
+  4:{bg:'rgba(50,150,80,.22)',  b:'rgba(50,150,80,.45)'},
+  5:{bg:'rgba(40,160,160,.22)', b:'rgba(40,160,160,.45)'},
+  6:{bg:'rgba(50,100,200,.22)', b:'rgba(50,100,200,.45)'},
+  7:{bg:'rgba(120,60,200,.22)', b:'rgba(120,60,200,.45)'},
+  8:{bg:'rgba(180,50,160,.22)', b:'rgba(180,50,160,.45)'},
+  9:{bg:'rgba(180,60,110,.22)', b:'rgba(180,60,110,.45)'},
+};
+
+// ═══════════════════════════════════════
+//  POWER-UP DEFINITIONS
+// ═══════════════════════════════════════
+const POWERUPS=[
+  {id:'spyglass', icon:'👁',  name:"Spy Glass",       desc:"Reveal all hidden pairs",                      multi:false, cost:3,
+   long:"Highlights pairs of cells that can only hold the same two numbers between them."},
+  {id:'tally',    icon:'📜',  name:"Tally Board",      desc:"Live tracker of completed numbers",            multi:false, cost:1,
+   long:"Adds a tracker for the rest of the run. Each number blacks out once all 9 copies are placed correctly."},
+  {id:'crows',    icon:'🔭',  name:"Crow's Nest",      desc:"Highlight cells with only one answer",         multi:false, cost:1,
+   long:"Marks every empty cell that has only one number left it could possibly be."},
+  {id:'reckoning',icon:'💡',  name:"Dead Reckoning",   desc:"Reveal one correct cell free",                 multi:true,  cost:1,
+   long:"Instantly fills a random empty cell with the correct number, plus 10 plunder."},
+  {id:'anchor',   icon:'⚓',  name:"Iron Anchor",      desc:"One wrong guess forgiven",                     multi:true,  cost:2,
+   long:"Your next wrong guess won't cost a life. Covers one mistake."},
+  {id:'luckycharm',icon:'🍀', name:"Lucky Charm",      desc:"Wrong guesses only burn 4s, not 5",            multi:false, cost:2,
+   long:"While this charm is in yer hold, a wrong guess only knocks 4 seconds off the fuse instead of 5, for the rest of the run."},
+  {id:'hourglass',icon:'⌛',  name:"Davy's Hourglass", desc:"Freeze fuse 15 seconds",                       multi:true,  cost:3,
+   long:"Pauses the countdown timer for 15 seconds."},
+  {id:'compass',  icon:'🧭',  name:"The Compass",      desc:"Show all candidates for a cell",               multi:false, cost:2,
+   long:"Tap an empty cell to see every number that could legally go there. Works on up to 3 cells per round."},
+  {id:'sonar',    icon:'📡',  name:"Sonar Sweep",      desc:"Highlight cells sharing candidates",           multi:false, cost:2,
+   long:"Select an empty cell and every other empty cell that could take one of the same numbers lights up."},
+  {id:'gamble',   icon:'🎲',  name:"Pirate's Gamble",  desc:"2× plunder, 3 moves — wrong costs a life",     multi:true,  cost:3,
+   long:"Your next 3 correct moves earn double plunder. One wrong guess ends it early and costs a life instead of burning the fuse."},
+  {id:'treasure', icon:'💰',  name:"Treasure Chest",   desc:"Instantly gain 1000 plunder",                  multi:true,  cost:3,
+   long:"Instantly adds 1000 plunder to your score."},
+  {id:'cannon',   icon:'💣',  name:"Cannonball",       desc:"Correct guess fills all adjacent empty cells", multi:true,  cost:3,
+   long:"Your next correct guess also fills every empty cell touching it, +5 plunder each."},
+  {id:'keg',      icon:'🧨',  name:"Powder Keg",       desc:"Marks a cell — solve it to auto-fill easy ones", multi:true, cost:2,
+   long:"Mark an empty cell. Solve it correctly and every other cell with only one possible number fills in too, +8 plunder each."},
+  {id:'painter',  icon:'🎨',  name:"Colour Brush",     desc:"Tap a tile — paint every one of its number",   multi:true, cost:1,
+   long:"Tap a correctly filled tile. Every tile with that number gets colored for the rest of the round."},
+];
+
+// ═══════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════
+const BASE_CLUES=50, MIN_CLUES=22, BASE_FUSE=20, BOSS_PENALTY=5;
+let sol,puzzle,uBoard,given;
+let lives,plunder,doubloons,round,timeLeft,timerMax;
+let timerInterval,fuseExpires=0,gameOver=false,isBoss=false;
+let selCell=null;
+let frozen=false,freezeTid=null;
+let pardon=false,gambleOn=false,gambleMoves=0;
+let sonarOn=false,compassOn=false,compassUses=0,trackerOn=false,luckyOn=false,cannonOn=false,streak=0,kegCells=[],kegPlacing=false,painterPicking=false;
+let inv={};           // {id: total owned count}
+let surfaced={};      // {id: how many charges currently visible/usable}
+let coloredNums=new Set(); // numbers whose tiles have been painted via the Colour Brush powerup
+let lastMilestone=0;
+let dialCell=null,dialEls=[];
+
+// ═══════════════════════════════════════
+//  RUN / ROUND INIT
+// ═══════════════════════════════════════
+function startRun(){
+  lives=5;plunder=0;doubloons=0;round=0;inv={};surfaced={};coloredNums=new Set();fuseExpires=0;lastMilestone=0;
+  trackerOn=false;luckyOn=false;sonarOn=false;compassOn=false;compassUses=0;cannonOn=false;streak=0;kegCells=[];kegPlacing=false;painterPicking=false;
+  inv['crows']=1;inv['keg']=2;
+  startRound();
+}
+function startRound(){
+  round++;
+  isBoss=(round%4===0);
+  gameOver=false;selCell=null;
+  pardon=false;gambleOn=false;gambleMoves=0;
+  sonarOn=false;compassOn=false;compassUses=0;cannonOn=false;streak=0;kegCells=[];kegPlacing=false;painterPicking=false;
+  frozen=false;clearTimeout(freezeTid);fuseExpires=0;
+  surfaced={};lastMilestone=0; // all charges hidden at round start, milestones re-surface them
+  const clues=Math.max(MIN_CLUES,BASE_CLUES-(round-1));
+  timerMax=BASE_FUSE-(isBoss?BOSS_PENALTY:0);
+  sol=genFull();puzzle=makePuzzle(sol,clues);
+  uBoard=puzzle.map(r=>[...r]);given=puzzle.map(r=>r.map(v=>v!==0));
+  updateBanner(clues);updateHearts();updateScoreEl();updateStreak();
+  renderGrid();renderPanel();
+  if(trackerOn)buildTracker();
+  document.getElementById('gamble-ind').style.display='none';
+  clearInterval(timerInterval);resetTimer();startTimer();
+}
+
+function updateBanner(clues){
+  const rt=document.getElementById('round-tag');
+  rt.textContent=isBoss?`⚔ BOSS ROUND ${round} ⚔`:`Round ${round}`;
+  rt.className='round-tag'+(isBoss?' boss':'');
+  document.getElementById('clues-tag').textContent=clues+' clues';
+  document.getElementById('fuse-tag').textContent=timerMax+'s fuse';
+  document.getElementById('fuse-tag').style.color=isBoss?'var(--red)':'var(--text-dim)';
+  const g=document.getElementById('grid');
+  g.className='sudoku-grid'+(isBoss?' boss-grid':'');
+}
+
+// ═══════════════════════════════════════
+//  GRID RENDER
+// ═══════════════════════════════════════
+const gridEl=document.getElementById('grid');
+function getCell(r,c){return gridEl.querySelector(`[data-r="${r}"][data-c="${c}"]`);}
+
+function renderGrid(){
+  gridEl.innerHTML='';
+  for(let r=0;r<9;r++)for(let c=0;c<9;c++){
+    const el=document.createElement('div');
+    el.className='cell';el.dataset.r=r;el.dataset.c=c;el.dataset.row=r;el.dataset.col=c;
+    applyCell(el,r,c);
+    el.addEventListener('click',onCellClick);
+    gridEl.appendChild(el);
+  }
+}
+function applyCell(el,r,c){
+  const v=uBoard[r][c];
+  el.style.cssText='';
+  el.querySelectorAll('.pair-hint-label,.compass-grid').forEach(x=>x.remove());
+  el.classList.remove('given','correct','wrong');
+  if(given[r][c]){
+    el.classList.add('given');el.textContent=v;
+    if(coloredNums.has(v)){el.style.background=NUM_COLORS[v].bg;el.style.boxShadow=`inset 0 0 0 1px ${NUM_COLORS[v].b}`;}
+  } else if(v!==0){
+    const ok=v===sol[r][c];
+    el.classList.add(ok?'correct':'wrong');el.textContent=v;
+    if(ok&&coloredNums.has(v)){el.style.background=NUM_COLORS[v].bg;el.style.boxShadow=`inset 0 0 0 1px ${NUM_COLORS[v].b}`;}
+  } else {el.textContent='';}
+}
+function refreshCell(r,c){
+  const el=getCell(r,c);if(el){applyCell(el,r,c);if(kegCells.some(k=>k.r===r&&k.c===c)&&uBoard[r][c]===0)el.classList.add('keg-cell');}
+}
+function paintNumber(n){
+  coloredNums.add(n);
+  for(let r=0;r<9;r++)for(let c=0;c<9;c++)refreshCell(r,c);
+  painterPicking=false;
+  document.getElementById('grid').classList.remove('painter-picking');
+  refreshPanelBtn('painter');
+  document.querySelectorAll(`[id^="pwr-painter-"]`).forEach(b=>b.classList.remove('active-effect'));
+  showToast(`🎨 Every ${n} painted!`);
+}
+
+function applyHighlights(){
+  gridEl.querySelectorAll('.cell').forEach(el=>{
+    el.classList.remove('hi-row','hi-col','hi-box','same-num','sonar-hl','selected');
+  });
+  if(!selCell)return;
+  const{r,c}=selCell,sv=uBoard[r][c];
+  const selEl=getCell(r,c);if(selEl)selEl.classList.add('selected');
+  gridEl.querySelectorAll('.cell').forEach(el=>{
+    const er=+el.dataset.r,ec=+el.dataset.c;
+    if(er===r&&ec===c)return;
+    if(er===r)el.classList.add('hi-row');
+    if(ec===c)el.classList.add('hi-col');
+    if(Math.floor(er/3)===Math.floor(r/3)&&Math.floor(ec/3)===Math.floor(c/3))el.classList.add('hi-box');
+    if(sv!==0&&uBoard[er][ec]===sv)el.classList.add('same-num');
+  });
+  if(sonarOn&&sv===0){
+    const mine=getCands(r,c);
+    gridEl.querySelectorAll('.cell').forEach(el=>{
+      const er=+el.dataset.r,ec=+el.dataset.c;
+      if(er===r&&ec===c||uBoard[er][ec]!==0)return;
+      const theirs=getCands(er,ec);
+      if([...mine].some(n=>theirs.has(n)))el.classList.add('sonar-hl');
+    });
+  }
+}
+
+// ═══════════════════════════════════════
+//  CELL CLICK / DIAL
+// ═══════════════════════════════════════
+function onCellClick(){
+  if(gameOver)return;
+  const r=+this.dataset.r,c=+this.dataset.c;
+  // Colour Brush picking mode — click a filled tile to paint its number
+  if(painterPicking){
+    const v=uBoard[r][c];
+    if(!given[r][c]&&(v===0||v!==sol[r][c]))return; // must pick a tile showing a correct number
+    paintNumber(v);
+    return;
+  }
+  if(given[r][c])return;
+  // Keg placement mode — click places the keg, no dial
+  if(kegPlacing){
+    if(uBoard[r][c]!==0||kegCells.some(k=>k.r===r&&k.c===c))return;
+    kegCells.push({r,c});
+    const el=getCell(r,c);if(el)el.classList.add('keg-cell');
+    kegPlacing=false;
+    document.getElementById('grid').classList.remove('keg-placing');
+    refreshPanelBtn('keg');
+    // Remove active-effect from all keg cards
+    document.querySelectorAll(`[id^="pwr-keg-"]`).forEach(b=>b.classList.remove('active-effect'));
+    showToast('🧨 Keg placed — solve that cell to detonate!');
+    return;
+  }
+  selCell={r,c};applyHighlights();
+  if(compassOn&&uBoard[r][c]===0)showCompass(r,c);
+  const rect=this.getBoundingClientRect();
+  openDial(rect.left+rect.width/2,rect.top+rect.height/2,r,c);
+}
+
+function openDial(cx,cy,r,c){
+  closeDial();dialCell={r,c};
+  const vw=window.innerWidth,vh=window.innerHeight;
+  const RAD=Math.min(Math.min(vw,vh)*.10,64),BGS=RAD*2.5,CCS=RAD*.55;
+  let ax=cx,ay=cy;
+  if(ax-BGS/2<10)ax=BGS/2+10;if(ax+BGS/2>vw-10)ax=vw-BGS/2-10;
+  if(ay-BGS/2<10)ay=BGS/2+10;if(ay+BGS/2>vh-10)ay=vh-BGS/2-10;
+  const db=document.getElementById('dial-bg'),dc=document.getElementById('dial-cancel');
+  db.style.cssText=`display:block;width:${BGS}px;height:${BGS}px;left:${ax}px;top:${ay}px;`;
+  dc.style.cssText=`display:flex;width:${CCS}px;height:${CCS}px;left:${ax}px;top:${ay}px;`;
+  const ov=document.getElementById('dial-overlay');ov.classList.add('active');
+  for(let i=0;i<9;i++){
+    const n=i+1,ang=(i/9)*Math.PI*2-Math.PI/2;
+    const el=document.createElement('div');el.className='dial-num';el.textContent=n;
+    el.style.left=(ax+Math.cos(ang)*RAD)+'px';el.style.top=(ay+Math.sin(ang)*RAD)+'px';
+    el.style.background=NUM_COLORS[n].bg;el.style.borderColor=NUM_COLORS[n].b;
+    el.addEventListener('click',e=>{e.stopPropagation();place(n);});
+    ov.appendChild(el);dialEls.push(el);
+  }
+  dialEls.forEach((el,i)=>{
+    el.style.opacity='0';el.style.transform='translate(-50%,-50%) scale(.4)';
+    setTimeout(()=>{el.style.transition=`opacity .15s ${i*.02}s,transform .18s ${i*.02}s cubic-bezier(.34,1.56,.64,1)`;
+      el.style.opacity='1';el.style.transform='translate(-50%,-50%) scale(1)';},10);
+  });
+  setTimeout(()=>{ov.onclick=e=>{if(e.target===ov||e.target===db||e.target===dc)closeDial();};},50);
+}
+function closeDial(){
+  dialEls.forEach(el=>el.remove());dialEls=[];
+  document.getElementById('dial-bg').style.display='none';
+  document.getElementById('dial-cancel').style.display='none';
+  document.getElementById('dial-overlay').classList.remove('active');
+  dialCell=null;
+}
+
+// ═══════════════════════════════════════
+//  PLACE
+// ═══════════════════════════════════════
+function place(n,cell){
+  const target=cell||dialCell;
+  if(!target)return;
+  const{r,c}=target;closeDial();
+  if(n===0){uBoard[r][c]=0;refreshCell(r,c);applyHighlights();return;}
+  const ok=sol[r][c]===n;
+  uBoard[r][c]=n;refreshCell(r,c);applyHighlights();
+  if(ok){
+    streak++;
+    let bonus=10+Math.ceil(timeLeft/timerMax*100);
+    bonus=Math.round(bonus*streakMult());
+    if(gambleOn){bonus*=2;gambleMoves--;document.getElementById('gamble-left').textContent=gambleMoves;
+      if(gambleMoves<=0){gambleOn=false;document.getElementById('gamble-ind').style.display='none';refreshPanelBtn('gamble');}}
+    plunder+=bonus;updateScoreEl();updateStreak();checkMilestone();
+    if(trackerOn)updateTracker();
+    // Cannonball — fill all adjacent empty cells
+    if(cannonOn){
+      const dirs=[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+      let blasted=0;
+      dirs.forEach(([dr,dc])=>{
+        const nr=r+dr,nc=c+dc;
+        if(nr<0||nr>8||nc<0||nc>8)return;
+        if(given[nr][nc]||uBoard[nr][nc]!==0)return;
+        uBoard[nr][nc]=sol[nr][nc];
+        refreshCell(nr,nc);
+        plunder+=5;blasted++;
+      });
+      if(blasted>0){updateScoreEl();checkMilestone();if(trackerOn)updateTracker();}
+      // One-shot per activation — deactivate after use
+      cannonOn=false;consumeCharge('cannon');refreshPanelBtn('cannon');
+      document.querySelectorAll(`[id^="pwr-cannon-"]`).forEach(b=>b.classList.remove('active-effect'));
+    }
+    resetTimer();
+    // Powder Keg detonation
+    const kegIdx=kegCells.findIndex(k=>k.r===r&&k.c===c);
+    if(kegIdx!==-1){
+      const el=getCell(r,c);if(el)el.classList.remove('keg-cell');
+      kegCells.splice(kegIdx,1);
+      // Single pass — fill all naked singles that exist right now
+      let blasted=0;
+      for(let rr=0;rr<9;rr++)for(let cc=0;cc<9;cc++){
+        if(uBoard[rr][cc]!==0||given[rr][cc])continue;
+        const cands=getCands(rr,cc);
+        if(cands.size===1){
+          uBoard[rr][cc]=[...cands][0];
+          // If this auto-filled cell was also a keg, remove it
+          const autoKegIdx=kegCells.findIndex(k=>k.r===rr&&k.c===cc);
+          if(autoKegIdx!==-1)kegCells.splice(autoKegIdx,1);
+          refreshCell(rr,cc);
+          // Ensure keg marker is gone even if refreshCell tried to restore it
+          const aEl=getCell(rr,cc);if(aEl)aEl.classList.remove('keg-cell');
+          plunder+=8;blasted++;
+        }
+      }
+      if(blasted>0){updateScoreEl();checkMilestone();if(trackerOn)updateTracker();}
+      if(checkWin()){clearInterval(timerInterval);setTimeout(showShop,400);return;}
+    }
+    if(checkWin()){clearInterval(timerInterval);setTimeout(showShop,400);}
+  } else {
+    streak=0;updateStreak();
+    if(pardon){pardon=false;refreshPanelBtn('anchor');}
+    else if(gambleOn){
+      gambleOn=false;gambleMoves=0;document.getElementById('gamble-ind').style.display='none';refreshPanelBtn('gamble');
+      lives--;updateHearts();shakeHeart(lives);resetTimer();
+      showToast('🎲 Gamble busted — crew lost!',1600);
+      if(lives<=0)setTimeout(showOver,300);
+    }
+    else{
+      const penalty=luckyOn?4:5;
+      timeLeft=Math.max(0,timeLeft-penalty);updateTimerUI();
+      showToast(`💥 Wrong! -${penalty}s fuse`,1200);
+    }
+  }
+}
+function checkWin(){for(let r=0;r<9;r++)for(let c=0;c<9;c++)if(uBoard[r][c]!==sol[r][c])return false;return true;}
+
+// ═══════════════════════════════════════
+//  TIMER
+// ═══════════════════════════════════════
+const timerDisp=document.getElementById('timer-display'),timerBarEl=document.getElementById('timer-bar');
+function resetTimer(){timeLeft=timerMax;updateTimerUI();}
+function startTimer(){
+  clearInterval(timerInterval);
+  timerInterval=setInterval(()=>{
+    if(gameOver||frozen)return;
+    timeLeft=Math.max(0,timeLeft-.1);updateTimerUI();
+    if(timeLeft<=0){fuseExpires++;lives--;updateHearts();shakeHeart(lives);
+      streak=0;updateStreak();
+      if(lives<=0)showOver();else resetTimer();}
+  },100);
+}
+function updateTimerUI(){
+  const pct=timeLeft/timerMax;
+  timerDisp.textContent=Math.ceil(timeLeft).toString().padStart(2,'0');
+  timerBarEl.style.width=(pct*100)+'%';
+  timerDisp.className='timer-display';
+  timerBarEl.classList.remove('fuse-warn','fuse-crit','frozen');
+  if(frozen){timerBarEl.classList.add('frozen');return;}
+  if(pct<=.25){timerDisp.classList.add('crit');timerBarEl.classList.add('fuse-crit');}
+  else if(pct<=.5){timerDisp.classList.add('warn');timerBarEl.classList.add('fuse-warn');}
+}
+
+// ═══════════════════════════════════════
+//  HEARTS & SCORE
+// ═══════════════════════════════════════
+function updateHearts(){['h1','h2','h3','h4','h5'].forEach((id,i)=>document.getElementById(id).classList.toggle('lost',i>=lives));}
+function shakeHeart(rem){const ids=['h5','h4','h3','h2','h1'];const el=document.getElementById(ids[rem]);if(!el)return;el.classList.remove('shake');requestAnimationFrame(()=>el.classList.add('shake'));}
+function updateScoreEl(){
+  document.getElementById('score-display').textContent=String(plunder).padStart(4,'0');
+}
+function updateStreak(){
+  const sd=document.getElementById('streak-display');
+  const g=document.getElementById('grid');
+  // Remove old streak classes from grid
+  g.classList.remove('streak-2','streak-3','streak-4','streak-5');
+  if(streak<2){sd.style.display='none';return;}
+  const tier=Math.min(streak,5);
+  const mult=streakMult();
+  const labels={2:'🔥 ×2',3:'🔥🔥 ×3',4:'💥 ×4',5:'⚡ ×5 MAX'};
+  sd.style.display='block';
+  sd.textContent=`${labels[tier]||'⚡ ×5 MAX'} streak`;
+  sd.className=`streak-display streak-x${tier}`;
+  g.classList.add(`streak-${tier}`);
+}
+function streakMult(){return Math.min(streak,5);}
+
+// ═══════════════════════════════════════
+//  MILESTONE — surface a random owned powerup
+// ═══════════════════════════════════════
+function checkMilestone(){
+  const thr=Math.floor(plunder/500)*500;
+  if(thr>lastMilestone){
+    // Surface one powerup per 500-plunder threshold crossed
+    let t=lastMilestone+500;
+    while(t<=thr){
+      const available=Object.keys(inv).filter(id=>inv[id]>0&&(surfaced[id]||0)<inv[id]);
+      if(available.length){
+        const id=available[Math.floor(Math.random()*available.length)];
+        surfaced[id]=(surfaced[id]||0)+1;
+        surfaceBtn(id);
+      }
+      t+=500;
+    }
+    lastMilestone=thr;
+  }
+}
+function surfaceBtn(id){
+  const idx=(surfaced[id]||0)-1; // already incremented before calling
+  let btn=document.getElementById(makeCardId(id,idx));
+  if(!btn){renderPanel();btn=document.getElementById(makeCardId(id,idx));}
+  if(!btn)return;
+  btn.classList.remove('locked');btn.disabled=false;
+  const lockEl=btn.querySelector('.pow-lock');if(lockEl)lockEl.remove();
+  addQuickUse(btn,id);
+  btn.classList.add('visible');
+  document.getElementById('powerup-panel').classList.add('has-power');
+  btn.style.boxShadow='0 0 20px rgba(200,146,42,.9)';
+  setTimeout(()=>{btn.style.boxShadow='';},900);
+  const def=POWERUPS.find(p=>p.id===id);
+  if(def)showToast(`${def.icon} ${def.name} unlocked!`);
+}
+// ═══════════════════════════════════════
+//  PANEL RENDER
+// ═══════════════════════════════════════
+function makeCardId(id,idx){return `pwr-${id}-${idx}`;}
+
+function addQuickUse(btn,id){
+  if(btn.querySelector('.pow-quick'))return;
+  const q=document.createElement('span');
+  q.className='pow-quick';q.textContent='Use';q.title='Quick use';
+  q.addEventListener('click',e=>{e.stopPropagation();activatePow(id);});
+  btn.appendChild(q);
+}
+
+function renderPanel(){
+  const panel=document.getElementById('powerup-panel');
+  panel.querySelectorAll('.powerup-btn').forEach(b=>b.remove());
+  panel.classList.remove('has-power');
+  POWERUPS.forEach(def=>{
+    const isPermanent=(def.id==='tally'&&trackerOn)||(def.id==='luckycharm'&&luckyOn);
+    const owned=Math.max(inv[def.id]||0,isPermanent?1:0);
+    const surf=Math.max(surfaced[def.id]||0,isPermanent?1:0);
+    for(let i=0;i<owned;i++){
+      const locked=i>=surf;
+      const btn=document.createElement('button');
+      btn.className='powerup-btn visible'+(locked?' locked':'');
+      btn.id=makeCardId(def.id,i);
+      btn.innerHTML=`<span class="powerup-icon">${def.icon}</span><span class="powerup-name">${def.name}</span>${locked?'<span class="pow-lock">🔒</span>':''}`;
+      if(def.id==='tally'&&i===0){const tg=document.createElement('div');tg.className='tracker-grid';tg.id='tracker-grid';btn.appendChild(tg);}
+      btn.addEventListener('click',e=>openPowDetail(def.id,'game',e.currentTarget));
+      if(!locked&&!isPermanent)addQuickUse(btn,def.id);
+      panel.appendChild(btn);
+      if(isPermanent&&i===0){
+        btn.classList.remove('locked');btn.classList.add('active-effect');
+      }
+    }
+    if(owned>0) panel.classList.add('has-power');
+  });
+}
+
+function refreshPanelBtn(id){
+  // Hide the highest-index visible card
+  const count=surfaced[id]||0;
+  const btn=document.getElementById(makeCardId(id,count)); // the one just consumed
+  if(btn) btn.classList.remove('visible');
+  if(count<=0){
+    // hide all cards for this id
+    let i=0;while(true){const b=document.getElementById(makeCardId(id,i));if(!b)break;b.classList.remove('visible');i++;}
+  }
+}
+
+function updateChargeIcons(id){} // no-op now — each card has its own icon
+
+// ═══════════════════════════════════════
+//  TOASTS
+// ═══════════════════════════════════════
+function showToast(msg,dur=2200){
+  const wrap=document.getElementById('toast-wrap');
+  const t=document.createElement('div');t.className='toast';t.textContent=msg;
+  wrap.appendChild(t);
+  setTimeout(()=>{t.classList.add('out');setTimeout(()=>t.remove(),450);},dur);
+}
+
+// ═══════════════════════════════════════
+//  POWERUP DETAIL OVERLAY
+// ═══════════════════════════════════════
+let pdCtx=null; // {id, context:'game'|'shop'}
+const TOGGLEABLE=['compass','sonar','cannon'];
+const CANCELABLE=['keg','painter'];
+
+function isPowActive(id){
+  switch(id){
+    case 'compass':return compassOn;
+    case 'sonar':return sonarOn;
+    case 'cannon':return cannonOn;
+    case 'keg':return kegPlacing;
+    case 'painter':return painterPicking;
+    case 'anchor':return pardon;
+    case 'hourglass':return frozen;
+    case 'gamble':return gambleOn;
+    case 'tally':return trackerOn;
+    case 'luckycharm':return luckyOn;
+    default:return false;
+  }
+}
+
+function positionPowCard(anchorEl){
+  const overlay=document.getElementById('pow-detail'),card=overlay.querySelector('.pow-card');
+  overlay.classList.add('visible');
+  if(!anchorEl){card.style.cssText='left:50%;top:50%;transform:translate(-50%,-50%);';return;}
+  card.style.transform='none';
+  const rect=anchorEl.getBoundingClientRect();
+  const vw=window.innerWidth,vh=window.innerHeight,margin=10;
+  const cw=card.offsetWidth,ch=card.offsetHeight;
+  let left,top;
+  if(vw<=640){
+    // Mobile: powerups sit in a row at the bottom, so always surface the card above
+    // the anchor rather than to the side, where it would cover neighboring powerups.
+    if(rect.top-margin-ch>=margin){left=rect.left+rect.width/2-cw/2;top=rect.top-margin-ch;}
+    else{left=rect.left+rect.width/2-cw/2;top=rect.bottom+margin;}
+  }
+  else if(rect.right+margin+cw<=vw-margin){left=rect.right+margin;top=rect.top+rect.height/2-ch/2;}
+  else if(rect.left-margin-cw>=margin){left=rect.left-margin-cw;top=rect.top+rect.height/2-ch/2;}
+  else if(rect.bottom+margin+ch<=vh-margin){left=rect.left+rect.width/2-cw/2;top=rect.bottom+margin;}
+  else{left=rect.left+rect.width/2-cw/2;top=rect.top-margin-ch;}
+  left=Math.min(Math.max(left,margin),vw-cw-margin);
+  top=Math.min(Math.max(top,margin),vh-ch-margin);
+  card.style.cssText=`left:${left}px;top:${top}px;`;
+}
+function openPowDetail(id,context,anchorEl){
+  const def=POWERUPS.find(p=>p.id===id);if(!def)return;
+  pdCtx={id,context};
+  document.getElementById('pd-icon').textContent=def.icon;
+  document.getElementById('pd-name').textContent=def.name;
+  document.getElementById('pd-long').textContent=def.long||def.desc;
+  const meta=document.getElementById('pd-meta');
+  const act=document.getElementById('pd-action');
+  act.disabled=false;act.className='btn-primary';
+  if(context==='shop'){
+    const isOwned=!!inv[id];
+    meta.textContent=`Cost: 🪙 ${def.cost}`+(isOwned?`  ·  Owned ×${inv[id]}`:'');
+    act.textContent=`🪙 BUY — ${def.cost} DOUBLOON${def.cost!==1?'S':''}`;
+    if(isOwned&&!def.multi){act.textContent='ALREADY OWNED';act.disabled=true;}
+    else if(doubloons<def.cost){act.disabled=true;act.classList.add('btn-buy-cant');}
+  } else {
+    const surf=surfaced[id]||0;
+    if(id==='tally'&&trackerOn){meta.textContent='Active for the rest of the run';act.textContent='ACTIVE';act.disabled=true;}
+    else if(id==='luckycharm'&&luckyOn){meta.textContent='Active for the rest of the run';act.textContent='ACTIVE';act.disabled=true;}
+    else if(id==='compass'&&compassUses>=3){meta.textContent='The needle has spun out for this round';act.textContent='EXHAUSTED';act.disabled=true;}
+    else if(TOGGLEABLE.includes(id)&&isPowActive(id)){meta.textContent='Currently active';act.textContent='DEACTIVATE';}
+    else if(CANCELABLE.includes(id)&&isPowActive(id)){meta.textContent='Awaiting yer tap on the grid';act.textContent='CANCEL';}
+    else if(isPowActive(id)){meta.textContent='Effect already active';act.textContent='ACTIVE';act.disabled=true;}
+    else if(surf>0){meta.textContent='';act.textContent='⚡ USE';}
+    else{meta.textContent='Earn plunder to unlock';act.textContent='🔒 LOCKED';act.disabled=true;}
+  }
+  positionPowCard(anchorEl);
+}
+function closePowDetail(){
+  pdCtx=null;
+  document.getElementById('pow-detail').classList.remove('visible');
+}
+document.getElementById('pow-detail').addEventListener('click',e=>{
+  if(e.target===document.getElementById('pow-detail'))closePowDetail();
+});
+document.getElementById('pd-action').addEventListener('click',()=>{
+  if(!pdCtx)return;
+  const{id,context}=pdCtx;
+  const def=POWERUPS.find(p=>p.id===id);
+  if(context==='shop'){
+    if(doubloons>=def.cost){
+      doubloons-=def.cost;
+      inv[id]=(inv[id]||0)+1;
+      updateScoreEl();
+      closePowDetail();
+      updateShopInfo();renderShopGrid();
+      showToast(`${def.icon} ${def.name} added to yer hold!`);
+    }
+    return;
+  }
+  closePowDetail();
+  if(CANCELABLE.includes(id)&&isPowActive(id)){cancelPlacement(id);return;}
+  activatePow(id);
+});
+
+function cancelPlacement(id){
+  if(id==='keg'&&kegPlacing){
+    kegPlacing=false;gridEl.classList.remove('keg-placing');
+    inv['keg']++;surfaced['keg']=(surfaced['keg']||0)+1;
+    showToast('🧨 Keg stowed away');
+  }
+  if(id==='painter'&&painterPicking){
+    painterPicking=false;gridEl.classList.remove('painter-picking');
+    inv['painter']++;surfaced['painter']=(surfaced['painter']||0)+1;
+    showToast('🎨 Brush stowed away');
+  }
+  document.querySelectorAll(`[id^="pwr-${id}-"]`).forEach(b=>b.classList.remove('active-effect'));
+}
+
+// ═══════════════════════════════════════
+//  POWERUP ACTIVATION
+// ═══════════════════════════════════════
+function getCands(r,c){const s=new Set();for(let n=1;n<=9;n++)if(valid(uBoard,r,c,n))s.add(n);return s;}
+
+function consumeCharge(id){inv[id]--;surfaced[id]=Math.max(0,(surfaced[id]||0)-1);}
+
+function activatePow(id){
+  if(gameOver)return;
+  // Find the first visible card for this powerup
+  const btn=document.querySelector(`[id^="pwr-${id}-"].visible,[id^="pwr-${id}-"].active-effect`)||document.querySelector(`[id^="pwr-${id}-"]`);
+  switch(id){
+
+    case 'spyglass':{
+      const pairs=findPairs();consumeCharge(id);refreshPanelBtn(id);
+      if(!pairs.length){showToast('👁 No hidden pairs to be found!');return;}
+      pairs.forEach(({cells,nums})=>cells.forEach(([r,c])=>{
+        const el=getCell(r,c);if(!el)return;
+        el.classList.add('pair-hl');
+        const lbl=document.createElement('div');lbl.className='pair-hint-label';lbl.textContent=nums.join('·');el.appendChild(lbl);
+      }));
+      showToast(`👁 ${pairs.length} hidden pair${pairs.length!==1?'s':''} revealed!`);
+      break;}
+
+    case 'tally':{
+      if(trackerOn)return;
+      trackerOn=true;consumeCharge(id);
+      if(btn){btn.classList.add('active-effect');btn.style.cursor='default';}
+      buildTracker();updateTracker();
+      document.getElementById('powerup-panel').classList.add('has-power');
+      break;}
+
+    case 'luckycharm':{
+      if(luckyOn)return;
+      luckyOn=true;consumeCharge(id);
+      if(btn){btn.classList.add('active-effect');btn.style.cursor='default';}
+      document.getElementById('powerup-panel').classList.add('has-power');
+      showToast('🍀 Lucky Charm equipped — wrong guesses only burn 4s now!');
+      break;}
+
+    case 'crows':{
+      consumeCharge(id);refreshPanelBtn(id);
+      const singles=findSingles();
+      singles.forEach(([r,c])=>{const el=getCell(r,c);if(el)el.classList.add('naked-hint');});
+      showToast(singles.length?`🔭 ${singles.length} easy cell${singles.length!==1?'s':''} spotted!`:'🔭 No easy cells in sight!');
+      break;}
+
+    case 'reckoning':{
+      consumeCharge(id);refreshPanelBtn(id);
+      const empty=[];for(let r=0;r<9;r++)for(let c=0;c<9;c++)if(uBoard[r][c]===0)empty.push([r,c]);
+      if(!empty.length)return;
+      const[r,c]=empty[0|Math.random()*empty.length];
+      uBoard[r][c]=sol[r][c];refreshCell(r,c);
+      plunder+=10;updateScoreEl();checkMilestone();
+      if(trackerOn)updateTracker();
+      if(checkWin()){clearInterval(timerInterval);setTimeout(showShop,400);}
+      break;}
+
+    case 'anchor':{
+      if(pardon){showToast('⚓ A pardon is already ready!');return;}
+      consumeCharge(id);refreshPanelBtn(id);pardon=true;
+      if(btn)btn.classList.add('active-effect');
+      showToast('⚓ Pardon ready — yer next wrong guess is forgiven');
+      break;}
+
+    case 'hourglass':{
+      consumeCharge(id);refreshPanelBtn(id);frozen=true;updateTimerUI();
+      clearTimeout(freezeTid);
+      freezeTid=setTimeout(()=>{frozen=false;updateTimerUI();},15000);
+      if(btn)btn.classList.add('active-effect');
+      showToast('⌛ Fuse frozen for 15 seconds!');
+      break;}
+
+    case 'compass':{
+      if(compassOn){compassOn=false;if(btn)btn.classList.remove('active-effect');showToast('🧭 Compass stowed');return;}
+      if(compassUses>=3)return;
+      consumeCharge(id);compassOn=true;
+      if(btn)btn.classList.add('active-effect');
+      showToast(`🧭 Compass out — tap an empty cell (${3-compassUses} left)`);
+      if(selCell&&uBoard[selCell.r][selCell.c]===0)showCompass(selCell.r,selCell.c);
+      break;}
+
+    case 'sonar':{
+      if(sonarOn){sonarOn=false;if(btn)btn.classList.remove('active-effect');applyHighlights();showToast('📡 Sonar off');return;}
+      consumeCharge(id);sonarOn=true;
+      if(btn)btn.classList.add('active-effect');
+      applyHighlights();
+      showToast('📡 Sonar sweep active — select a cell to ping');
+      break;}
+
+    case 'gamble':{
+      consumeCharge(id);refreshPanelBtn(id);gambleOn=true;gambleMoves=3;
+      document.getElementById('gamble-left').textContent=3;
+      document.getElementById('gamble-ind').style.display='block';
+      if(btn)btn.classList.add('active-effect');
+      showToast('🎲 Gamble on — 2× plunder for 3 moves!');
+      break;}
+
+    case 'treasure':{
+      consumeCharge(id);refreshPanelBtn(id);plunder+=1000;updateScoreEl();checkMilestone();
+      showToast('💰 +1000 plunder!');
+      break;}
+
+    case 'cannon':{
+      if(cannonOn){cannonOn=false;if(btn)btn.classList.remove('active-effect');showToast('💣 Cannon disarmed');return;}
+      consumeCharge(id);cannonOn=true;
+      if(btn)btn.classList.add('active-effect');
+      showToast('💣 Cannon armed — next correct guess blasts its neighbours');
+      break;}
+
+    case 'keg':{
+      if(kegPlacing)return;
+      consumeCharge(id);
+      kegPlacing=true;
+      document.getElementById('grid').classList.add('keg-placing');
+      if(btn)btn.classList.add('active-effect');
+      showToast('🧨 Tap an empty cell to place the keg');
+      break;}
+
+    case 'painter':{
+      if(painterPicking)return;
+      consumeCharge(id);
+      painterPicking=true;
+      document.getElementById('grid').classList.add('painter-picking');
+      if(btn)btn.classList.add('active-effect');
+      showToast('🎨 Tap a correct tile to paint its number');
+      break;}
+  }
+}
+
+// powerup helpers
+function showCompass(r,c){
+  const el=getCell(r,c);if(!el)return;
+  el.querySelectorAll('.compass-grid').forEach(x=>x.remove());
+  const cands=getCands(r,c);
+  const ov=document.createElement('div');ov.className='compass-grid';
+  for(let n=1;n<=9;n++){const s=document.createElement('div');s.className='compass-num';s.textContent=cands.has(n)?n:'';ov.appendChild(s);}
+  el.appendChild(ov);
+  compassUses++;
+  const remaining=3-compassUses;
+  const btn=document.querySelector(`[id^="pwr-compass-"]`);
+  if(remaining<=0){
+    compassOn=false;
+    if(btn){btn.classList.remove('active-effect');btn.classList.add('locked');const q=btn.querySelector('.pow-quick');if(q)q.remove();}
+    showToast('🧭 The compass needle has spun out');
+  } else {
+    showToast(`🧭 ${remaining} compass reading${remaining!==1?'s':''} left`);
+  }
+}
+function findSingles(){const res=[];for(let r=0;r<9;r++)for(let c=0;c<9;c++){if(uBoard[r][c]!==0)continue;if(getCands(r,c).size===1)res.push([r,c]);}return res;}
+function findPairs(){
+  const cands=Array.from({length:9},()=>Array.from({length:9},()=>new Set()));
+  for(let r=0;r<9;r++)for(let c=0;c<9;c++)if(uBoard[r][c]===0)for(let n=1;n<=9;n++)if(valid(uBoard,r,c,n))cands[r][c].add(n);
+  const pairs=[],seen=new Set();
+  function checkUnit(cells){
+    for(let a=1;a<=9;a++)for(let b=a+1;b<=9;b++){
+      const hA=cells.filter(([r,c])=>uBoard[r][c]===0&&cands[r][c].has(a));
+      const hB=cells.filter(([r,c])=>uBoard[r][c]===0&&cands[r][c].has(b));
+      if(hA.length===2&&hB.length===2&&hA[0][0]===hB[0][0]&&hA[0][1]===hB[0][1]&&hA[1][0]===hB[1][0]&&hA[1][1]===hB[1][1]){
+        const key=`${hA[0]}-${hA[1]}-${a}${b}`;
+        if(!seen.has(key)){seen.add(key);pairs.push({cells:[hA[0],hA[1]],nums:[a,b]});}
+      }
+    }
+  }
+  for(let r=0;r<9;r++)checkUnit(Array.from({length:9},(_,c)=>[r,c]));
+  for(let c=0;c<9;c++)checkUnit(Array.from({length:9},(_,r)=>[r,c]));
+  for(let br=0;br<3;br++)for(let bc=0;bc<3;bc++){
+    const cells=[];for(let r=br*3;r<br*3+3;r++)for(let c=bc*3;c<bc*3+3;c++)cells.push([r,c]);checkUnit(cells);
+  }
+  return pairs;
+}
+function buildTracker(){const tg=document.getElementById('tracker-grid');if(!tg)return;tg.innerHTML='';for(let n=1;n<=9;n++){const d=document.createElement('div');d.className='tracker-num';d.id='tn-'+n;d.textContent=n;tg.appendChild(d);}updateTracker();}
+function updateTracker(){for(let n=1;n<=9;n++){const el=document.getElementById('tn-'+n);if(!el)continue;let cnt=0;for(let r=0;r<9;r++)for(let c=0;c<9;c++)if(uBoard[r][c]===n&&sol[r][c]===n)cnt++;el.classList.toggle('done',cnt===9);}}
+
+// ═══════════════════════════════════════
+//  SHOP
+// ═══════════════════════════════════════
+let shopOffered=[];
+function showShop(){
+  clearInterval(timerInterval);
+  // Convert plunder to doubloons (1 per 1000 plunder earned this round)
+  const earned=Math.floor(plunder/1000);
+  doubloons+=earned;
+  updateScoreEl();
+
+  // Build pool: weight unowned first, then multi-owned
+  const unowned=POWERUPS.filter(p=>!inv[p.id]);
+  const restock=POWERUPS.filter(p=>inv[p.id]&&p.multi);
+  const pool=shuffle([...unowned,...restock]);
+  const offered=[],seen=new Set();
+  for(const p of pool){if(seen.has(p.id)||offered.length>=3)continue;seen.add(p.id);offered.push(p);}
+  while(offered.length<3){const p=POWERUPS[0|Math.random()*POWERUPS.length];if(!seen.has(p.id)){seen.add(p.id);offered.push(p);}}
+  shopOffered=offered;
+
+  updateShopInfo();
+  renderShopGrid();
+  document.getElementById('modal-shop').classList.add('visible');
+}
+
+function updateShopInfo(){
+  const nextBoss=((round)%4===3);
+  const nextClues=Math.max(MIN_CLUES,BASE_CLUES-round);
+  const nextFuse=BASE_FUSE-(nextBoss?BOSS_PENALTY:0);
+  document.getElementById('shop-doubloon-count').textContent=doubloons;
+  document.getElementById('next-info').textContent=
+    `Next: Round ${round+1}${nextBoss?' ⚔ BOSS':''} · ${nextClues} clues · ${nextFuse}s fuse`;
+}
+
+function renderShopGrid(){
+  const sg=document.getElementById('shop-grid');sg.innerHTML='';
+  shopOffered.forEach(def=>{
+    const isOwned=!!inv[def.id];
+    const cantBuy=(isOwned&&!def.multi)||doubloons<def.cost;
+    const affordable=doubloons>=def.cost;
+    const item=document.createElement('div');
+    item.className='shop-item'+(cantBuy?' cant-buy':'');
+    const badge=isOwned?'OWNED':'NEW';
+    const badgeClass=isOwned?'owned-badge':'new-badge';
+    item.innerHTML=`<span class="shop-icon">${def.icon}</span><div class="shop-name">${def.name}</div><div class="shop-desc">${def.desc}</div><div class="shop-cost" style="font-family:'Pirata One',cursive;font-size:12px;color:${affordable?'var(--gold)':'var(--red)'};margin:3px 0;">🪙 ${def.cost}</div><div class="shop-badge ${badgeClass}">${badge}</div>`;
+    item.addEventListener('click',e=>openPowDetail(def.id,'shop',e.currentTarget));
+    sg.appendChild(item);
+  });
+}
+
+document.getElementById('btn-next-round').addEventListener('click',()=>{
+  plunder=0; // reset plunder for new round
+  document.getElementById('modal-shop').classList.remove('visible');
+  startRound();
+});
+
+// ═══════════════════════════════════════
+//  GAME OVER
+// ═══════════════════════════════════════
+function showOver(){
+  gameOver=true;clearInterval(timerInterval);closeDial();
+  document.getElementById('over-sub').textContent=fuseExpires>2
+    ?"Fortune favours the brave — better to guess than let the fuse run out."
+    :"Arr... the seas have claimed ye. Sail again, ye scallywag.";
+  document.getElementById('over-score').textContent=`${plunder} Plunder · 🪙${doubloons} · ${round} Rounds`;
+  document.getElementById('modal-over').classList.add('visible');
+}
+document.getElementById('btn-restart').addEventListener('click',()=>{
+  document.getElementById('modal-over').classList.remove('visible');startRun();});
+
+function quitToMenu(){
+  gameOver=true;clearInterval(timerInterval);closeDial();
+  document.getElementById('over-sub').textContent="Abandoned ship. The seas remember.";
+  document.getElementById('over-score').textContent=`${plunder} Plunder · 🪙${doubloons} · Round ${round}`;
+  document.getElementById('modal-over').classList.add('visible');
+}
+
+// ═══════════════════════════════════════
+//  BOOT
+// ═══════════════════════════════════════
+document.getElementById('btn-start').addEventListener('click',()=>{
+  document.getElementById('modal-start').classList.remove('visible');startRun();});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    if(document.getElementById('pow-detail').classList.contains('visible')){closePowDetail();return;}
+    closeDial();
+    if(kegPlacing)cancelPlacement('keg');
+    if(painterPicking)cancelPlacement('painter');
+    return;
+  }
+  // Keys inert while any modal (start/shop/over/powerup detail) is open
+  if(document.querySelector('.modal-bg.visible'))return;
+  if(gameOver)return;
+  // Number entry — types into the dial cell if open, else the selected cell
+  if(/^[1-9]$/.test(e.key)){
+    if(dialCell)place(+e.key);
+    else if(selCell&&!given[selCell.r][selCell.c])place(+e.key,selCell);
+    return;
+  }
+  if(e.key==='Backspace'||e.key==='Delete'||e.key==='0'){
+    if(dialCell)place(0);
+    else if(selCell&&!given[selCell.r][selCell.c])place(0,selCell);
+    e.preventDefault();
+    return;
+  }
+  // Arrow keys move the selection
+  const dirs={ArrowUp:[-1,0],ArrowDown:[1,0],ArrowLeft:[0,-1],ArrowRight:[0,1]};
+  if(dirs[e.key]){
+    e.preventDefault();
+    closeDial();
+    const[dr,dc]=dirs[e.key];
+    let r=selCell?selCell.r:4,c=selCell?selCell.c:4;
+    if(selCell){r=Math.min(8,Math.max(0,r+dr));c=Math.min(8,Math.max(0,c+dc));}
+    selCell={r,c};applyHighlights();
+  }
+});
+
+startRun();
+document.getElementById('modal-start').classList.add('visible');
+</script>
+</body>
+</html>
