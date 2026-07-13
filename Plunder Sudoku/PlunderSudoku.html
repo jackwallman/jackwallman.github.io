@@ -686,6 +686,7 @@ function place(n,cell){
         uBoard[nr][nc]=sol[nr][nc];
         refreshCell(nr,nc);
         plunder+=5;blasted++;
+        detonateKegAt(nr,nc);
       });
       if(blasted>0){updateScoreEl();checkMilestone();if(trackerOn)updateTracker();}
       // One-shot per activation — deactivate after use
@@ -693,28 +694,8 @@ function place(n,cell){
       document.querySelectorAll(`[id^="pwr-cannon-"]`).forEach(b=>b.classList.remove('active-effect'));
     }
     resetTimer();
-    // Powder Keg detonation
-    const kegIdx=kegCells.findIndex(k=>k.r===r&&k.c===c);
-    if(kegIdx!==-1){
-      const el=getCell(r,c);if(el)el.classList.remove('keg-cell');
-      kegCells.splice(kegIdx,1);
-      // Single pass — fill all naked singles that exist right now
-      let blasted=0;
-      for(let rr=0;rr<9;rr++)for(let cc=0;cc<9;cc++){
-        if(uBoard[rr][cc]!==0||given[rr][cc])continue;
-        const cands=getCands(rr,cc);
-        if(cands.size===1){
-          uBoard[rr][cc]=[...cands][0];
-          // If this auto-filled cell was also a keg, remove it
-          const autoKegIdx=kegCells.findIndex(k=>k.r===rr&&k.c===cc);
-          if(autoKegIdx!==-1)kegCells.splice(autoKegIdx,1);
-          refreshCell(rr,cc);
-          // Ensure keg marker is gone even if refreshCell tried to restore it
-          const aEl=getCell(rr,cc);if(aEl)aEl.classList.remove('keg-cell');
-          plunder+=8;blasted++;
-        }
-      }
-      if(blasted>0){updateScoreEl();checkMilestone();if(trackerOn)updateTracker();}
+    // Powder Keg detonation — cascades through any newly-revealed kegs too
+    if(detonateKegAt(r,c)){
       if(checkWin()){clearInterval(timerInterval);setTimeout(showShop,400);return;}
     }
     if(checkWin()){clearInterval(timerInterval);setTimeout(showShop,400);}
@@ -1001,6 +982,39 @@ function cancelPlacement(id){
 // ═══════════════════════════════════════
 function getCands(r,c){const s=new Set();for(let n=1;n<=9;n++)if(valid(uBoard,r,c,n))s.add(n);return s;}
 
+// Repeatedly fills naked singles to a fixed point, so a fill that reveals
+// another naked single (including a second Powder Keg) keeps cascading.
+function fillCascade(){
+  let blasted=0,changed=true;
+  while(changed){
+    changed=false;
+    for(let rr=0;rr<9;rr++)for(let cc=0;cc<9;cc++){
+      if(uBoard[rr][cc]!==0||given[rr][cc])continue;
+      const cands=getCands(rr,cc);
+      if(cands.size===1){
+        uBoard[rr][cc]=[...cands][0];
+        const autoKegIdx=kegCells.findIndex(k=>k.r===rr&&k.c===cc);
+        if(autoKegIdx!==-1)kegCells.splice(autoKegIdx,1);
+        refreshCell(rr,cc);
+        const aEl=getCell(rr,cc);if(aEl)aEl.classList.remove('keg-cell');
+        plunder+=8;blasted++;
+        changed=true;
+      }
+    }
+  }
+  return blasted;
+}
+// Detonates the keg at (r,c), if any, and cascades the naked-singles fill.
+function detonateKegAt(r,c){
+  const idx=kegCells.findIndex(k=>k.r===r&&k.c===c);
+  if(idx===-1)return false;
+  const el=getCell(r,c);if(el)el.classList.remove('keg-cell');
+  kegCells.splice(idx,1);
+  const blasted=fillCascade();
+  if(blasted>0){updateScoreEl();checkMilestone();if(trackerOn)updateTracker();}
+  return true;
+}
+
 function consumeCharge(id){inv[id]--;surfaced[id]=Math.max(0,(surfaced[id]||0)-1);}
 
 function activatePow(id){
@@ -1051,6 +1065,7 @@ function activatePow(id){
       uBoard[r][c]=sol[r][c];refreshCell(r,c);
       plunder+=10;updateScoreEl();checkMilestone();
       if(trackerOn)updateTracker();
+      detonateKegAt(r,c);
       if(checkWin()){clearInterval(timerInterval);setTimeout(showShop,400);}
       break;}
 
