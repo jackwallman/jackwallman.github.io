@@ -138,6 +138,12 @@ body::before{content:'';position:fixed;inset:0;
 
 /* GRID */
 .grid-wrap{position:relative;z-index:1;flex-shrink:0;}
+.grid-cover{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;
+  background:rgba(10,8,2,.94);backdrop-filter:blur(8px);opacity:0;pointer-events:none;transition:opacity .25s;
+  text-align:center;padding:20px;}
+.grid-cover.visible{opacity:1;pointer-events:all;}
+.grid-cover-icon{font-size:32px;display:block;margin-bottom:8px;filter:drop-shadow(0 0 6px rgba(200,146,42,.4));}
+.grid-cover-msg{font-family:'IM Fell English',serif;font-style:italic;color:var(--text-dim);font-size:15px;line-height:1.8;}
 .sudoku-grid{display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr);
   width:min(500px,calc(95vw - 110px));height:min(500px,calc(95vw - 110px));aspect-ratio:1;
   border:3px solid var(--gold);
@@ -266,6 +272,9 @@ body::before{content:'';position:fixed;inset:0;
 .pow-card .btn-primary:disabled:hover{background:transparent;color:var(--gold);box-shadow:none;}
 .pow-card .btn-buy-cant{border-color:var(--red);color:var(--red);}
 .pow-card .btn-buy-cant:hover{background:transparent;color:var(--red);box-shadow:none;}
+.pow-close{position:absolute;top:6px;right:8px;background:transparent;border:none;color:var(--text-dim);
+  font-size:16px;line-height:1;cursor:pointer;padding:4px;transition:color .2s;}
+.pow-close:hover{color:var(--gold);}
 
 /* TOASTS */
 #toast-wrap{position:fixed;bottom:64px;left:50%;transform:translateX(-50%);z-index:400;
@@ -326,6 +335,9 @@ body::before{content:'';position:fixed;inset:0;
 <div class="game-row">
   <div class="grid-wrap">
     <div class="sudoku-grid" id="grid"></div>
+    <div class="grid-cover" id="grid-cover">
+      <div class="grid-cover-msg"><span class="grid-cover-icon">⏸</span>Fuse paused<br>while ye inspect the charm</div>
+    </div>
   </div>
   <div class="powerup-panel" id="powerup-panel">
     <div class="powerup-label">⚗ Powers</div>
@@ -343,6 +355,7 @@ body::before{content:'';position:fixed;inset:0;
 <!-- Powerup Detail Overlay -->
 <div class="pow-overlay" id="pow-detail">
   <div class="pow-card">
+    <button class="pow-close" id="pd-close" aria-label="Close">✕</button>
     <span class="pow-icon-big" id="pd-icon"></span>
     <div class="pow-title" id="pd-name"></div>
     <div class="pow-long" id="pd-long"></div>
@@ -475,6 +488,7 @@ let lives,plunder,doubloons,round,timeLeft,timerMax;
 let timerInterval,fuseExpires=0,gameOver=false,isBoss=false;
 let selCell=null;
 let frozen=false,freezeTid=null;
+let powPaused=false;
 let gambleOn=false,gambleMoves=0;
 let sonarOn=false,compassOn=false,compassUses=0,trackerOn=false,luckyOn=false,cannonOn=false,streak=0,kegCells=[],kegPlacing=false,painterPicking=false;
 let inv={};           // {id: total owned count}
@@ -732,7 +746,7 @@ function resetTimer(){timeLeft=timerMax;updateTimerUI();}
 function startTimer(){
   clearInterval(timerInterval);
   timerInterval=setInterval(()=>{
-    if(gameOver||frozen)return;
+    if(gameOver||frozen||powPaused)return;
     timeLeft=Math.max(0,timeLeft-.1);updateTimerUI();
     if(timeLeft<=0){fuseExpires++;lives--;updateHearts();shakeHeart(lives);
       streak=0;updateStreak();
@@ -919,6 +933,7 @@ function positionPowCard(anchorEl){
 function openPowDetail(id,context,anchorEl){
   const def=POWERUPS.find(p=>p.id===id);if(!def)return;
   pdCtx={id,context};
+  if(context==='game'){powPaused=true;document.getElementById('grid-cover').classList.add('visible');}
   document.getElementById('pd-icon').textContent=def.icon;
   document.getElementById('pd-name').textContent=def.name;
   document.getElementById('pd-long').textContent=def.long||def.desc;
@@ -946,11 +961,14 @@ function openPowDetail(id,context,anchorEl){
 }
 function closePowDetail(){
   pdCtx=null;
+  powPaused=false;
+  document.getElementById('grid-cover').classList.remove('visible');
   document.getElementById('pow-detail').classList.remove('visible');
 }
 document.getElementById('pow-detail').addEventListener('click',e=>{
   if(e.target===document.getElementById('pow-detail'))closePowDetail();
 });
+document.getElementById('pd-close').addEventListener('click',closePowDetail);
 document.getElementById('pd-action').addEventListener('click',()=>{
   if(!pdCtx)return;
   const{id,context}=pdCtx;
@@ -1278,6 +1296,7 @@ document.addEventListener('keydown',e=>{
   }
   // Keys inert while any modal (start/shop/over/powerup detail) is open
   if(document.querySelector('.modal-bg.visible'))return;
+  if(document.getElementById('pow-detail').classList.contains('visible'))return;
   if(gameOver)return;
   // Number entry — types into the dial cell if open, else the selected cell
   if(/^[1-9]$/.test(e.key)){
