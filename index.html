@@ -364,14 +364,16 @@
   .dirB-card-media { position: relative; aspect-ratio: 4/3; overflow: hidden; background: #0a0224; }
   .dirB-card--lg .dirB-card-media { aspect-ratio: 16/10; }
   .dirB-card-media--icon {
-    display: grid; place-items: center; padding: 30px;
+    display: grid; place-items: center;
     background:
       radial-gradient(60% 60% at 50% 50%, rgba(255,43,214,0.20), transparent 70%),
       radial-gradient(80% 80% at 50% 50%, rgba(0,229,255,0.12), transparent 70%),
       #0a0224;
   }
   .dirB-card-icon {
-    width: 78%; max-width: 300px; height: auto; object-fit: contain;
+    position: absolute; top: 14px; left: 14px;
+    width: calc(100% - 28px); height: calc(100% - 28px);
+    object-fit: contain;
     filter: drop-shadow(0 0 16px rgba(255,43,214,0.6)) drop-shadow(0 0 32px rgba(0,229,255,0.4));
     transition: transform 600ms ease;
   }
@@ -550,7 +552,7 @@
 
       <a class="dirB-card" href="shopping-list/how-to.html">
         <div class="dirB-card-media dirB-card-media--icon">
-          <img src="images/speedyshoperlogo_neon.svg" alt="" class="dirB-card-icon" style="width:50%;"/>
+          <img src="images/speedyshoperlogo_neon.svg" alt="" class="dirB-card-icon"/>
           <div class="dirB-card-grid"></div>
           <div class="dirB-card-pill dirB-card-pill--mag">UTILITY</div>
         </div>
@@ -564,7 +566,7 @@
 
       <a class="dirB-card" href="Plunder%20Sudoku/PlunderSudoku.html">
         <div class="dirB-card-media dirB-card-media--icon">
-          <img src="images/neoncontroller.png" alt="" class="dirB-card-icon"/>
+          <img src="images/NeonPlundersudoku.png" alt="" class="dirB-card-icon"/>
           <div class="dirB-card-grid"></div>
           <div class="dirB-card-pill">LIVE NODE</div>
         </div>
