@@ -640,7 +640,12 @@ function onCellClick(){
 
 function openDial(cx,cy,r,c){
   closeDial();dialCell={r,c};
-  const vw=window.innerWidth,vh=window.innerHeight;
+  // document.documentElement.clientWidth/Height reflects the actual visible
+  // viewport more reliably than window.innerWidth/innerHeight, which on some
+  // mobile browsers can report a wider "layout" size than what's on screen —
+  // causing the ring to be clamped against room that doesn't really exist.
+  const vw=document.documentElement.clientWidth||window.innerWidth;
+  const vh=document.documentElement.clientHeight||window.innerHeight;
   const minDim=Math.min(vw,vh);
   // Button size scales with viewport but stays within a legible/tappable range.
   const BTN=Math.max(28,Math.min(40,minDim*.09));
