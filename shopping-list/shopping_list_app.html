@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
 <title>Shopping List</title>
 <link rel="icon" type="image/svg+xml" href="speedyshoperlogo.svg">
 </head>
@@ -125,6 +125,25 @@ body { font-family: var(--font-sans); background: var(--color-background-seconda
 .ing-add-row input { flex: 1; min-width: 0; }
 .ing-add-row button { height: 32px; padding: 0 12px; font-size: 13px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: transparent; color: var(--color-text-primary); cursor: pointer; white-space: nowrap; flex-shrink: 0; }
 .ing-add-row button:hover { background: var(--color-background-secondary); }
+.suggest-row { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 8px; padding-bottom: 2px; scrollbar-width: none; }
+.suggest-row::-webkit-scrollbar { display: none; }
+.suggest-row:empty { display: none; }
+.suggest-chip { flex-shrink: 0; font-size: 13px; padding: 5px 12px; border-radius: 99px; border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); cursor: pointer; white-space: nowrap; box-shadow: var(--shadow-sm); }
+.suggest-chip:hover { background: var(--color-background-secondary); }
+.add-row-container { margin-bottom: 1.5rem; }
+.add-dock-staples { margin-bottom: 10px; }
+.add-dock-staples .ing-add-row { margin-bottom: 0; }
+.add-dock-staples .suggest-row { margin: 8px 0 0; }
+/* Phones: pin the add box to the bottom, within thumb reach. interactive-widget=resizes-content
+   in the viewport meta makes Android Chrome keep it above the on-screen keyboard. */
+@media (max-width: 700px) {
+  .app:has(.add-dock) { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+  .add-dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; margin: 0; display: flex; flex-direction: column; padding: 8px 0.75rem calc(10px + env(safe-area-inset-bottom)); background: var(--color-background-secondary); border-top: 0.5px solid var(--color-border-tertiary); box-shadow: 0 -2px 8px rgba(0,0,0,0.06); }
+  .add-dock .section-label { display: none; }
+  .add-dock .ing-widget { display: flex; flex-direction: column; }
+  .add-dock .ing-add-row { margin-bottom: 0; }
+  .add-dock .suggest-row { order: -1; margin: 0 0 8px; }
+}
 .staple-row { cursor: pointer; user-select: none; transition: background 0.12s, border-color 0.12s; }
 .staple-card-list { display: flex; flex-direction: column; gap: 2px; margin-bottom: 0.75rem; }
 .staple-card-row { display: flex; align-items: center; gap: 10px; padding: 6px 14px; background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); box-shadow: var(--shadow-sm); cursor: pointer; transition: border-color 0.12s; }
@@ -721,23 +740,21 @@ function ingAddWidget(selectId, textId, catId, btnOnclick, usedIds, showCat = tr
     (showAll || i.staple || allRecipeItemIds.has(i.id)) && !usedIds.has(i.id)
   );
 
-  const listId = "list_" + selectId;
+  suggestPools[selectId] = availableItems.map(it => it.name);
 
   return `
-  <div id="ingWidget_${selectId}">
+  <div class="ing-widget" id="ingWidget_${selectId}">
     <div class="ing-add-row">
       <input id="${selectId}"
-             list="${listId}"
+             autocomplete="off"
              placeholder="Type to search or add new..."
-             oninput="ingWidgetToggle('${selectId}','${textId}','${catId}', ${showCat});ingCheckExact('${selectId}', function(){${btnOnclick}})"
-             onchange="ingCheckExact('${selectId}', function(){${btnOnclick}})"
+             oninput="ingWidgetToggle('${selectId}','${textId}','${catId}', ${showCat});ingSuggest('${selectId}', '${btnOnclick}')"
+             onblur="ingSuggestHide('${selectId}')"
              onkeydown="if(event.key==='Enter'){event.preventDefault();${btnOnclick}}"
              style="flex:1;">
-      <datalist id="${listId}">
-        ${availableItems.map(it => `<option value="${esc(it.name)}" data-id="${it.id}">`).join('')}
-      </datalist>
       <button onclick="${btnOnclick}">Add</button>
     </div>
+    <div class="suggest-row" id="suggest_${selectId}"></div>
     <div id="ingNewFields_${selectId}" style="display:none; margin-top:4px;">
       <div class="ing-add-row">
         <select id="${catId}" style="width:100%; display: ${showCat ? 'block' : 'none'};">
@@ -748,12 +765,38 @@ function ingAddWidget(selectId, textId, catId, btnOnclick, usedIds, showCat = tr
   </div>`;
 }
 
-function ingCheckExact(selectId, fn) {
-  const input = document.getElementById(selectId);
-  if (!input) return;
-  const val = input.value.trim();
-  const match = state.items.find(it => it.name.toLowerCase() === val.toLowerCase());
-  if (match) fn();
+// Suggestions are drawn inline (not as a native <datalist> popup) so they push
+// the list down instead of covering it. Pools are refilled on every render().
+const suggestPools = {};
+const SUGGEST_MAX = 12;
+
+function ingSuggest(inputId, onPick) {
+  const input = document.getElementById(inputId);
+  const box = document.getElementById('suggest_' + inputId);
+  if (!input || !box) return;
+  const q = input.value.trim().toLowerCase();
+  if (!q) { box.innerHTML = ''; return; }
+  const names = (suggestPools[inputId] || []).filter(n => n.toLowerCase().includes(q));
+  // Names starting with the query first, then alphabetical
+  names.sort((a, b) => (b.toLowerCase().startsWith(q) - a.toLowerCase().startsWith(q)) || a.localeCompare(b));
+  // mousedown preventDefault keeps focus (and the keyboard) on the input when a chip is tapped
+  box.innerHTML = names.slice(0, SUGGEST_MAX).map(n =>
+    `<button class="suggest-chip" data-name="${esc(n)}" onmousedown="event.preventDefault()" onclick="ingPick('${inputId}', this.dataset.name);${onPick}">${esc(n)}</button>`
+  ).join('');
+}
+
+function ingPick(inputId, name) {
+  const input = document.getElementById(inputId);
+  if (input) input.value = name;
+}
+
+function ingSuggestHide(inputId) {
+  // Delay so a tap on a chip still registers if the input blurs first
+  setTimeout(() => {
+    const input = document.getElementById(inputId);
+    const box = document.getElementById('suggest_' + inputId);
+    if (box && input !== document.activeElement) box.innerHTML = '';
+  }, 200);
 }
 
 function ingWidgetToggle(selectId, textId, catId, showCat) {
@@ -880,7 +923,7 @@ if(state.tab==='list'){
     html+=`<div class="actions-bar">
       <button class="primary" onclick="completeShop()">Clear checked</button>
     </div>
-    <div class="add-row-container" style="margin-bottom: 1.5rem;">
+    <div class="add-row-container add-dock">
       <div class="section-label">Add Item</div>
       ${ingAddWidget('newName', 'newText', 'newCat', 'addItem()', new Set(), false, true)}
     </div>`;
@@ -912,15 +955,16 @@ if(state.tab==='list'){
     </div>`;
     const allStaples = state.items.filter(i => i.staple);
     const usedIds = new Set(allStaples.map(i => i.id));
-    const stapleListId = 'list_stapleSearch';
-    const allItems = state.items.filter(i => !usedIds.has(i.id));
-    html += `<div class="ing-add-row" style="margin-bottom:10px;">
-      <input id="stapleSearch" list="${stapleListId}" placeholder="Type to search or add new..." oninput="ingCheckExact('stapleSearch', addStapleItem)" onchange="addStapleItem()" onkeydown="if(event.key==='Enter'){event.preventDefault();addStapleItem()}" style="flex:1;font-size:13px;height:32px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);padding:0 8px;">
-      <datalist id="${stapleListId}">${allItems.map(it=>`<option value="${esc(it.name)}">`).join('')}</datalist>
+    suggestPools.stapleSearch = state.items.filter(i => !usedIds.has(i.id)).map(i => i.name);
+    html += `<div class="add-dock add-dock-staples">
+    <div class="ing-add-row">
+      <input id="stapleSearch" autocomplete="off" placeholder="Type to search or add new..." oninput="ingSuggest('stapleSearch', 'addStapleItem()')" onblur="ingSuggestHide('stapleSearch')" onkeydown="if(event.key==='Enter'){event.preventDefault();addStapleItem()}" style="flex:1;font-size:13px;height:32px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);padding:0 8px;">
       <select id="stapleCat" onchange="state.stapleCat=this.value" style="width:110px;font-size:13px;height:32px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);padding:0 8px;flex-shrink:0;">
         ${CATEGORIES.map(c=>`<option ${state.stapleCat===c?'selected':''}>${c}</option>`).join('')}
       </select>
       <button onclick="addStapleItem()" style="height:32px;padding:0 12px;font-size:13px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-primary);cursor:pointer;white-space:nowrap;flex-shrink:0;">Add</button>
+    </div>
+    <div class="suggest-row" id="suggest_stapleSearch"></div>
     </div>`;
 
     if(!allStaples.length){
