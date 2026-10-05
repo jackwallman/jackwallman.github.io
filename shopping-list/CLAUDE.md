@@ -12,7 +12,6 @@ Single-file vanilla JS app (`shopping_list_app.html`) — no frameworks, no buil
 
 ## File structure
 - `shopping_list_app.html` — the entire app (CSS ~lines 1-171, HTML/constants ~173-300, JS ~302-1172)
-- `how-to.html` — user-facing documentation page
 
 ## Key data models
 
