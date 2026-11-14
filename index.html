@@ -27,6 +27,9 @@
     --display: 'Mountains of Christmas', 'Lora', serif;
     --body: 'Lora', Georgia, serif;
     --hand: 'Caveat', 'Lora', cursive;
+    --pen: #23253a;
+    --paper-grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.42  0 0 0 0 0.32  0 0 0 0 0.18  0 0 0 0.10 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    --paper-fibre: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='f'><feTurbulence type='fractalNoise' baseFrequency='0.012 0.35' numOctaves='2' seed='4' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.5  0 0 0 0 0.38  0 0 0 0 0.2  0 0 0 0.07 0'/></filter><rect width='100%' height='100%' filter='url(%23f)'/></svg>");
   }
 
   html { scroll-behavior: smooth; scroll-padding-top: 96px; }
@@ -43,7 +46,7 @@
 
   /* ---------- header ---------- */
   .top {
-    position: sticky; top: 0; z-index: 60;
+    position: sticky; top: env(safe-area-inset-top, 0px); z-index: 60;
     display: flex; align-items: center; gap: 24px;
     padding: 12px 48px;
     background: var(--red-deep);
@@ -88,7 +91,7 @@
   /* ---------- hero: snowy night ---------- */
   .hero {
     position: relative;
-    padding: 96px 48px 150px;
+    padding: 96px 48px 170px;
     background: linear-gradient(180deg, var(--night) 0%, var(--night-2) 75%, #2a4a78 100%);
     color: var(--cream);
     text-align: center;
@@ -116,7 +119,7 @@
   }
   .hero-hills {
     position: absolute; left: 0; right: 0; bottom: 0;
-    width: 100%; height: 230px; display: block; pointer-events: none;
+    width: 100%; height: 260px; display: block; pointer-events: none;
   }
   .hero-inner { position: relative; z-index: 3; max-width: 1080px; margin: 0 auto; }
 
@@ -136,6 +139,7 @@
     font-size: clamp(64px, 11vw, 168px);
     line-height: 0.95;
     margin: 28px 0 0;
+    text-wrap: balance;
     color: var(--cream);
     text-shadow: 0 4px 0 var(--red-deep), 0 0 40px rgba(232,182,76,0.35);
   }
@@ -144,6 +148,7 @@
     font-size: clamp(24px, 3vw, 32px);
     color: var(--gold);
     margin: 18px 0 0;
+    text-wrap: balance;
   }
 
   .hero-stack {
@@ -153,46 +158,93 @@
     text-align: left;
   }
 
-  /* polaroid */
+  /* polaroid: real proportions (narrow top and sides, deep chin), matte card, inset photo, tape */
   .polaroid {
     position: relative;
-    background: #fff;
-    padding: 14px 14px 64px;
+    margin: 18px 8px 0;
+    padding: 6% 6% 25%;
+    background: var(--paper-grain), linear-gradient(165deg, #fdfcf8 0%, #f3f1ea 60%, #e9e6dc 100%);
+    border-radius: 2px;
     transform: rotate(-3deg);
-    box-shadow: 0 18px 40px rgba(0,0,0,0.4);
-    margin: 10px 8px 0;
+    box-shadow:
+      0 1px 1px rgba(0,0,0,0.25),
+      0 6px 10px rgba(0,0,0,0.22),
+      0 24px 44px rgba(0,0,0,0.38);
   }
-  .polaroid img { display: block; width: 100%; aspect-ratio: 1/1; object-fit: cover; }
+  .polaroid-photo { position: relative; }
+  .polaroid-photo img {
+    display: block; width: 100%; aspect-ratio: 1/1; object-fit: cover;
+    filter: saturate(0.9) contrast(0.95) sepia(0.1) brightness(1.04);
+  }
+  .polaroid-photo::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.35), inset 0 2px 6px rgba(0,0,0,0.35);
+    background: linear-gradient(125deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 38%);
+  }
   .polaroid figcaption {
-    position: absolute; left: 0; right: 0; bottom: 14px;
+    position: absolute; left: 6%; right: 6%; bottom: 0;
+    padding-bottom: 7.5%;
     text-align: center;
-    font-family: var(--hand); font-size: 30px; font-weight: 700; color: var(--red-deep);
+    font-family: var(--hand); font-size: clamp(26px, 3vw, 32px); font-weight: 700;
+    color: var(--pen);
+    transform: rotate(-1.5deg);
   }
-  .polaroid-holly { position: absolute; top: -26px; left: -26px; width: 96px; height: 80px; transform: rotate(-8deg); }
+  .polaroid::before {
+    content: ""; position: absolute; top: -16px; left: 50%;
+    width: 120px; height: 34px;
+    transform: translateX(-50%) rotate(-3deg);
+    background: var(--paper-grain), linear-gradient(180deg, rgba(255,251,236,0.72), rgba(240,232,210,0.62));
+    clip-path: polygon(0 6%, 4% 0, 8% 8%, 12% 1%, 16% 7%, 20% 0, 80% 0, 84% 6%, 88% 0, 92% 8%, 96% 1%, 100% 6%, 100% 94%, 96% 100%, 92% 92%, 88% 99%, 84% 93%, 80% 100%, 20% 100%, 16% 93%, 12% 99%, 8% 92%, 4% 100%, 0 94%);
+    z-index: 2;
+  }
+  .polaroid-holly { position: absolute; bottom: 4%; right: 3%; width: 60px; height: 50px; transform: rotate(10deg); }
 
-  /* letter card */
+  /* letter: deckled, grained, folded writing paper with a stamp and postmark */
+  .letter-wrap {
+    transform: rotate(0.8deg);
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2)) drop-shadow(0 18px 26px rgba(0,0,0,0.38));
+  }
   .letter {
     position: relative;
-    background: var(--cream);
     color: var(--ink);
-    padding: 34px 34px 26px;
-    border-radius: 6px;
-    box-shadow: 0 18px 40px rgba(0,0,0,0.35);
-    outline: 2px solid var(--red);
-    outline-offset: -12px;
-  }
-  .letter::before {
-    content: ""; position: absolute; left: -3px; right: -3px; top: -8px; height: 16px;
+    padding: 28px 38px 30px;
     background:
-      radial-gradient(14px 9px at 50% 40%, #fff 60%, transparent 64%) 0 0 / 28px 16px repeat-x,
-      linear-gradient(#fff, #fff) 0 0 / 100% 7px no-repeat;
-    border-radius: 8px 8px 0 0;
-    filter: drop-shadow(0 2px 2px rgba(11,26,51,0.25));
+      linear-gradient(180deg, transparent 32.6%, rgba(110,80,40,0.10) 33.2%, rgba(255,255,255,0.55) 33.5%, transparent 34.6%),
+      linear-gradient(180deg, transparent 65.9%, rgba(110,80,40,0.10) 66.5%, rgba(255,255,255,0.55) 66.8%, transparent 67.9%),
+      var(--paper-fibre),
+      var(--paper-grain),
+      radial-gradient(ellipse 120% 90% at 45% 35%, #fdf8ea 0%, #f7eed8 62%, #eadbb8 100%);
   }
-  .letter-bio { margin: 0; font-size: 17px; line-height: 1.75; color: var(--ink-soft); }
+  .letter-head {
+    position: relative;
+    display: flex; justify-content: space-between; align-items: flex-end; gap: 16px;
+    margin-bottom: 14px;
+  }
+  .letter-greet { font-family: var(--hand); font-size: 32px; font-weight: 700; color: var(--pen); margin: 0; }
+  .stamp {
+    flex: none; position: relative;
+    width: 70px; height: 84px; padding: 6px;
+    background: #fffdf6;
+    transform: rotate(4deg);
+    -webkit-mask:
+      linear-gradient(#000 0 0) center / calc(100% - 8px) calc(100% - 8px) no-repeat,
+      radial-gradient(circle at 4.5px 4.5px, transparent 2.6px, #000 3px) -0.5px -0.5px / 9px 9px;
+    mask:
+      linear-gradient(#000 0 0) center / calc(100% - 8px) calc(100% - 8px) no-repeat,
+      radial-gradient(circle at 4.5px 4.5px, transparent 2.6px, #000 3px) -0.5px -0.5px / 9px 9px;
+  }
+  .stamp svg { display: block; width: 100%; height: 100%; }
+  .postmark {
+    position: absolute; right: 34px; bottom: -18px;
+    width: 120px; height: 66px;
+    color: rgba(35,37,58,0.55);
+    transform: rotate(-8deg);
+    pointer-events: none;
+  }
+  .letter-bio { margin: 0; font-size: 17px; line-height: 1.75; color: var(--ink-soft); max-width: 62ch; }
   .letter-bio b { color: var(--pine); font-weight: 700; }
   .letter-bio em { color: var(--red); font-style: italic; font-weight: 700; font-size: 19px; }
-  .letter-sign { font-family: var(--hand); font-size: 30px; font-weight: 700; color: var(--red-deep); margin: 14px 0 0; }
+  .letter-sign { font-family: var(--hand); font-size: 32px; font-weight: 700; color: var(--pen); margin: 14px 0 0; }
   .letter-cta { display: flex; gap: 12px; margin-top: 22px; }
   .btn {
     flex: 1;
@@ -209,8 +261,8 @@
   .btn--ghost { background: transparent; border-color: var(--pine); color: var(--pine); }
   .btn--ghost:hover { background: var(--pine); color: var(--cream); }
 
-  /* ---------- presents ---------- */
-  .presents {
+  /* ---------- projects ---------- */
+  .projects {
     position: relative; z-index: 2;
     padding: 40px 48px 90px;
     background: var(--snow);
@@ -218,8 +270,9 @@
   .section-head { text-align: center; margin: 0 auto 48px; max-width: 760px; }
   .section-head h2 {
     font-family: var(--display); font-weight: 700;
-    font-size: clamp(40px, 6vw, 72px);
+    font-size: clamp(48px, 7vw, 84px);
     margin: 0; color: var(--red);
+    text-wrap: balance;
     line-height: 1;
   }
   .section-head p { font-family: var(--hand); font-size: 28px; font-weight: 700; color: var(--pine); margin: 10px 0 0; }
@@ -343,6 +396,16 @@
     z-index: 55; pointer-events: none;
   }
 
+  a:focus-visible { outline: 3px solid var(--gold); outline-offset: 4px; border-radius: 4px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .xmas-bulb { animation: none; }
+    .card, .card-bow, .card-icon, .btn, .foot-links a { transition: none; }
+    .card:hover, .card:hover .card-icon, .card:hover .card-bow, .btn:hover { transform: none; }
+    .card:hover .card-bow { transform: translateX(-50%); }
+  }
+
   @media (max-width: 1080px) {
     .cards { grid-template-columns: repeat(2, 1fr); }
   }
@@ -355,10 +418,13 @@
     .hero-moon { width: 56px; height: 56px; top: 52px; right: 6%; }
     .ribbon { padding: 9px 30px; font-size: 11px; letter-spacing: 0.2em; }
     .hero-stack { grid-template-columns: 1fr; gap: 44px; margin-top: 40px; }
-    .polaroid { max-width: 420px; margin: 10px auto 0; width: calc(100% - 24px); }
-    .letter { padding: 30px 24px 22px; }
+    .polaroid { max-width: 420px; margin: 18px auto 0; width: calc(100% - 24px); }
+    .letter { padding: 24px 22px 26px; }
+    .letter-greet { font-size: 28px; }
+    .postmark { right: 22px; width: 100px; }
+    .polaroid-holly { width: 42px; height: 35px; right: 2%; bottom: 3%; }
     .letter-cta { flex-direction: column; }
-    .presents { padding: 32px 16px 70px; }
+    .projects { padding: 32px 16px 70px; }
     .cards { grid-template-columns: 1fr; gap: 40px; }
     .foot { padding: 56px 16px 56px; }
     .foot-label { font-size: 28px; }
@@ -378,11 +444,6 @@
         <path d="M41 24 L52 42 L45 39 L42 44 L38 26Z"/>
         <ellipse cx="38" cy="22" rx="6" ry="5.5"/>
       </g>
-    </symbol>
-    <symbol id="tree" viewBox="0 0 40 60">
-      <rect x="17" y="50" width="6" height="10" fill="#3b2a1e"/>
-      <path d="M20 0 L36 24 L28 24 L40 40 L30 40 L40 52 L0 52 L10 40 L0 40 L12 24 L4 24Z" fill="#163c2c"/>
-      <path d="M20 0 L28 12 L24 11 L20 14 L16 11 L12 12Z" fill="#fff"/>
     </symbol>
   </defs>
 </svg>
@@ -405,7 +466,7 @@
     <span class="brand-tag">Merry Christmas!</span>
   </a>
   <nav class="nav">
-    <a href="#presents">Presents</a>
+    <a href="#projects">Projects</a>
     <a href="#links">Links</a>
   </nav>
   <div class="xmas-lights" id="xmas-lights" aria-hidden="true"></div>
@@ -415,17 +476,9 @@
   <div class="hero-stars" aria-hidden="true"></div>
   <div class="hero-moon" aria-hidden="true"></div>
 
-  <svg class="hero-hills" viewBox="0 0 1440 230" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
-    <path d="M0 120 C180 60 360 70 520 110 C700 150 820 80 1000 70 C1180 60 1320 100 1440 90 L1440 230 L0 230Z" fill="#c9d8ea"/>
-    <use href="#tree" x="80" y="58" width="40" height="60"/>
-    <use href="#tree" x="122" y="72" width="30" height="45"/>
-    <use href="#tree" x="300" y="56" width="44" height="66"/>
-    <use href="#tree" x="1040" y="22" width="40" height="60"/>
-    <use href="#tree" x="1086" y="38" width="30" height="45"/>
-    <use href="#tree" x="1290" y="44" width="46" height="69"/>
-    <path d="M0 170 C220 120 420 150 640 170 C860 190 1060 130 1260 140 C1350 145 1400 155 1440 160 L1440 230 L0 230Z" fill="#eef3f8"/>
-    <use href="#tree" x="200" y="104" width="44" height="66"/>
-    <use href="#tree" x="1180" y="80" width="50" height="75"/>
+  <svg class="hero-hills" id="hero-hills" viewBox="0 0 1440 260" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+    <path d="M0 150 C220 100 420 130 640 150 C860 170 1060 110 1260 120 C1350 125 1400 135 1440 140 L1440 260 L0 260Z" fill="#c9d8ea"/>
+    <path d="M0 205 C260 185 520 200 760 210 C1000 220 1220 190 1440 200 L1440 260 L0 260Z" fill="#eef3f8"/>
   </svg>
 
   <div class="hero-inner">
@@ -437,17 +490,49 @@
 
     <div class="hero-stack">
       <figure class="polaroid">
+        <div class="polaroid-photo">
+          <img src="images/portrait-christmas.webp" alt="Jack Wallman and partner by the fire and Christmas tree"/>
+        </div>
+        <figcaption>Christmas by the fire</figcaption>
         <svg class="polaroid-holly" viewBox="0 0 96 80" aria-hidden="true">
           <path d="M46 44 C34 30 20 34 6 22 C14 30 8 38 14 42 C10 46 16 52 12 58 C22 52 30 58 46 44Z" fill="#1d5a3a" stroke="#0f3323" stroke-width="1.5"/>
           <path d="M50 42 C56 26 70 24 76 8 C74 18 84 20 82 28 C88 30 86 38 92 40 C80 40 76 50 50 42Z" fill="#2f7a4f" stroke="#0f3323" stroke-width="1.5"/>
           <circle cx="46" cy="46" r="6" fill="#c8102e"/><circle cx="56" cy="48" r="6" fill="#d81e3c"/><circle cx="50" cy="56" r="6" fill="#b00d28"/>
           <circle cx="44" cy="44" r="1.6" fill="#fff" opacity="0.7"/><circle cx="54" cy="46" r="1.6" fill="#fff" opacity="0.7"/>
         </svg>
-        <img src="images/portrait-christmas.webp" alt="Jack Wallman and partner by the fire and Christmas tree"/>
-        <figcaption>Christmas by the fire</figcaption>
       </figure>
 
-      <div class="letter">
+      <div class="letter-wrap">
+      <div class="letter" id="letter">
+        <div class="letter-head">
+          <p class="letter-greet">Dear visitor,</p>
+          <span class="stamp" aria-hidden="true">
+            <svg viewBox="0 0 58 72">
+              <rect width="58" height="72" fill="#8a0b20"/>
+              <rect x="3" y="3" width="52" height="66" fill="none" stroke="#e8b64c" stroke-width="1"/>
+              <circle cx="44" cy="14" r="5" fill="#fbf4e6"/>
+              <path d="M29 12 L39 30 L34 30 L42 42 L36 42 L44 54 L14 54 L22 42 L16 42 L24 30 L19 30Z" fill="#1d5a3a"/>
+              <path d="M29 12 L33 19 L29 17.5 L25 19Z" fill="#fff"/>
+              <path d="M29 5.5 l1.4 3 3.2 .3 -2.4 2.1 .7 3.2 -2.9 -1.7 -2.9 1.7 .7 -3.2 -2.4 -2.1 3.2 -.3z" fill="#e8b64c"/>
+              <rect x="27" y="54" width="4" height="5" fill="#3b2a1e"/>
+              <text x="29" y="67" text-anchor="middle" font-family="Lora, serif" font-size="7" font-weight="700" fill="#fbf4e6">2nd · 2026</text>
+            </svg>
+          </span>
+          <svg class="postmark" viewBox="0 0 120 66" aria-hidden="true">
+            <g fill="none" stroke="currentColor" stroke-width="1.6">
+              <circle cx="33" cy="33" r="27"/>
+              <circle cx="33" cy="33" r="20" stroke-width="1"/>
+              <path d="M62 18 q7 -5 14 0 t14 0 t14 0 t14 0"/>
+              <path d="M62 28 q7 -5 14 0 t14 0 t14 0 t14 0"/>
+              <path d="M62 38 q7 -5 14 0 t14 0 t14 0 t14 0"/>
+              <path d="M62 48 q7 -5 14 0 t14 0 t14 0 t14 0"/>
+            </g>
+            <g fill="currentColor" font-family="Lora, serif" font-weight="700" text-anchor="middle">
+              <text x="33" y="30" font-size="8" letter-spacing="1">BRISTOL</text>
+              <text x="33" y="41" font-size="7">DEC 2026</text>
+            </g>
+          </svg>
+        </div>
         <p class="letter-bio">
           This year, before the rug gets pulled on cheap AI, I'm going to take the opportiunity to <b>create more</b>. This website is the window onto those creations. <b>Games</b>, <em>apps</em> and of course the site itself.<br/><br/>
           Once upon a time, if you wanted a space on the web you <b>made yourself one</b>. When I was 12 I had a small corner on my dad's site for a racehorse called Ice Cracker. It was great, anything was possible. Since then the dark shadow of social media has cast over the web and we've been straight-jacketed into profiles and feeds.<br/><br/>
@@ -455,17 +540,18 @@
         </p>
         <p class="letter-sign">Merry Christmas, Jack x</p>
         <div class="letter-cta">
-          <a href="#presents" class="btn btn--primary">Open the presents</a>
+          <a href="#projects" class="btn btn--primary">See the projects</a>
           <a href="#links" class="btn btn--ghost">Links</a>
         </div>
+      </div>
       </div>
     </div>
   </div>
 </section>
 
-<section id="presents" class="presents">
+<section id="projects" class="projects">
   <div class="section-head">
-    <h2>Presents Under the Tree</h2>
+    <h2>Projects</h2>
     <p>Four little projects, all wrapped up</p>
   </div>
 
@@ -576,6 +662,115 @@
     }
     build();
     var t; window.addEventListener('resize', function () { clearTimeout(t); t = setTimeout(build, 150); });
+  })();
+
+  // seeded random so the scenery is the same on every visit
+  function seeded(seed) {
+    return function () {
+      seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+      var t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+
+  // snowy hills with a layered spruce forest: hazy far ridge, snow-laden mid trees, big near trees at the edges
+  (function () {
+    var svg = document.getElementById('hero-hills');
+    if (!svg) return;
+    var rand = seeded(1225);
+    var W = 1440, H = 260;
+    function f1(x) { return 112 + 16 * Math.sin(x / 170 + 1) + 10 * Math.sin(x / 83 + 2); }
+    function f2(x) { return 158 + 14 * Math.sin(x / 210 + 0.5) + 8 * Math.sin(x / 97 + 4); }
+    function f3(x) { return 214 + 10 * Math.sin(x / 260 + 2) + 5 * Math.sin(x / 120 + 1); }
+    function hill(f, fill) {
+      var d = 'M0 ' + f(0).toFixed(1);
+      for (var x = 10; x <= W; x += 10) d += ' L' + x + ' ' + f(x).toFixed(1);
+      return '<path d="' + d + ' L' + W + ' ' + H + ' L0 ' + H + 'Z" fill="' + fill + '"/>';
+    }
+    function pt(p) { return p[0].toFixed(1) + ' ' + p[1].toFixed(1); }
+    // one spruce: drooping tiers that widen toward the base, ragged tips, snow along the top of each bough
+    function spruce(cx, base, h, colour, snowy) {
+      var tiers = 7 + Math.floor(rand() * 4);
+      var top = base - h, bottom = base - h * 0.035;
+      var half = h * (0.24 + rand() * 0.07);
+      var tierH = (bottom - top) / tiers;
+      var R = [[cx, top]], L = [[cx, top]], snow = '';
+      var prevR = [cx, top], prevL = [cx, top];
+      // a clump of snow resting on the upper edge of a bough, from its inner notch out towards its tip
+      function clump(a, tip) {
+        var e = [a[0] + (tip[0] - a[0]) * 0.86, a[1] + (tip[1] - a[1]) * 0.86];
+        var th = h * (0.02 + rand() * 0.014);
+        var c = [(a[0] + e[0]) / 2, (a[1] + e[1]) / 2 - th * 2];
+        var sink = th * 0.6;
+        return 'M' + pt(a) + ' Q' + pt(c) + ' ' + pt(e) + ' L' + pt([e[0], e[1] + sink * 0.5]) + ' L' + pt([a[0], a[1] + sink]) + 'Z';
+      }
+      for (var i = 1; i <= tiers; i++) {
+        var f = i / tiers, w = half * Math.pow(f, 0.85);
+        var y = top + tierH * i;
+        var tipR = [cx + w * (0.82 + rand() * 0.32), y + tierH * (0.15 + rand() * 0.25)];
+        var tipL = [cx - w * (0.82 + rand() * 0.32), y + tierH * (0.15 + rand() * 0.25)];
+        var sagR = [cx + w * (0.6 + rand() * 0.1), y + tierH * 0.02];
+        var sagL = [cx - w * (0.6 + rand() * 0.1), y + tierH * 0.02];
+        // ragged needle fringe under each bough
+        var t1R = [(tipR[0] * 2 + sagR[0]) / 3, (tipR[1] * 2 + sagR[1]) / 3 + tierH * (0.12 + rand() * 0.1)];
+        var t2R = [(tipR[0] + sagR[0] * 2) / 3, (tipR[1] + sagR[1] * 2) / 3 + tierH * (0.08 + rand() * 0.1)];
+        var t1L = [(tipL[0] * 2 + sagL[0]) / 3, (tipL[1] * 2 + sagL[1]) / 3 + tierH * (0.12 + rand() * 0.1)];
+        var t2L = [(tipL[0] + sagL[0] * 2) / 3, (tipL[1] + sagL[1] * 2) / 3 + tierH * (0.08 + rand() * 0.1)];
+        R.push(tipR, t1R, t2R, sagR); L.push(tipL, t1L, t2L, sagL);
+        if (snowy && i < tiers && rand() > 0.12) snow += clump(prevR, tipR);
+        if (snowy && i < tiers && rand() > 0.12) snow += clump(prevL, tipL);
+        if (i < tiers) {
+          var ny = y + tierH * 0.02;
+          var nR = [cx + w * 0.32, ny], nL = [cx - w * 0.32, ny];
+          R.push(nR); L.push(nL); prevR = nR; prevL = nL;
+        }
+      }
+      var tw = Math.max(1.2, h * 0.022);
+      var d = 'M' + R.map(pt).join(' L') +
+        ' L' + pt([cx + tw, bottom]) + ' L' + pt([cx + tw, base + 6]) + ' L' + pt([cx - tw, base + 6]) + ' L' + pt([cx - tw, bottom]) +
+        ' L' + L.reverse().map(pt).join(' L') + 'Z';
+      var out = '<path d="' + d + '" fill="' + colour + '"/>';
+      if (snowy) out += '<path d="' + snow + '" fill="#eef3f8"/>' +
+        '<path d="M' + pt([cx, top - h * 0.01]) + ' L' + pt([cx + h * 0.03, top + h * 0.07]) + ' Q' + pt([cx, top + h * 0.05]) + ' ' + pt([cx - h * 0.03, top + h * 0.07]) + 'Z" fill="#eef3f8"/>';
+      return out;
+    }
+    function forest(f, opts) {
+      var out = '', x = opts.from;
+      while (x < opts.to) {
+        var dense = 0.5 + 0.5 * Math.sin(x / opts.clump + opts.phase);
+        if (rand() < dense * opts.fill) {
+          var h = opts.min + rand() * (opts.max - opts.min);
+          out += spruce(x, f(x) + 3, h, opts.colour, opts.snowy);
+        }
+        x += opts.step * (0.6 + rand() * 0.8);
+      }
+      return out;
+    }
+    var html = '';
+    html += hill(f1, '#8ea3c2');
+    html += forest(f1, { from: -10, to: W + 10, step: 11, min: 16, max: 34, clump: 90, phase: 0.3, fill: 0.95, colour: '#4b6283', snowy: false });
+    html += hill(f2, '#c3d3e7');
+    html += forest(f2, { from: 0, to: W, step: 17, min: 34, max: 78, clump: 120, phase: 2.1, fill: 1, colour: '#21403c', snowy: true });
+    html += hill(f3, '#eef3f8');
+    html += spruce(40, f3(40) + 4, 150, '#14302a', true);
+    html += spruce(96, f3(96) + 4, 104, '#14302a', true);
+    html += spruce(1352, f3(1352) + 4, 128, '#14302a', true);
+    html += spruce(1408, f3(1408) + 4, 170, '#14302a', true);
+    svg.innerHTML = html;
+  })();
+
+  // deckled edge on the letter paper
+  (function () {
+    var el = document.getElementById('letter');
+    if (!el || !window.CSS || !CSS.supports('clip-path', 'polygon(0 0, 100% 0, 0 100%)')) return;
+    var rand = seeded(24), pts = [], i, j;
+    function jag() { return (rand() * 2.6).toFixed(2) + 'px'; }
+    for (i = 0; i <= 100; i += 1.25) pts.push(i + '% ' + jag());
+    for (i = 0; i <= 100; i += 1.25) pts.push('calc(100% - ' + jag() + ') ' + i + '%');
+    for (i = 100; i >= 0; i -= 1.25) pts.push(i + '% calc(100% - ' + jag() + ')');
+    for (i = 100; i >= 0; i -= 1.25) pts.push(jag() + ' ' + i + '%');
+    el.style.clipPath = 'polygon(' + pts.join(',') + ')';
   })();
 
   // falling snow
