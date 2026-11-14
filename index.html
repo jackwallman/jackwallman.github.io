@@ -8,26 +8,27 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@400;700&family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Caveat:wght@500;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Caveat:wght@500;600&display=swap" rel="stylesheet"/>
 
 <style>
+  /* Layout: a winter night scene that opens onto snow, like the front of a good Christmas card; quiet type, one warm accent. */
   :root {
-    --night: #0b1a33;
-    --night-2: #16305a;
-    --pine: #1d5a3a;
-    --pine-dark: #0f3323;
-    --red: #c8102e;
-    --red-deep: #8a0b20;
-    --gold: #e8b64c;
-    --gold-deep: #b8862a;
-    --cream: #fbf4e6;
+    --night: #0a1428;
+    --night-2: #152a50;
+    --evergreen: #1f3b30;
+    --evergreen-deep: #13261f;
+    --berry: #7d1a2a;
+    --berry-deep: #5e1220;
+    --brass: #c9a866;
+    --brass-ink: #86672c;
+    --cream: #f7f0e1;
     --snow: #eef3f8;
-    --ink: #2b1b12;
-    --ink-soft: #5a4636;
-    --display: 'Mountains of Christmas', 'Lora', serif;
+    --ink: #1d2433;
+    --ink-soft: #4f4d4c;
+    --pen: #23253a;
+    --display: 'Cormorant Garamond', 'Garamond', 'Times New Roman', serif;
     --body: 'Lora', Georgia, serif;
     --hand: 'Caveat', 'Lora', cursive;
-    --pen: #23253a;
     --paper-grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.42  0 0 0 0 0.32  0 0 0 0 0.18  0 0 0 0.10 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
     --paper-fibre: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='f'><feTurbulence type='fractalNoise' baseFrequency='0.012 0.35' numOctaves='2' seed='4' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.5  0 0 0 0 0.38  0 0 0 0 0.2  0 0 0 0.07 0'/></filter><rect width='100%' height='100%' filter='url(%23f)'/></svg>");
   }
@@ -42,57 +43,64 @@
   }
   * { box-sizing: border-box; }
   a { color: inherit; }
-  ::selection { background: var(--red); color: var(--cream); }
+  ::selection { background: var(--berry); color: var(--cream); }
+
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 14px;
+    font-family: var(--body); font-weight: 600;
+    font-size: 12px; letter-spacing: 0.32em; text-transform: uppercase;
+    color: var(--brass);
+  }
+  .eyebrow::before, .eyebrow::after { content: ""; width: 44px; height: 1px; background: currentColor; opacity: 0.7; }
 
   /* ---------- header ---------- */
   .top {
     position: sticky; top: env(safe-area-inset-top, 0px); z-index: 60;
     display: flex; align-items: center; gap: 24px;
-    padding: 12px 48px;
-    background: var(--red-deep);
-    background-image:
-      radial-gradient(circle at 20% 50%, rgba(255,255,255,0.05) 0 2px, transparent 3px),
-      radial-gradient(circle at 70% 30%, rgba(255,255,255,0.05) 0 2px, transparent 3px);
-    background-size: 34px 34px, 46px 46px;
+    padding: 14px 48px;
+    background: var(--night);
+    border-bottom: 1px solid rgba(201,168,102,0.35);
     color: var(--cream);
-    box-shadow: 0 4px 18px rgba(0,0,0,0.25);
   }
-  .top::after {
-    content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 6px;
-    background: repeating-linear-gradient(-45deg, var(--red) 0 10px, #fff 10px 20px);
+  .brand { display: flex; align-items: center; gap: 14px; text-decoration: none; }
+  .brand-mark {
+    width: 44px; height: 44px; flex: none;
+    display: grid; place-items: center;
+    border: 1px solid var(--brass); border-radius: 50%;
+    font-family: var(--display); font-style: italic; font-weight: 600; font-size: 21px;
+    color: var(--cream);
+    box-shadow: inset 0 0 0 3px rgba(10,20,40,1), inset 0 0 0 4px rgba(201,168,102,0.4);
   }
-  .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
-  .brand-wreath { position: relative; width: 58px; height: 58px; flex: none; }
-  .brand-wreath svg { position: absolute; inset: 0; }
-  .brand-wreath span {
-    position: absolute; inset: 0; display: grid; place-items: center;
-    font-family: var(--display); font-weight: 700; font-size: 20px;
-    color: var(--cream); padding-bottom: 2px;
+  .brand-name {
+    font-family: var(--body); font-weight: 600;
+    font-size: 12px; letter-spacing: 0.28em; text-transform: uppercase;
   }
-  .brand-tag { font-family: var(--hand); font-size: 26px; font-weight: 700; color: var(--gold); line-height: 1; }
 
-  .nav { display: flex; gap: 28px; margin-left: auto; }
+  .nav { display: flex; gap: 32px; margin-left: auto; }
   .nav a {
-    font-family: var(--display); font-weight: 700; font-size: 22px;
+    font-family: var(--body); font-weight: 600;
+    font-size: 12px; letter-spacing: 0.24em; text-transform: uppercase;
     text-decoration: none; color: var(--cream);
-    transition: color 160ms;
+    padding: 6px 0;
+    border-bottom: 1px solid transparent;
+    transition: color 160ms, border-color 160ms;
   }
-  .nav a:hover { color: var(--gold); }
+  .nav a:hover { color: var(--brass); border-color: var(--brass); }
 
   .xmas-lights {
-    position: absolute; left: 0; right: 0; top: calc(100% + 6px);
-    height: 34px; overflow: hidden; pointer-events: none;
+    position: absolute; left: 0; right: 0; top: 100%;
+    height: 30px; overflow: hidden; pointer-events: none;
     display: flex; justify-content: center;
   }
   .xmas-lights svg { flex: none; }
-  .xmas-bulb { animation: xmas-twinkle 2.4s ease-in-out infinite; }
-  @keyframes xmas-twinkle { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  .xmas-bulb { animation: xmas-twinkle 3.2s ease-in-out infinite; }
+  @keyframes xmas-twinkle { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 
   /* ---------- hero: snowy night ---------- */
   .hero {
     position: relative;
-    padding: 96px 48px 170px;
-    background: linear-gradient(180deg, var(--night) 0%, var(--night-2) 75%, #2a4a78 100%);
+    padding: 104px 48px 170px;
+    background: linear-gradient(180deg, var(--night) 0%, var(--night-2) 72%, #24426e 100%);
     color: var(--cream);
     text-align: center;
     overflow: hidden;
@@ -108,13 +116,13 @@
       radial-gradient(1.5px 1.5px at 6% 42%, #fff 50%, transparent 100%),
       radial-gradient(1px 1px at 92% 8%, #fff 50%, transparent 100%),
       radial-gradient(1px 1px at 52% 40%, #fff 50%, transparent 100%);
-    opacity: 0.8;
+    opacity: 0.7;
   }
   .hero-moon {
-    position: absolute; top: 70px; right: 9%;
-    width: 96px; height: 96px; border-radius: 50%;
-    background: radial-gradient(circle at 38% 36%, #fffdf3 0%, #f6edd2 55%, #e2d4ad 100%);
-    box-shadow: 0 0 40px 10px rgba(255,246,214,0.35), 0 0 120px 40px rgba(255,246,214,0.12);
+    position: absolute; top: 76px; right: 10%;
+    width: 78px; height: 78px; border-radius: 50%;
+    background: radial-gradient(circle at 38% 36%, #fffdf3 0%, #f3ead0 60%, #ddcfa8 100%);
+    box-shadow: 0 0 36px 8px rgba(255,246,214,0.28), 0 0 120px 40px rgba(255,246,214,0.10);
     pointer-events: none;
   }
   .hero-hills {
@@ -123,37 +131,28 @@
   }
   .hero-inner { position: relative; z-index: 3; max-width: 1080px; margin: 0 auto; }
 
-  .ribbon {
-    display: inline-block; position: relative;
-    padding: 10px 44px;
-    background: var(--red);
-    color: var(--cream);
-    font-family: var(--body); font-weight: 700;
-    font-size: 13px; letter-spacing: 0.28em; text-transform: uppercase;
-    clip-path: polygon(0 0, 100% 0, calc(100% - 16px) 50%, 100% 100%, 0 100%, 16px 50%);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.3);
-  }
-
   .name {
-    font-family: var(--display); font-weight: 700;
-    font-size: clamp(64px, 11vw, 168px);
-    line-height: 0.95;
-    margin: 28px 0 0;
+    font-family: var(--display); font-weight: 500;
+    font-size: clamp(64px, 10vw, 150px);
+    line-height: 0.92;
+    letter-spacing: -0.01em;
+    margin: 26px 0 0;
     text-wrap: balance;
     color: var(--cream);
-    text-shadow: 0 4px 0 var(--red-deep), 0 0 40px rgba(232,182,76,0.35);
+    text-shadow: 0 0 60px rgba(255,236,190,0.18);
   }
+  .name em { font-style: italic; color: #f3e3bf; }
   .tagline {
-    font-family: var(--hand); font-weight: 700;
-    font-size: clamp(24px, 3vw, 32px);
-    color: var(--gold);
+    font-family: var(--display); font-style: italic; font-weight: 500;
+    font-size: clamp(21px, 2.4vw, 27px);
+    color: rgba(247,240,225,0.82);
     margin: 18px 0 0;
     text-wrap: balance;
   }
 
   .hero-stack {
-    margin-top: 56px;
-    display: grid; grid-template-columns: 1fr 1.25fr; gap: 48px;
+    margin-top: 64px;
+    display: grid; grid-template-columns: 1fr 1.25fr; gap: 56px;
     align-items: start;
     text-align: left;
   }
@@ -185,7 +184,7 @@
     position: absolute; left: 6%; right: 6%; bottom: 0;
     padding-bottom: 7.5%;
     text-align: center;
-    font-family: var(--hand); font-size: clamp(26px, 3vw, 32px); font-weight: 700;
+    font-family: var(--hand); font-size: clamp(26px, 3vw, 32px); font-weight: 600;
     color: var(--pen);
     transform: rotate(-1.5deg);
   }
@@ -197,7 +196,6 @@
     clip-path: polygon(0 6%, 4% 0, 8% 8%, 12% 1%, 16% 7%, 20% 0, 80% 0, 84% 6%, 88% 0, 92% 8%, 96% 1%, 100% 6%, 100% 94%, 96% 100%, 92% 92%, 88% 99%, 84% 93%, 80% 100%, 20% 100%, 16% 93%, 12% 99%, 8% 92%, 4% 100%, 0 94%);
     z-index: 2;
   }
-  .polaroid-holly { position: absolute; bottom: 4%; right: 3%; width: 60px; height: 50px; transform: rotate(10deg); }
 
   /* letter: deckled, grained, folded writing paper with a stamp and postmark */
   .letter-wrap {
@@ -207,7 +205,7 @@
   .letter {
     position: relative;
     color: var(--ink);
-    padding: 28px 38px 30px;
+    padding: 28px 38px 32px;
     background:
       linear-gradient(180deg, transparent 32.6%, rgba(110,80,40,0.10) 33.2%, rgba(255,255,255,0.55) 33.5%, transparent 34.6%),
       linear-gradient(180deg, transparent 65.9%, rgba(110,80,40,0.10) 66.5%, rgba(255,255,255,0.55) 66.8%, transparent 67.9%),
@@ -220,7 +218,7 @@
     display: flex; justify-content: space-between; align-items: flex-end; gap: 16px;
     margin-bottom: 14px;
   }
-  .letter-greet { font-family: var(--hand); font-size: 32px; font-weight: 700; color: var(--pen); margin: 0; }
+  .letter-greet { font-family: var(--hand); font-size: 32px; font-weight: 600; color: var(--pen); margin: 0; }
   .stamp {
     flex: none; position: relative;
     width: 70px; height: 84px; padding: 6px;
@@ -242,40 +240,44 @@
     pointer-events: none;
   }
   .letter-bio { margin: 0; font-size: 17px; line-height: 1.75; color: var(--ink-soft); max-width: 62ch; }
-  .letter-bio b { color: var(--pine); font-weight: 700; }
-  .letter-bio em { color: var(--red); font-style: italic; font-weight: 700; font-size: 19px; }
-  .letter-sign { font-family: var(--hand); font-size: 32px; font-weight: 700; color: var(--pen); margin: 14px 0 0; }
-  .letter-cta { display: flex; gap: 12px; margin-top: 22px; }
+  .letter-bio b { color: var(--evergreen); font-weight: 700; }
+  .letter-bio em { color: var(--berry); font-style: italic; font-weight: 700; }
+  .letter-sign { font-family: var(--hand); font-size: 32px; font-weight: 600; color: var(--pen); margin: 14px 0 0; }
+  .letter-cta { display: flex; gap: 12px; margin-top: 24px; }
   .btn {
     flex: 1;
-    font-family: var(--display); font-weight: 700; font-size: 22px;
+    font-family: var(--body); font-weight: 600;
+    font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase;
     text-decoration: none; text-align: center;
-    padding: 10px 18px;
-    border-radius: 999px;
-    border: 2px solid;
-    transition: transform 160ms, background 160ms, color 160ms;
+    padding: 15px 18px;
+    border-radius: 2px;
+    border: 1px solid;
+    transition: background 160ms, color 160ms, border-color 160ms;
   }
-  .btn:hover { transform: translateY(-2px); }
-  .btn--primary { background: var(--red); border-color: var(--red); color: var(--cream); box-shadow: 0 4px 0 var(--red-deep); }
-  .btn--primary:hover { background: #d81e3c; }
-  .btn--ghost { background: transparent; border-color: var(--pine); color: var(--pine); }
-  .btn--ghost:hover { background: var(--pine); color: var(--cream); }
+  .btn--primary { background: var(--berry); border-color: var(--berry); color: var(--cream); }
+  .btn--primary:hover { background: var(--berry-deep); border-color: var(--berry-deep); }
+  .btn--ghost { background: transparent; border-color: rgba(29,36,51,0.45); color: var(--ink); }
+  .btn--ghost:hover { border-color: var(--ink); background: rgba(29,36,51,0.05); }
 
   /* ---------- projects ---------- */
   .projects {
     position: relative; z-index: 2;
-    padding: 40px 48px 90px;
+    padding: 48px 48px 110px;
     background: var(--snow);
   }
-  .section-head { text-align: center; margin: 0 auto 48px; max-width: 760px; }
+  .section-head { text-align: center; margin: 0 auto 56px; max-width: 760px; }
+  .section-head .eyebrow { color: var(--brass-ink); }
   .section-head h2 {
-    font-family: var(--display); font-weight: 700;
-    font-size: clamp(48px, 7vw, 84px);
-    margin: 0; color: var(--red);
+    font-family: var(--display); font-weight: 500;
+    font-size: clamp(48px, 6.5vw, 80px);
+    margin: 14px 0 0; color: var(--ink);
     text-wrap: balance;
     line-height: 1;
   }
-  .section-head p { font-family: var(--hand); font-size: 28px; font-weight: 700; color: var(--pine); margin: 10px 0 0; }
+  .section-head p {
+    font-family: var(--display); font-style: italic; font-weight: 500;
+    font-size: 23px; color: var(--ink-soft); margin: 12px 0 0;
+  }
 
   .cards {
     display: grid; grid-template-columns: repeat(4, 1fr);
@@ -285,109 +287,91 @@
     position: relative;
     display: flex; flex-direction: column;
     text-decoration: none; color: var(--ink);
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 10px 26px rgba(11,26,51,0.14);
-    transition: transform 240ms, box-shadow 240ms;
-    margin-top: 22px;
+    padding: 10px;
+    background: var(--paper-grain), #fbf8f1;
+    border: 1px solid rgba(29,36,51,0.10);
+    border-radius: 2px;
+    box-shadow: 0 1px 2px rgba(10,20,40,0.08), 0 14px 30px rgba(10,20,40,0.10);
+    transition: transform 260ms ease, box-shadow 260ms ease;
   }
-  .card:hover { transform: translateY(-6px) rotate(-0.6deg); box-shadow: 0 18px 36px rgba(11,26,51,0.22); }
-  .card-bow {
-    position: absolute; top: -26px; left: 50%; transform: translateX(-50%);
-    width: 76px; height: 44px; z-index: 3;
-    transition: transform 300ms;
-  }
-  .card:hover .card-bow { transform: translateX(-50%) rotate(-6deg) scale(1.08); }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 2px 4px rgba(10,20,40,0.08), 0 22px 40px rgba(10,20,40,0.16); }
 
   .card-media {
     position: relative; aspect-ratio: 4/3;
-    border-radius: 8px 8px 0 0; overflow: hidden;
-    display: grid; place-items: center;
-    --paper: var(--pine-dark);
-    --paper-dot: rgba(255,255,255,0.08);
+    overflow: hidden;
     background:
-      radial-gradient(circle, var(--paper-dot) 0 2px, transparent 2.5px) 0 0 / 22px 22px,
-      var(--paper);
+      radial-gradient(1px 1px at 18% 22%, rgba(255,255,255,0.7) 50%, transparent 100%),
+      radial-gradient(1px 1px at 78% 16%, rgba(255,255,255,0.6) 50%, transparent 100%),
+      radial-gradient(1px 1px at 62% 82%, rgba(255,255,255,0.5) 50%, transparent 100%),
+      radial-gradient(1px 1px at 30% 70%, rgba(255,255,255,0.4) 50%, transparent 100%),
+      radial-gradient(ellipse 80% 70% at 50% 45%, #1b3157 0%, #0d1a33 70%, #091327 100%);
+    box-shadow: inset 0 0 0 1px rgba(201,168,102,0.35);
   }
-  .card--red .card-media { --paper: var(--red-deep); --paper-dot: rgba(255,232,190,0.12); }
-  /* ribbon cross */
-  .card-media::before, .card-media::after {
-    content: ""; position: absolute; background: var(--gold); z-index: 1;
-    box-shadow: inset 0 0 0 2px var(--gold-deep);
-  }
-  .card-media::before { left: 50%; top: 0; bottom: 0; width: 16px; transform: translateX(-50%); }
-  .card-media::after { top: 50%; left: 0; right: 0; height: 16px; transform: translateY(-50%); }
   .card-icon {
-    position: absolute; z-index: 2;
-    left: 14%; top: 11%; width: 72%; height: 78%; object-fit: contain;
-    filter: drop-shadow(0 6px 14px rgba(0,0,0,0.45));
-    transition: transform 500ms ease;
+    position: absolute;
+    left: 16%; top: 12%; width: 68%; height: 76%; object-fit: contain;
+    transition: transform 600ms ease;
   }
-  .card:hover .card-icon { transform: scale(1.06); }
+  .card:hover .card-icon { transform: scale(1.04); }
 
-  .card-tag {
-    position: absolute; top: 14px; left: 14px; z-index: 3;
-    font-family: var(--hand); font-size: 20px; font-weight: 700;
-    padding: 2px 14px 2px 22px;
-    background: var(--cream); color: var(--red-deep);
-    clip-path: polygon(10px 0, 100% 0, 100% 100%, 10px 100%, 0 50%);
+  .card-body { padding: 20px 12px 8px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  .card-kind {
+    font-family: var(--body); font-weight: 600;
+    font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase;
+    color: var(--brass-ink);
   }
-  .card-tag::before {
-    content: ""; position: absolute; left: 11px; top: 50%; width: 5px; height: 5px;
-    border-radius: 50%; background: var(--ink-soft); transform: translateY(-50%);
-  }
-
-  .card-body { padding: 20px 22px 18px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
-  .card h3 { font-family: var(--display); font-weight: 700; font-size: 30px; line-height: 1.05; margin: 0; color: var(--red-deep); }
-  .card p { font-size: 15.5px; line-height: 1.6; color: var(--ink-soft); margin: 0; }
+  .card h3 { font-family: var(--display); font-weight: 600; font-size: 31px; line-height: 1.05; margin: 0; color: var(--ink); }
+  .card p { font-size: 15px; line-height: 1.65; color: var(--ink-soft); margin: 0; }
   .card-link {
-    margin-top: auto; padding-top: 14px;
+    margin-top: auto; padding-top: 16px;
     display: flex; justify-content: space-between; align-items: center;
-    border-top: 2px dashed rgba(200,16,46,0.25);
-    font-family: var(--display); font-weight: 700; font-size: 20px; color: var(--red);
+    border-top: 1px solid rgba(29,36,51,0.14);
+    font-family: var(--body); font-weight: 600;
+    font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase;
+    color: var(--berry);
   }
-  .card-link i { font-style: normal; transition: transform 200ms; }
+  .card-body p + .card-link { margin-top: auto; }
+  .card-link i { font-style: normal; font-size: 15px; letter-spacing: 0; transition: transform 200ms; }
   .card:hover .card-link i { transform: translateX(4px); }
 
   /* ---------- footer ---------- */
   .foot {
     position: relative; z-index: 2;
-    padding: 70px 48px 70px;
-    background: var(--red-deep);
-    background-image:
-      radial-gradient(circle at 30% 40%, rgba(255,255,255,0.05) 0 2px, transparent 3px),
-      radial-gradient(circle at 80% 70%, rgba(255,255,255,0.05) 0 2px, transparent 3px);
-    background-size: 40px 40px, 56px 56px;
+    padding: 80px 48px 64px;
+    background: var(--paper-grain), var(--evergreen-deep);
     color: var(--cream);
-  }
-  .foot::before {
-    content: ""; position: absolute; left: 0; right: 0; top: 0; height: 14px;
-    background: repeating-linear-gradient(-45deg, var(--red) 0 14px, #fff 14px 28px);
+    border-top: 1px solid rgba(201,168,102,0.5);
   }
   .foot-inner { max-width: 1080px; margin: 0 auto; }
   .foot-big {
-    font-family: var(--display); font-weight: 700;
-    font-size: clamp(54px, 10vw, 150px);
-    line-height: 0.95;
+    font-family: var(--display); font-style: italic; font-weight: 500;
+    font-size: clamp(44px, 6.5vw, 92px);
+    line-height: 1;
     color: var(--cream);
-    text-shadow: 0 4px 0 #5c0715;
-    margin: 0 0 36px;
+    margin: 18px 0 44px;
+    text-wrap: balance;
   }
-  .foot-big span { color: var(--gold); }
+  .foot-big span { color: var(--brass); }
   .foot-links a {
-    display: grid; grid-template-columns: 56px 1fr auto;
-    align-items: center;
-    padding: 18px 0;
-    border-top: 1px solid rgba(251,244,230,0.25);
+    display: grid; grid-template-columns: 1fr auto auto; gap: 24px;
+    align-items: baseline;
+    padding: 20px 0;
+    border-top: 1px solid rgba(247,240,225,0.18);
     text-decoration: none; color: var(--cream);
-    transition: color 160ms, padding 160ms;
+    transition: color 160ms;
   }
-  .foot-links a:last-child { border-bottom: 1px solid rgba(251,244,230,0.25); }
-  .foot-links a:hover { color: var(--gold); padding-left: 12px; }
-  .foot-star { color: var(--gold); font-size: 22px; }
-  .foot-label { font-family: var(--display); font-weight: 700; font-size: 34px; }
-  .foot-links i { font-style: normal; font-size: 22px; }
-  .foot-tail { margin-top: 30px; font-family: var(--hand); font-size: 24px; font-weight: 700; color: rgba(251,244,230,0.8); }
+  .foot-links a:last-child { border-bottom: 1px solid rgba(247,240,225,0.18); }
+  .foot-links a:hover { color: var(--brass); }
+  .foot-label { font-family: var(--display); font-weight: 500; font-size: 32px; }
+  .foot-addr { font-size: 14px; color: rgba(247,240,225,0.6); }
+  .foot-links i { font-style: normal; font-size: 18px; transition: transform 200ms; }
+  .foot-links a:hover i { transform: translateX(4px); }
+  .foot-tail {
+    margin-top: 32px;
+    font-family: var(--body); font-weight: 600;
+    font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase;
+    color: rgba(247,240,225,0.55);
+  }
 
   /* ---------- falling snow ---------- */
   .xmas-snow {
@@ -395,37 +379,37 @@
     z-index: 55; pointer-events: none;
   }
 
-  a:focus-visible { outline: 3px solid var(--gold); outline-offset: 4px; border-radius: 4px; }
+  a:focus-visible { outline: 2px solid var(--brass); outline-offset: 4px; }
 
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
     .xmas-bulb { animation: none; }
-    .card, .card-bow, .card-icon, .btn, .foot-links a { transition: none; }
-    .card:hover, .card:hover .card-icon, .card:hover .card-bow, .btn:hover { transform: none; }
-    .card:hover .card-bow { transform: translateX(-50%); }
+    .card, .card-icon, .card-link i, .foot-links i { transition: none; }
+    .card:hover, .card:hover .card-icon, .card:hover .card-link i, .foot-links a:hover i { transform: none; }
   }
 
   @media (max-width: 1080px) {
     .cards { grid-template-columns: repeat(2, 1fr); }
   }
   @media (max-width: 860px) {
-    .top { padding: 10px 16px; gap: 12px; }
-    .brand-tag { display: none; }
-    .nav { gap: 18px; }
-    .nav a { font-size: 20px; }
-    .hero { padding: 128px 16px 130px; }
-    .hero-moon { width: 56px; height: 56px; top: 52px; right: 6%; }
-    .ribbon { padding: 9px 30px; font-size: 11px; letter-spacing: 0.2em; }
-    .hero-stack { grid-template-columns: 1fr; gap: 44px; margin-top: 40px; }
+    .top { padding: 12px 16px; gap: 12px; }
+    .brand-name { display: none; }
+    .nav { gap: 22px; }
+    .hero { padding: 120px 16px 130px; }
+    .hero-moon { width: 52px; height: 52px; top: 50px; right: 7%; }
+    .eyebrow { font-size: 11px; letter-spacing: 0.24em; gap: 10px; }
+    .eyebrow::before, .eyebrow::after { width: 24px; }
+    .hero-stack { grid-template-columns: 1fr; gap: 48px; margin-top: 44px; }
     .polaroid { max-width: 420px; margin: 18px auto 0; width: calc(100% - 24px); }
-    .letter { padding: 24px 22px 26px; }
+    .letter { padding: 24px 22px 28px; }
     .letter-greet { font-size: 28px; }
     .postmark { right: 30px; bottom: -22px; width: 138px; height: 72px; }
-    .polaroid-holly { width: 42px; height: 35px; right: 2%; bottom: 3%; }
     .letter-cta { flex-direction: column; }
-    .projects { padding: 32px 16px 70px; }
-    .cards { grid-template-columns: 1fr; gap: 40px; }
-    .foot { padding: 56px 16px 56px; }
+    .projects { padding: 40px 16px 80px; }
+    .cards { grid-template-columns: 1fr; gap: 28px; }
+    .foot { padding: 60px 16px 52px; }
+    .foot-links a { grid-template-columns: 1fr auto; }
+    .foot-addr { display: none; }
     .foot-label { font-size: 28px; }
   }
 </style>
@@ -433,36 +417,10 @@
 <body>
 <canvas class="xmas-snow" id="xmas-snow" aria-hidden="true"></canvas>
 
-<svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <defs>
-    <symbol id="bow" viewBox="0 0 76 44">
-      <g fill="#e8b64c" stroke="#b8862a" stroke-width="1.6" stroke-linejoin="round">
-        <path d="M38 22 C26 4 6 4 8 17 C10 30 28 28 38 22Z"/>
-        <path d="M38 22 C50 4 70 4 68 17 C66 30 48 28 38 22Z"/>
-        <path d="M35 24 L24 42 L31 39 L34 44 L38 26Z"/>
-        <path d="M41 24 L52 42 L45 39 L42 44 L38 26Z"/>
-        <ellipse cx="38" cy="22" rx="6" ry="5.5"/>
-      </g>
-    </symbol>
-  </defs>
-</svg>
-
 <header class="top">
   <a class="brand" href="#top" aria-label="Jack Wallman, home">
-    <span class="brand-wreath">
-      <svg viewBox="0 0 58 58" aria-hidden="true">
-        <circle cx="29" cy="29" r="22" fill="none" stroke="#1d5a3a" stroke-width="9"/>
-        <circle cx="29" cy="29" r="22" fill="none" stroke="#2f7a4f" stroke-width="5" stroke-dasharray="4 5" stroke-linecap="round"/>
-        <g fill="#e2263f">
-          <circle cx="29" cy="7" r="2.6"/><circle cx="48" cy="18" r="2.6"/><circle cx="47" cy="41" r="2.6"/>
-          <circle cx="11" cy="41" r="2.6"/><circle cx="10" cy="18" r="2.6"/>
-        </g>
-        <path d="M29 50 L22 46 L22 56Z M29 50 L36 46 L36 56Z" fill="#c8102e"/>
-        <circle cx="29" cy="50" r="2.6" fill="#c8102e"/>
-      </svg>
-      <span>JW</span>
-    </span>
-    <span class="brand-tag">Merry Christmas!</span>
+    <span class="brand-mark" aria-hidden="true">JW</span>
+    <span class="brand-name">Jack Wallman</span>
   </a>
   <nav class="nav">
     <a href="#projects">Projects</a>
@@ -481,9 +439,9 @@
   </svg>
 
   <div class="hero-inner">
-    <span class="ribbon">Season's Greetings · 2026</span>
+    <span class="eyebrow">Season's Greetings · 2026</span>
 
-    <h1 class="name">Jack Wallman</h1>
+    <h1 class="name">Jack <em>Wallman</em></h1>
 
     <p class="tagline">Rattler Fest 2026 · Yodelling Competition Winner</p>
 
@@ -493,12 +451,6 @@
           <img src="images/portrait-christmas.webp" alt="Jack Wallman and partner by the fire and Christmas tree"/>
         </div>
         <figcaption>Christmas by the fire</figcaption>
-        <svg class="polaroid-holly" viewBox="0 0 96 80" aria-hidden="true">
-          <path d="M46 44 C34 30 20 34 6 22 C14 30 8 38 14 42 C10 46 16 52 12 58 C22 52 30 58 46 44Z" fill="#1d5a3a" stroke="#0f3323" stroke-width="1.5"/>
-          <path d="M50 42 C56 26 70 24 76 8 C74 18 84 20 82 28 C88 30 86 38 92 40 C80 40 76 50 50 42Z" fill="#2f7a4f" stroke="#0f3323" stroke-width="1.5"/>
-          <circle cx="46" cy="46" r="6" fill="#c8102e"/><circle cx="56" cy="48" r="6" fill="#d81e3c"/><circle cx="50" cy="56" r="6" fill="#b00d28"/>
-          <circle cx="44" cy="44" r="1.6" fill="#fff" opacity="0.7"/><circle cx="54" cy="46" r="1.6" fill="#fff" opacity="0.7"/>
-        </svg>
       </figure>
 
       <div class="letter-wrap">
@@ -507,12 +459,12 @@
           <p class="letter-greet">Dear visitor,</p>
           <span class="stamp" aria-hidden="true">
             <svg viewBox="0 0 58 72">
-              <rect width="58" height="72" fill="#8a0b20"/>
-              <rect x="3" y="3" width="52" height="66" fill="none" stroke="#e8b64c" stroke-width="1"/>
+              <rect width="58" height="72" fill="#7d1a2a"/>
+              <rect x="3" y="3" width="52" height="66" fill="none" stroke="#c9a866" stroke-width="1"/>
               <circle cx="44" cy="14" r="5" fill="#fbf4e6"/>
-              <path d="M29 12 L39 30 L34 30 L42 42 L36 42 L44 54 L14 54 L22 42 L16 42 L24 30 L19 30Z" fill="#1d5a3a"/>
+              <path d="M29 12 L39 30 L34 30 L42 42 L36 42 L44 54 L14 54 L22 42 L16 42 L24 30 L19 30Z" fill="#2b5240"/>
               <path d="M29 12 L33 19 L29 17.5 L25 19Z" fill="#fff"/>
-              <path d="M29 5.5 l1.4 3 3.2 .3 -2.4 2.1 .7 3.2 -2.9 -1.7 -2.9 1.7 .7 -3.2 -2.4 -2.1 3.2 -.3z" fill="#e8b64c"/>
+              <path d="M29 5.5 l1.4 3 3.2 .3 -2.4 2.1 .7 3.2 -2.9 -1.7 -2.9 1.7 .7 -3.2 -2.4 -2.1 3.2 -.3z" fill="#c9a866"/>
               <rect x="27" y="54" width="4" height="5" fill="#3b2a1e"/>
               <text x="29" y="67" text-anchor="middle" font-family="Lora, serif" font-size="7" font-weight="700" fill="#fbf4e6">2nd · 2026</text>
             </svg>
@@ -550,31 +502,30 @@
 
 <section id="projects" class="projects">
   <div class="section-head">
+    <span class="eyebrow">Made this year</span>
     <h2>Projects</h2>
     <p>Four little projects, all wrapped up</p>
   </div>
 
   <div class="cards">
     <a class="card" href="https://jackwallman.github.io/photoglobe/photoglobe_neon.html">
-      <svg class="card-bow" aria-hidden="true"><use href="#bow"/></svg>
       <div class="card-media">
         <img src="images/neonglobe.webp" alt="" class="card-icon"/>
-        <span class="card-tag">Photography</span>
       </div>
       <div class="card-body">
+        <span class="card-kind">Photography</span>
         <h3>Photoglobe</h3>
         <p>Interactive neon globe of ski snaps.</p>
         <span class="card-link"><span>Unwrap</span><i>&rarr;</i></span>
       </div>
     </a>
 
-    <a class="card card--red" href="shopping-list/shopping_list_app.html">
-      <svg class="card-bow" aria-hidden="true"><use href="#bow"/></svg>
+    <a class="card" href="shopping-list/shopping_list_app.html">
       <div class="card-media">
         <img src="images/speedyshoperlogo_neon.svg" alt="" class="card-icon"/>
-        <span class="card-tag">Utility</span>
       </div>
       <div class="card-body">
+        <span class="card-kind">Utility</span>
         <h3>Speedy Shopper</h3>
         <p>Cross-reference your weekly meal plan against the cupboard. Build the list, run the errand, return.</p>
         <span class="card-link"><span>Unwrap</span><i>&rarr;</i></span>
@@ -582,25 +533,23 @@
     </a>
 
     <a class="card" href="Plunder%20Sudoku/PlunderSudoku.html">
-      <svg class="card-bow" aria-hidden="true"><use href="#bow"/></svg>
       <div class="card-media">
         <img src="images/NeonPlundersudoku.webp" alt="" class="card-icon"/>
-        <span class="card-tag">Game</span>
       </div>
       <div class="card-body">
+        <span class="card-kind">Game</span>
         <h3>Plunder Sudoku</h3>
         <p>A roguelite twist on sudoku. Plunder powerups, chain solves and stay ahead of the fuse.</p>
         <span class="card-link"><span>Unwrap</span><i>&rarr;</i></span>
       </div>
     </a>
 
-    <a class="card card--red" href="https://jackwallman.com/bristol-routemap/">
-      <svg class="card-bow" aria-hidden="true"><use href="#bow"/></svg>
+    <a class="card" href="https://jackwallman.com/bristol-routemap/">
       <div class="card-media">
         <img src="images/routemap_neon.svg" alt="" class="card-icon"/>
-        <span class="card-tag">Map</span>
       </div>
       <div class="card-body">
+        <span class="card-kind">Map</span>
         <h3>Bristol Routemap</h3>
         <p>Map and list of Bristol transport infrastructure projects: cycle routes, bus priority, rail reopenings and more.</p>
         <span class="card-link"><span>Unwrap</span><i>&rarr;</i></span>
@@ -611,25 +560,26 @@
 
 <footer id="links" class="foot">
   <div class="foot-inner">
+    <span class="eyebrow">Keep in touch</span>
     <p class="foot-big">Merry Christmas <span>&amp;</span> a Happy New Year</p>
     <div class="foot-links">
       <a href="https://www.linkedin.com/in/jack-w-wallman/">
-        <span class="foot-star">&#9733;</span>
         <span class="foot-label">LinkedIn</span>
+        <span class="foot-addr">in/jack-w-wallman</span>
         <i>&rarr;</i>
       </a>
       <a href="https://github.com/jackwallman">
-        <span class="foot-star">&#9733;</span>
         <span class="foot-label">GitHub</span>
+        <span class="foot-addr">github.com/jackwallman</span>
         <i>&rarr;</i>
       </a>
       <a href="mailto:hello@jackwallman.com">
-        <span class="foot-star">&#9733;</span>
         <span class="foot-label">Email</span>
+        <span class="foot-addr">hello@jackwallman.com</span>
         <i>&rarr;</i>
       </a>
     </div>
-    <div class="foot-tail">&copy; 2026 J. Wallman · with love from our house to yours</div>
+    <div class="foot-tail">&copy; 2026 J. Wallman · With love from our house to yours</div>
   </div>
 </footer>
 
@@ -638,22 +588,22 @@
   (function () {
     var host = document.getElementById('xmas-lights');
     if (!host) return;
-    var colours = ['#ff3b5c', '#3dff9a', '#ffc94a', '#5cc8ff', '#ffffff'];
-    var span = 56;
+    var colours = ['#fff1cc', '#ffe2a3', '#fff7e2', '#ffd98c'];
+    var span = 44;
     function build() {
       var count = Math.ceil(window.innerWidth / span) + 2;
       var w = count * span, d = 'M0 4', bulbs = '';
       for (var i = 0; i < count; i++) {
         var x0 = i * span, mid = x0 + span / 2;
-        d += ' Q' + mid + ' 22 ' + (x0 + span) + ' 4';
+        d += ' Q' + mid + ' 18 ' + (x0 + span) + ' 4';
         var c = colours[i % colours.length];
         var delay = ((i * 7) % 11) / 4.4;
         bulbs += '<g class="xmas-bulb" style="animation-delay:' + delay.toFixed(2) + 's">' +
-          '<rect x="' + (mid - 2.5) + '" y="11" width="5" height="4" rx="1" fill="#2c3b33"/>' +
-          '<ellipse cx="' + mid + '" cy="20.5" rx="4.2" ry="6" fill="' + c + '" style="filter:drop-shadow(0 0 5px ' + c + ')"/></g>';
+          '<rect x="' + (mid - 1.5) + '" y="10" width="3" height="3" rx="0.6" fill="#3a3324"/>' +
+          '<ellipse cx="' + mid + '" cy="16.5" rx="2.8" ry="4" fill="' + c + '" style="filter:drop-shadow(0 0 4px rgba(255,214,140,0.95)) drop-shadow(0 0 10px rgba(255,200,110,0.5))"/></g>';
       }
-      host.innerHTML = '<svg width="' + w + '" height="34" viewBox="0 0 ' + w + ' 34">' +
-        '<path d="' + d + '" fill="none" stroke="#2c3b33" stroke-width="1.6"/>' + bulbs + '</svg>';
+      host.innerHTML = '<svg width="' + w + '" height="30" viewBox="0 0 ' + w + ' 30">' +
+        '<path d="' + d + '" fill="none" stroke="#3a3324" stroke-width="1"/>' + bulbs + '</svg>';
     }
     build();
     var t; window.addEventListener('resize', function () { clearTimeout(t); t = setTimeout(build, 150); });
