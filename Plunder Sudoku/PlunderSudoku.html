@@ -3,330 +3,292 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PLUNDER SUDOKU — Roguelite</title>
-<link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=IM+Fell+English:ital@0;1&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<title>Plunder Sudoku</title>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg:#1a1208;--surface:#221a0a;--panel:#2a1f0e;
-  --border:#4a3820;--border-bright:#6a5030;
-  --gold:#c8922a;--gold-glow:#e8b84a;--amber:#d4701a;
-  --neon:#2ab8a0;--neon-dim:#1a6858;
-  --red:#cc2222;--green:#4a9a5a;
-  --text:#e8d8a8;--text-dim:#8a7050;
-  --cell-bg:#201608;--cell-given:#180e04;
-  --cell-highlight:#2e2010;
-  --timer-warn:#cc6622;--timer-crit:#cc1111;
-  --grid-thick:2px;--grid-thin:1px;
+:root{
+  --paper:#ece2cb;--card:#f7f1e2;--card-2:#f1e8d3;
+  --ink:#2a2118;--ink-2:#55473a;--muted:#8a7a62;
+  --rule:#c8b892;--rule-2:#b3a17a;
+  --rust:#a3341c;--blue:#2b4870;--brass:#8f6a22;
+  --hi:#ebe1c8;--hi-box:#efe6cf;--sel:#dbe3e6;
+  --serif:'Libre Caslon Text',Georgia,serif;
+  --display:'IM Fell English SC',Georgia,serif;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:'Courier Prime',monospace;
+body{background:var(--paper);color:var(--ink);font-family:var(--serif);
   min-height:100vh;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;overflow-x:hidden;position:relative;}
-body::before{content:'';position:fixed;inset:0;
-  background:radial-gradient(ellipse 90% 50% at 10% 0%,rgba(20,60,80,.18) 0%,transparent 55%),
-             radial-gradient(ellipse 70% 70% at 90% 100%,rgba(100,60,10,.12) 0%,transparent 55%);
-  pointer-events:none;}
+  justify-content:center;overflow-x:hidden;padding:16px 0;}
+button{font-family:inherit;}
 
 /* HEADER */
-.header{text-align:center;margin-bottom:10px;position:relative;z-index:1;}
-.title{font-family:'IM Fell English',serif;font-style:italic;font-size:11px;letter-spacing:.3em;color:var(--text-dim);}
-.subtitle{font-size:36px;font-family:'Pirata One',cursive;color:var(--gold);letter-spacing:.1em;
-  text-shadow:2px 3px 0 rgba(0,0,0,.6),0 0 30px rgba(200,146,42,.35);line-height:1;}
+.header{text-align:center;margin-bottom:8px;}
+.title{font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--muted);}
+.subtitle{font-family:var(--display);font-size:38px;line-height:1.05;color:var(--ink);letter-spacing:.02em;}
 
 /* ROUND BANNER */
-.round-banner{display:flex;align-items:center;justify-content:center;gap:14px;
-  width:min(614px,95vw);margin-bottom:6px;position:relative;z-index:1;flex-wrap:wrap;}
-.round-tag{font-family:'Pirata One',cursive;font-size:14px;color:var(--gold-glow);letter-spacing:.1em;}
-.round-tag.boss{color:var(--red);text-shadow:0 0 14px rgba(200,30,30,.6);animation:bossFlicker .8s ease infinite alternate;}
-@keyframes bossFlicker{from{opacity:1}to{opacity:.7}}
-.round-sep{color:var(--border-bright);font-size:11px;}
+.round-banner{display:flex;align-items:baseline;justify-content:center;gap:10px;
+  width:min(614px,95vw);margin-bottom:8px;flex-wrap:wrap;font-size:13px;color:var(--ink-2);}
+.round-tag{font-weight:700;color:var(--ink);}
+.round-tag.boss{color:var(--rust);}
+.round-sep{color:var(--rule-2);}
+.banner-note{font-style:italic;color:var(--ink-2);}
 
 /* STATUS BAR */
-.status-bar{display:flex;align-items:center;justify-content:space-between;
-  width:min(614px,95vw);margin-bottom:10px;padding:8px 16px;
-  background:linear-gradient(180deg,#2e2210 0%,#221808 100%);
-  border:2px solid var(--border-bright);border-radius:2px;
-  box-shadow:inset 0 1px 0 rgba(200,146,42,.15),0 3px 12px rgba(0,0,0,.5);
-  position:relative;z-index:1;}
-.lives{display:flex;gap:5px;align-items:center;}
-.life-label{font-family:'IM Fell English',serif;font-style:italic;font-size:10px;color:var(--text-dim);letter-spacing:.15em;margin-right:4px;}
-.heart{width:20px;height:20px;font-size:17px;display:flex;align-items:center;justify-content:center;transition:all .3s;}
-.heart.lost{opacity:.18;filter:grayscale(1);}
-.heart.shake{animation:heartShake .5s ease;}
-@keyframes heartShake{0%,100%{transform:scale(1) rotate(0)}20%{transform:scale(1.4) rotate(-10deg)}40%{transform:scale(.9) rotate(10deg)}60%{transform:scale(1.2) rotate(-5deg)}80%{transform:scale(1) rotate(3deg)}}
-.timer-wrap{display:flex;flex-direction:column;align-items:center;gap:3px;}
-.timer-label{font-size:9px;color:var(--text-dim);letter-spacing:.25em;font-family:'IM Fell English',serif;font-style:italic;}
-.timer-display{font-size:22px;font-weight:700;font-family:'Pirata One',cursive;color:var(--gold);letter-spacing:.1em;transition:color .3s;text-shadow:0 0 12px rgba(200,146,42,.5);}
-.timer-display.warn{color:var(--timer-warn);text-shadow:0 0 12px rgba(204,102,34,.6);}
-.timer-display.crit{color:var(--timer-crit);text-shadow:0 0 16px rgba(204,17,17,.8);animation:timerPulse .5s ease infinite alternate;}
-@keyframes timerPulse{from{opacity:1}to{opacity:.6}}
-.timer-bar-wrap{width:100px;height:14px;position:relative;display:flex;align-items:center;}
-.timer-bar{height:6px;border-radius:2px 3px 3px 2px;
-  background:repeating-linear-gradient(90deg,#6b4c1e 0px,#6b4c1e 3px,#4a3010 3px,#4a3010 6px);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.1),inset 0 -1px 0 rgba(0,0,0,.4);
-  transition:width .2s linear;position:relative;z-index:1;}
-.timer-bar::after{content:'';position:absolute;right:-4px;top:50%;transform:translateY(-50%);
-  width:8px;height:8px;border-radius:50%;
-  background:radial-gradient(circle,#fff 0%,#ffdd00 30%,#ff6600 60%,transparent 100%);
-  box-shadow:0 0 6px 3px rgba(255,120,0,.8),0 0 12px 5px rgba(255,60,0,.4);
-  animation:emberPulse .15s ease-in-out infinite alternate;}
-.timer-bar::before{content:'';position:absolute;right:-3px;top:-8px;width:4px;height:10px;
-  background:linear-gradient(to top,rgba(180,120,60,.6),transparent);border-radius:50%;
-  animation:smokeRise .6s ease-in-out infinite alternate;transform-origin:bottom center;}
-@keyframes emberPulse{from{opacity:1;box-shadow:0 0 6px 3px rgba(255,120,0,.9),0 0 14px 6px rgba(255,60,0,.5)}to{opacity:.8;box-shadow:0 0 4px 2px rgba(255,100,0,.6),0 0 10px 4px rgba(255,40,0,.3)}}
-@keyframes smokeRise{from{transform:translateX(-1px) scaleX(.8);opacity:.5}to{transform:translateX(1px) scaleX(1.2);opacity:.1}}
-.timer-bar-wrap::before{content:'';position:absolute;left:0;height:3px;width:100%;
-  background:repeating-linear-gradient(90deg,#1a0e04 0px,#1a0e04 4px,#120a02 4px,#120a02 8px);
-  border-radius:2px;z-index:0;}
-.timer-bar.fuse-warn::after{animation-duration:.08s;box-shadow:0 0 8px 4px rgba(255,140,0,1),0 0 18px 8px rgba(255,80,0,.6);}
-.timer-bar.fuse-crit::after{animation-duration:.05s;width:11px;height:11px;box-shadow:0 0 10px 6px rgba(255,60,0,1),0 0 22px 10px rgba(255,0,0,.7);}
-.timer-bar.frozen{background:repeating-linear-gradient(90deg,#2a6888 0px,#2a6888 3px,#1a4858 3px,#1a4858 6px);}
-.timer-bar.frozen::after{background:radial-gradient(circle,#fff 0%,#aaeeff 40%,#44aacc 70%,transparent 100%);box-shadow:0 0 8px 4px rgba(100,200,255,.8);animation:none;}
-.timer-bar.frozen::before{display:none;}
+.status-bar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
+  width:min(614px,95vw);margin-bottom:12px;padding:8px 14px;
+  border-top:1.5px solid var(--ink);border-bottom:1.5px solid var(--ink);position:relative;}
+.lives{display:flex;gap:3px;align-items:center;}
+.life-label,.timer-label,.score-label{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);}
+.life-label{margin-right:6px;}
+.heart{width:17px;height:17px;color:var(--ink);transition:opacity .3s,color .3s;}
+.heart svg{width:100%;height:100%;display:block;}
+.heart.lost{opacity:.2;}
+.heart.shake{animation:heartShake .5s ease;color:var(--rust);}
+@keyframes heartShake{0%,100%{transform:rotate(0)}25%{transform:rotate(-14deg)}50%{transform:rotate(12deg)}75%{transform:rotate(-6deg)}}
+.timer-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.timer-display{font-size:24px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;color:var(--ink);transition:color .3s;}
+.timer-display.warn{color:var(--brass);}
+.timer-display.crit{color:var(--rust);}
+.timer-bar-wrap{width:120px;height:8px;position:relative;display:flex;align-items:center;}
+.timer-bar-wrap::before{content:'';position:absolute;left:0;right:0;top:50%;border-top:1px dashed var(--rule-2);}
+.timer-bar{height:4px;position:relative;z-index:1;transition:width .2s linear;
+  background:repeating-linear-gradient(90deg,var(--ink-2) 0 3px,var(--muted) 3px 5px);}
+.timer-bar::after{content:'';position:absolute;right:-3px;top:50%;width:6px;height:6px;margin-top:-3px;border-radius:50%;
+  background:#d9541e;animation:ember .18s ease-in-out infinite alternate;}
+@keyframes ember{from{transform:scale(1);opacity:1}to{transform:scale(.7);opacity:.75}}
+.timer-bar.fuse-crit::after{background:var(--rust);animation-duration:.08s;}
+.timer-bar.frozen{background:repeating-linear-gradient(90deg,var(--blue) 0 3px,#8aa0b8 3px 5px);}
+.timer-bar.frozen::after{background:var(--blue);animation:none;}
 .score-wrap{text-align:right;}
-.streak-display{font-family:'Pirata One',cursive;font-size:11px;text-align:right;margin-top:2px;letter-spacing:.05em;animation:streakPop .25s cubic-bezier(.34,1.56,.64,1);}
-@keyframes streakPop{from{transform:scale(.7);opacity:.4}to{transform:scale(1);opacity:1}}
-.streak-x2{color:#f0c040;}
-.streak-x3{color:#ff8c00;text-shadow:0 0 8px rgba(255,140,0,.7);}
-.streak-x4{color:#ff4400;text-shadow:0 0 10px rgba(255,68,0,.8);}
-.streak-x5{color:#ff00aa;text-shadow:0 0 12px rgba(255,0,170,.9);animation:streakPop .25s cubic-bezier(.34,1.56,.64,1),streakFlicker .4s ease infinite alternate;}
-@keyframes streakFlicker{from{opacity:1}to{opacity:.7}}
-/* Grid glow on streak */
-.sudoku-grid.streak-2{box-shadow:0 0 0 1px rgba(240,192,64,.3),0 0 0 5px #1a1208,0 0 0 7px rgba(100,70,20,.4),0 0 25px rgba(240,192,64,.2),inset 0 0 60px rgba(0,0,0,.5);}
-.sudoku-grid.streak-3{box-shadow:0 0 0 1px rgba(255,140,0,.4),0 0 0 5px #1a1208,0 0 0 7px rgba(120,60,0,.5),0 0 35px rgba(255,140,0,.3),inset 0 0 60px rgba(0,0,0,.5);}
-.sudoku-grid.streak-4{box-shadow:0 0 0 1px rgba(255,68,0,.5),0 0 0 5px #1a0e08,0 0 0 7px rgba(150,40,0,.5),0 0 45px rgba(255,68,0,.4),inset 0 0 60px rgba(0,0,0,.5);}
-.sudoku-grid.streak-5{box-shadow:0 0 0 2px rgba(255,0,170,.6),0 0 0 5px #1a0818,0 0 0 7px rgba(150,0,100,.5),0 0 55px rgba(255,0,170,.5),inset 0 0 60px rgba(0,0,0,.5);animation:gridStreakPulse .6s ease infinite alternate;}
-@keyframes gridStreakPulse{from{box-shadow:0 0 0 2px rgba(255,0,170,.6),0 0 0 5px #1a0818,0 0 0 7px rgba(150,0,100,.5),0 0 55px rgba(255,0,170,.5),inset 0 0 60px rgba(0,0,0,.5)}to{box-shadow:0 0 0 2px rgba(255,0,170,.9),0 0 0 5px #1a0818,0 0 0 7px rgba(150,0,100,.5),0 0 80px rgba(255,0,170,.7),inset 0 0 60px rgba(0,0,0,.5)}}
-.score-label{font-size:9px;color:var(--text-dim);letter-spacing:.25em;font-family:'IM Fell English',serif;font-style:italic;}
-.score-val{font-size:20px;color:var(--neon);text-shadow:0 0 10px rgba(42,184,160,.4);font-family:'Pirata One',cursive;}
+.score-val{font-size:22px;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums;color:var(--ink);
+  display:inline-block;transform-origin:right center;}
+.score-val.score-pop{animation:scorePop .35s cubic-bezier(.34,1.56,.64,1);}
+@keyframes scorePop{from{transform:scale(1.2);color:var(--blue)}to{transform:scale(1)}}
+.streak-display{font-size:12px;font-style:italic;text-align:right;color:var(--rust);}
+.streak-x4,.streak-x5{font-weight:700;font-style:normal;}
+.sudoku-grid.streak-3,.sudoku-grid.streak-4{border-color:var(--brass);}
+.sudoku-grid.streak-5{border-color:var(--rust);}
 .gamble-indicator{position:absolute;top:-10px;left:50%;transform:translateX(-50%);
-  font-family:'Pirata One',cursive;font-size:10px;color:var(--amber);
-  background:var(--panel);border:1px solid var(--amber);padding:1px 8px;white-space:nowrap;display:none;}
+  font-size:11px;font-style:italic;color:var(--rust);background:var(--paper);padding:0 8px;white-space:nowrap;display:none;}
 
 /* GAME ROW */
-.game-row{display:flex;align-items:flex-start;gap:14px;position:relative;z-index:1;}
+.game-row{display:flex;align-items:flex-start;gap:14px;}
 
 /* POWERUP PANEL */
-.powerup-panel{display:flex;flex-direction:column;gap:8px;width:90px;padding-top:4px;}
-.powerup-label{font-family:'IM Fell English',serif;font-style:italic;font-size:10px;color:var(--text-dim);
-  letter-spacing:.15em;text-align:center;opacity:0;transition:opacity .5s;}
+.powerup-panel{display:flex;flex-direction:column;gap:8px;width:92px;}
+.powerup-label{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);text-align:center;opacity:0;transition:opacity .4s;}
 .powerup-panel.has-power .powerup-label{opacity:1;}
-.powerup-btn{display:none;flex-direction:column;align-items:center;gap:3px;
-  background:linear-gradient(160deg,#2e2210 0%,#1e1608 100%);border:2px solid var(--gold);
-  padding:8px 6px;cursor:pointer;transition:all .3s;position:relative;overflow:hidden;
-  animation:powerupAppear .5s cubic-bezier(.34,1.56,.64,1);}
+.powerup-btn{display:none;flex-direction:column;align-items:center;gap:4px;
+  background:var(--card);border:1px solid var(--ink);color:var(--ink);
+  padding:8px 6px 6px;cursor:pointer;transition:transform .15s,background .15s;position:relative;
+  animation:powerupAppear .35s ease-out;}
 .powerup-btn.visible{display:flex;}
-.powerup-btn::before{content:'';position:absolute;inset:0;
-  background:linear-gradient(135deg,rgba(200,146,42,.08) 0%,transparent 60%);pointer-events:none;}
-.powerup-btn:hover:not(:disabled){border-color:var(--gold-glow);box-shadow:0 0 16px rgba(200,146,42,.4);transform:translateY(-2px);}
-.powerup-btn:disabled{opacity:.35;cursor:default;border-color:var(--border);transform:none;box-shadow:none;}
-.powerup-btn.locked{filter:grayscale(1);opacity:.45;}
-.powerup-btn.locked:hover{transform:none;box-shadow:none;border-color:var(--border-bright);}
-.powerup-btn.active-effect{border-color:var(--neon);box-shadow:0 0 12px rgba(42,184,160,.5);}
-@keyframes powerupAppear{from{opacity:0;transform:scale(.6) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
-.powerup-icon{font-size:26px;line-height:1;filter:drop-shadow(0 0 4px rgba(200,146,42,.5));}
-.powerup-name{font-family:'Pirata One',cursive;font-size:10px;color:var(--gold);text-align:center;line-height:1.2;}
-.pow-lock{font-size:10px;opacity:.85;}
-.pow-quick{width:100%;margin-top:2px;padding:2px 0;display:flex;align-items:center;justify-content:center;
-  background:rgba(200,146,42,.12);border:1px solid var(--gold);border-radius:2px;color:var(--gold-glow);
-  font-family:'Pirata One',cursive;font-size:11px;line-height:1.4;cursor:pointer;z-index:2;transition:all .15s;}
-.pow-quick:hover{background:var(--gold);color:#1a0e04;box-shadow:0 0 10px rgba(200,146,42,.7);}
-.tracker-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin-top:4px;width:100%;}
-.tracker-num{font-family:'Pirata One',cursive;font-size:13px;text-align:center;padding:3px 0;border-radius:2px;
-  border:1px solid var(--border);background:rgba(0,0,0,.3);color:var(--text-dim);transition:all .4s;line-height:1;}
-.tracker-num.done{color:#111;border-color:#222;background:#111;text-shadow:none;}
+.powerup-btn:hover:not(:disabled){background:#fffaf0;transform:translateY(-1px);}
+.powerup-btn.locked{border-style:dashed;border-color:var(--rule-2);color:var(--muted);background:transparent;}
+.powerup-btn.locked:hover{transform:none;background:transparent;}
+.powerup-btn.active-effect{box-shadow:inset 0 0 0 2px var(--blue);}
+.powerup-btn.just-surfaced{animation:surfaced .9s ease-out;}
+@keyframes surfaced{0%{background:#f3dfa8}100%{background:var(--card)}}
+@keyframes powerupAppear{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.powerup-icon{width:26px;height:26px;display:block;}
+.powerup-icon svg,.shop-icon svg,.pow-icon-big svg{width:100%;height:100%;display:block;}
+.powerup-name{font-size:10.5px;line-height:1.2;text-align:center;}
+.pow-lock{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);}
+.pow-quick{width:100%;margin-top:2px;padding:2px 0;text-align:center;
+  border-top:1px solid var(--rule);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--blue);cursor:pointer;}
+.pow-quick:hover{background:var(--blue);color:var(--card);}
+.powerup-btn.boon-card{border-width:1px;border-color:var(--ink);background:var(--card-2);}
+.boon-tag{font-size:8.5px;letter-spacing:.2em;color:var(--muted);}
+.tracker-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:2px;width:100%;}
+.tracker-num{font-size:12px;text-align:center;padding:2px 0;border:1px solid var(--rule);color:var(--ink);transition:all .3s;line-height:1.1;}
+.tracker-num.done{color:var(--rule-2);text-decoration:line-through;border-color:transparent;}
 
 /* GRID */
-.grid-wrap{position:relative;z-index:1;flex-shrink:0;}
+.grid-wrap{position:relative;flex-shrink:0;}
 .grid-cover{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;
-  background:rgba(10,8,2,.94);backdrop-filter:blur(8px);opacity:0;pointer-events:none;transition:opacity .25s;
-  text-align:center;padding:20px;}
+  background:var(--card);opacity:0;pointer-events:none;transition:opacity .2s;text-align:center;padding:20px;
+  border:2.5px solid var(--ink);}
 .grid-cover.visible{opacity:1;pointer-events:all;}
-.grid-cover-icon{font-size:32px;display:block;margin-bottom:8px;filter:drop-shadow(0 0 6px rgba(200,146,42,.4));}
-.grid-cover-msg{font-family:'IM Fell English',serif;font-style:italic;color:var(--text-dim);font-size:15px;line-height:1.8;}
+.grid-cover-msg{font-style:italic;color:var(--ink-2);font-size:15px;line-height:1.7;}
 .sudoku-grid{display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr);
-  width:min(500px,calc(95vw - 110px));height:min(500px,calc(95vw - 110px));aspect-ratio:1;
-  border:3px solid var(--gold);
-  box-shadow:0 0 0 1px rgba(200,146,42,.2),0 0 0 5px #1a1208,0 0 0 7px rgba(100,70,20,.4),0 8px 40px rgba(0,0,0,.7),inset 0 0 60px rgba(0,0,0,.5);
-  background:var(--cell-bg);position:relative;}
-.sudoku-grid.boss-grid{border-color:var(--red);
-  box-shadow:0 0 0 1px rgba(200,30,30,.3),0 0 0 5px #1a0808,0 0 0 7px rgba(150,20,20,.4),0 8px 40px rgba(0,0,0,.7),0 0 30px rgba(180,20,20,.2),inset 0 0 60px rgba(0,0,0,.5);}
+  width:min(500px,calc(95vw - 110px));height:min(500px,calc(95vw - 110px));
+  border:2.5px solid var(--ink);background:var(--card);position:relative;transition:border-color .3s;
+  box-shadow:3px 3px 0 rgba(42,33,24,.12);}
+.sudoku-grid.boss-grid{border-color:var(--rust);}
 .cell{position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer;
-  font-size:clamp(25px,6.5vw,34px);line-height:1;font-family:'Courier Prime',monospace;font-weight:700;
-  color:var(--text);background:var(--cell-bg);
-  border-right:var(--grid-thin) solid var(--border);border-bottom:var(--grid-thin) solid var(--border);
-  user-select:none;transition:background .15s,color .15s;-webkit-tap-highlight-color:transparent;}
-.cell:nth-child(9n+1){border-left:none}.cell:nth-child(-n+9){border-top:none}
-.cell[data-col="2"],.cell[data-col="5"]{border-right:var(--grid-thick) solid var(--gold)}
-.cell[data-row="2"],.cell[data-row="5"]{border-bottom:var(--grid-thick) solid var(--gold)}
+  font-size:clamp(22px,6vw,31px);line-height:1;font-family:var(--serif);font-style:italic;
+  color:var(--blue);background:var(--card);touch-action:none;
+  border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);
+  user-select:none;-webkit-user-select:none;transition:background .12s;-webkit-tap-highlight-color:transparent;}
+.cell[data-col="2"],.cell[data-col="5"]{border-right:1.5px solid var(--ink)}
+.cell[data-row="2"],.cell[data-row="5"]{border-bottom:1.5px solid var(--ink)}
 .cell[data-col="8"]{border-right:none}.cell[data-row="8"]{border-bottom:none}
-.cell.given{color:var(--gold-glow);background:var(--cell-given);cursor:default;font-weight:700;}
-.cell.selected{background:var(--cell-highlight)!important;outline:2px solid var(--neon);outline-offset:-2px;z-index:2;}
-.cell.correct{animation:correctFlash .4s ease;}
-.cell.wrong{background:rgba(160,20,20,.4)!important;color:#ff6060!important;box-shadow:inset 0 0 0 1px rgba(200,40,40,.5);animation:wrongShake .4s ease;}
-@keyframes correctFlash{0%{filter:brightness(2.5)}100%{filter:brightness(1)}}
-@keyframes wrongShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-4px)}40%{transform:translateX(4px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
-.cell.hi-row,.cell.hi-col{background:#231a0d;}
-.cell.hi-box{background:#1f1609;}
-.cell.same-num{color:var(--amber)!important;}
-.cell.naked-hint{outline:2px solid var(--neon)!important;outline-offset:-2px;animation:nakedPulse .8s ease infinite alternate;z-index:3;}
-@keyframes nakedPulse{from{outline-color:var(--neon-dim)}to{outline-color:var(--neon)}}
-.cell.pair-hl{outline:2px solid var(--gold-glow)!important;outline-offset:-2px;animation:pairPulse 1s ease infinite alternate;z-index:3;}
-@keyframes pairPulse{from{outline-color:var(--gold);box-shadow:inset 0 0 8px rgba(200,146,42,.2)}to{outline-color:var(--gold-glow);box-shadow:inset 0 0 14px rgba(232,184,74,.35)}}
-.cell.sonar-hl{outline:2px solid var(--amber)!important;outline-offset:-2px;z-index:3;}
-.sudoku-grid.keg-placing .cell:not(.given){cursor:crosshair;}
-.sudoku-grid.keg-placing .cell:not(.given):hover{outline:2px dashed #ff8800!important;outline-offset:-2px;}
-.sudoku-grid.painter-picking .cell{cursor:crosshair;}
-.sudoku-grid.painter-picking .cell:hover{outline:2px dashed #ff66cc!important;outline-offset:-2px;}
-.cell.keg-cell::after{content:'🧨';position:absolute;top:1px;right:2px;font-size:8px;pointer-events:none;z-index:5;}
-@keyframes kegPulse{from{outline-color:#ff4400;box-shadow:inset 0 0 10px rgba(255,68,0,.3)}to{outline-color:#ffaa00;box-shadow:inset 0 0 16px rgba(255,170,0,.4)}}
-.pair-hint-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  font-size:clamp(10px,1.8vw,15px);font-family:'Pirata One',cursive;color:var(--gold-glow);
-  pointer-events:none;text-shadow:0 0 6px rgba(232,184,74,.9),0 1px 3px rgba(0,0,0,.8);z-index:4;}
-.compass-grid{position:absolute;inset:1px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);pointer-events:none;z-index:4;}
-.compass-num{display:flex;align-items:center;justify-content:center;font-size:clamp(8px,1.4vw,13px);font-family:'Pirata One',cursive;color:var(--neon);opacity:.9;text-shadow:0 0 6px rgba(42,184,160,.9);font-weight:700;}
+.cell.given{color:var(--ink);font-style:normal;font-weight:700;cursor:default;}
+.cell.hi-row,.cell.hi-col{background:var(--hi);}
+.cell.hi-box{background:var(--hi-box);}
+.cell.selected{background:var(--sel)!important;box-shadow:inset 0 0 0 2px var(--blue)!important;z-index:2;}
+.cell.correct{animation:correctPop .35s ease-out;}
+.cell.wrong{color:var(--rust)!important;text-decoration:line-through;text-decoration-thickness:1.5px;animation:wrongShake .35s ease;}
+@keyframes correctPop{0%{transform:scale(1.18)}100%{transform:scale(1)}}
+@keyframes wrongShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}50%{transform:translateX(3px)}75%{transform:translateX(-2px)}}
+.cell.same-num{color:var(--rust)!important;}
+.cell.naked-hint{box-shadow:inset 0 0 0 2px var(--blue)!important;z-index:3;animation:hintPulse 1s ease infinite alternate;}
+@keyframes hintPulse{from{background:var(--card)}to{background:#e2e8e6}}
+.cell.pair-hl{box-shadow:inset 0 0 0 2px var(--brass)!important;z-index:3;}
+.cell.sonar-hl{box-shadow:inset 0 0 0 2px var(--brass)!important;z-index:3;background:#f2e6c4;}
+.sudoku-grid.keg-placing .cell:not(.given),.sudoku-grid.painter-picking .cell{cursor:crosshair;}
+.sudoku-grid.keg-placing .cell:not(.given):hover,.sudoku-grid.painter-picking .cell:hover{box-shadow:inset 0 0 0 2px var(--rust);}
+.cell.keg-cell::after{content:'';position:absolute;top:4px;right:4px;width:6px;height:6px;border-radius:50%;background:var(--rust);pointer-events:none;}
+.pair-hint-label{position:absolute;bottom:2px;left:0;right:0;text-align:center;font-style:normal;
+  font-size:clamp(9px,1.6vw,12px);color:var(--brass);font-weight:700;pointer-events:none;z-index:4;}
+.compass-grid{position:absolute;inset:2px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);pointer-events:none;z-index:4;}
+.compass-num{display:flex;align-items:center;justify-content:center;font-size:clamp(8px,1.4vw,12px);font-style:normal;color:var(--ink-2);}
+.cell-preview{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  color:var(--blue);opacity:.55;pointer-events:none;z-index:4;font-style:italic;}
+.cell.previewing{color:transparent!important;text-decoration:none;}
 
-/* DIAL */
-#dial-overlay{position:fixed;inset:0;z-index:100;pointer-events:none;}
+/* DIAL — ship's wheel, one number between each pair of handles */
+#dial-overlay{position:fixed;inset:0;z-index:100;pointer-events:none;touch-action:none;}
 #dial-overlay.active{pointer-events:all;}
-.dial-bg{position:absolute;border-radius:50%;
-  background:radial-gradient(circle,rgba(40,28,10,.28) 0%,rgba(20,12,4,.22) 100%);
-  backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);
-  border:2px solid var(--gold);
-  box-shadow:0 0 0 1px rgba(200,146,42,.2),0 8px 60px rgba(0,0,0,.6),inset 0 0 20px rgba(0,0,0,.25);
-  transform:translate(-50%,-50%);pointer-events:all;}
-.dial-cancel{position:absolute;border-radius:50%;transform:translate(-50%,-50%);cursor:pointer;
-  display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-size:11px;
-  font-family:'IM Fell English',serif;font-style:italic;}
-.dial-num{position:absolute;border-radius:50%;display:flex;align-items:center;
-  justify-content:center;font-family:'Pirata One',cursive;color:var(--text);
-  background:var(--panel);border:1px solid var(--border-bright);cursor:pointer;
-  transform:translate(-50%,-50%);transition:all .12s ease;pointer-events:all;z-index:101;}
-.dial-num:hover{background:var(--gold);color:#1a0e04;border-color:var(--gold-glow);
-  box-shadow:0 0 16px rgba(200,146,42,.7);transform:translate(-50%,-50%) scale(1.25);}
+.wheel{position:absolute;transform:translate(-50%,-50%);display:none;}
+.wheel.open{display:block;}
+.wheel-spin{position:relative;width:100%;height:100%;animation:wheelIn .3s cubic-bezier(.34,1.3,.64,1);}
+@keyframes wheelIn{from{transform:rotate(-70deg) scale(.6);opacity:0}to{transform:none;opacity:1}}
+.wheel-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;
+  filter:drop-shadow(2px 4px 6px rgba(42,33,24,.35));}
+.dial-num{position:absolute;width:15%;height:15%;border-radius:50%;transform:translate(-50%,-50%);
+  display:flex;align-items:center;justify-content:center;padding:0;
+  font-family:var(--serif);font-weight:700;font-size:1em;line-height:1;color:var(--ink);
+  background:var(--card);border:1.5px solid var(--ink);cursor:pointer;
+  box-shadow:1px 2px 0 rgba(42,33,24,.25);transition:transform .1s ease,background .1s,color .1s;}
+.dial-num.hot{background:var(--ink);color:var(--card);transform:translate(-50%,-50%) scale(1.14);}
+
+/* POINTS */
+.float-pts{position:fixed;z-index:150;pointer-events:none;transform:translate(-50%,-50%);
+  font-family:var(--serif);font-style:italic;font-weight:700;font-size:16px;color:var(--blue);white-space:nowrap;
+  animation:floatUp .9s ease-out forwards;}
+.float-pts.big{font-size:21px;color:var(--rust);}
+@keyframes floatUp{0%{opacity:0;transform:translate(-50%,-30%)}15%{opacity:1;transform:translate(-50%,-60%)}100%{opacity:0;transform:translate(-50%,-200%)}}
 
 /* HINT BAR */
-.hint-bar{width:min(614px,95vw);text-align:center;margin-top:10px;font-size:11px;
-  font-family:'IM Fell English',serif;font-style:italic;color:var(--text-dim);letter-spacing:.1em;position:relative;z-index:1;}
-#btn-quit{background:transparent;border:1px solid var(--border-bright);color:var(--text-dim);
-  font-family:'IM Fell English',serif;font-style:italic;font-size:11px;padding:2px 10px;cursor:pointer;transition:all .2s;}
-#btn-quit:hover{border-color:var(--red);color:var(--red);}
+.hint-bar{width:min(614px,95vw);text-align:center;margin-top:12px;font-size:12px;font-style:italic;color:var(--muted);}
+#btn-quit{background:none;border:none;border-bottom:1px solid var(--rule-2);color:var(--ink-2);
+  font-style:italic;font-size:12px;padding:0 1px;cursor:pointer;margin-left:6px;}
+#btn-quit:hover{color:var(--rust);border-color:var(--rust);}
 
 /* MODALS */
-.modal-bg{position:fixed;inset:0;background:rgba(5,3,1,.88);z-index:200;display:flex;
-  align-items:center;justify-content:center;backdrop-filter:blur(6px);
-  opacity:0;pointer-events:none;transition:opacity .4s;}
+.modal-bg{position:fixed;inset:0;background:rgba(42,33,24,.45);z-index:200;display:flex;
+  align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
 .modal-bg.visible{opacity:1;pointer-events:all;}
-.modal{background:linear-gradient(160deg,#2e2210 0%,#1e1608 100%);
-  border:2px solid var(--gold);border-top:3px solid var(--gold-glow);
-  padding:36px 44px;text-align:center;max-width:480px;width:92%;
-  box-shadow:0 0 0 1px rgba(200,146,42,.1),0 0 0 8px rgba(10,8,2,.8),0 20px 80px rgba(0,0,0,.8);
-  position:relative;}
-.modal.boss-modal{border-color:var(--red);border-top-color:#ff4444;}
-.corner{position:absolute;font-size:14px;opacity:.35;line-height:1;}
-.corner.tl{top:8px;left:10px}.corner.tr{top:8px;right:10px}
-.corner.bl{bottom:8px;left:10px}.corner.br{bottom:8px;right:10px}
-.modal-glyph{font-size:48px;margin-bottom:10px;display:block;}
-.modal-title{font-family:'Pirata One',cursive;font-size:28px;color:var(--gold);letter-spacing:.1em;margin-bottom:6px;text-shadow:2px 2px 0 rgba(0,0,0,.5);}
-.modal-sub{font-family:'IM Fell English',serif;font-style:italic;font-size:16px;color:var(--text-dim);margin-bottom:16px;line-height:1.8;white-space:pre-line;}
-#modal-start .modal-sub{font-size:18px;color:var(--text);}
-.modal-score{font-family:'Pirata One',cursive;font-size:36px;color:var(--neon);text-shadow:0 0 20px rgba(42,184,160,.5);margin-bottom:20px;}
-.btn-primary{background:transparent;border:2px solid var(--gold);color:var(--gold);
-  font-family:'Pirata One',cursive;font-size:16px;letter-spacing:.2em;padding:10px 32px;
-  cursor:pointer;transition:all .2s;display:block;margin:0 auto;}
-.btn-primary:hover{background:var(--gold);color:#1a0e04;box-shadow:0 0 20px rgba(200,146,42,.5);}
+.modal{background:var(--card);border:1px solid var(--ink);outline:1px solid var(--ink);outline-offset:-6px;
+  padding:34px 40px;text-align:center;max-width:460px;width:92%;position:relative;
+  box-shadow:4px 6px 0 rgba(42,33,24,.25);}
+.modal-kicker{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.modal-title{font-family:var(--display);font-size:30px;line-height:1.1;color:var(--ink);margin-bottom:10px;}
+.modal-sub{font-style:italic;font-size:15px;color:var(--ink-2);margin-bottom:20px;line-height:1.7;white-space:pre-line;}
+.modal-score{font-size:22px;font-weight:700;color:var(--ink);margin-bottom:22px;font-variant-numeric:tabular-nums;}
+.btn-primary{background:var(--ink);border:1px solid var(--ink);color:var(--card);
+  font-size:12px;letter-spacing:.22em;text-transform:uppercase;padding:11px 28px;
+  cursor:pointer;transition:background .15s,color .15s;display:block;margin:0 auto;}
+.btn-primary:hover{background:var(--card);color:var(--ink);}
 
 /* SHOP */
-.shop-title{font-family:'Pirata One',cursive;font-size:22px;color:var(--gold);margin-bottom:4px;}
-.shop-doubloons{font-family:'Pirata One',cursive;font-size:28px;color:var(--gold-glow);
-  text-shadow:0 0 16px rgba(232,184,74,.6);margin-bottom:10px;letter-spacing:.05em;}
-.shop-sub{font-family:'IM Fell English',serif;font-style:italic;font-size:12px;color:var(--text-dim);margin-bottom:16px;}
-.shop-grid{display:flex;gap:10px;justify-content:center;margin-bottom:16px;flex-wrap:wrap;}
-.shop-item{background:linear-gradient(160deg,#2e2210 0%,#1e1608 100%);
-  border:2px solid var(--border-bright);padding:12px 8px;width:124px;cursor:pointer;
-  transition:all .2s;text-align:center;}
-.shop-item:hover:not(.cant-buy){border-color:var(--gold);box-shadow:0 0 16px rgba(200,146,42,.3);transform:translateY(-2px);}
-.shop-item.selected{border-color:var(--gold-glow);box-shadow:0 0 20px rgba(232,184,74,.5);background:linear-gradient(160deg,#3a2a14 0%,#2a1e0c 100%);}
+.shop-title{font-family:var(--display);font-size:28px;color:var(--ink);line-height:1.1;margin-bottom:4px;}
+.shop-doubloons{font-size:15px;color:var(--ink);margin-bottom:4px;}
+.shop-doubloons span{font-weight:700;font-size:20px;}
+.shop-earned{font-style:italic;font-size:12px;color:var(--ink-2);margin-bottom:14px;line-height:1.6;}
+.shop-sub{font-size:11px;color:var(--muted);margin-bottom:14px;}
+.shop-grid{margin-bottom:6px;}
+.shop-section{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);
+  margin-bottom:8px;display:flex;align-items:center;gap:10px;}
+.shop-section::before,.shop-section::after{content:'';flex:1;border-top:1px solid var(--rule);}
+.shop-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:16px;}
+#modal-shop .modal{max-width:520px;padding:28px 22px;max-height:94vh;overflow-y:auto;}
+.shop-item{background:var(--card);border:1px solid var(--ink);padding:10px 8px 8px;width:126px;cursor:pointer;
+  transition:transform .15s,box-shadow .15s;text-align:center;color:var(--ink);}
+.shop-item:hover:not(.cant-buy){transform:translateY(-2px);box-shadow:2px 3px 0 rgba(42,33,24,.2);}
 .shop-item.cant-buy{opacity:.45;}
-.shop-icon{font-size:26px;display:block;margin-bottom:5px;}
-.shop-name{font-family:'Pirata One',cursive;font-size:12px;color:var(--gold);margin-bottom:3px;}
-.shop-desc{font-family:'IM Fell English',serif;font-style:italic;font-size:10.5px;color:var(--text-dim);line-height:1.4;margin-bottom:5px;}
-.shop-badge{font-size:8px;font-family:'Courier Prime',monospace;padding:2px 5px;border-radius:2px;display:inline-block;}
-.shop-badge.new-badge{background:rgba(42,184,160,.2);color:var(--neon);border:1px solid var(--neon);}
-.shop-badge.owned-badge{background:rgba(200,146,42,.2);color:var(--gold);border:1px solid var(--gold);}
-.next-info{font-family:'IM Fell English',serif;font-style:italic;font-size:11px;color:var(--text-dim);margin-bottom:12px;}
-/* POWERUP DETAIL OVERLAY */
-.pow-overlay{position:fixed;inset:0;z-index:300;opacity:0;pointer-events:none;transition:opacity .2s;}
+.shop-icon{width:28px;height:28px;display:block;margin:0 auto 5px;}
+.shop-name{font-size:12.5px;font-weight:700;margin-bottom:3px;}
+.shop-desc{font-style:italic;font-size:11px;color:var(--ink-2);line-height:1.35;margin-bottom:6px;}
+.shop-cost{font-size:12px;font-weight:700;margin-bottom:4px;}
+.shop-cost.cant{color:var(--rust);}
+.shop-badge{font-size:8.5px;letter-spacing:.2em;padding:1px 6px;display:inline-block;border:1px solid currentColor;}
+.shop-badge.new-badge{color:var(--blue);}
+.shop-badge.owned-badge,.shop-badge.boon-badge,.shop-badge.prov-badge{color:var(--muted);}
+.shop-badge.sold-badge{color:var(--rust);}
+.next-info{font-style:italic;font-size:12px;color:var(--ink-2);margin-bottom:14px;}
+
+/* POWERUP DETAIL */
+.pow-overlay{position:fixed;inset:0;z-index:300;opacity:0;pointer-events:none;transition:opacity .15s;}
 .pow-overlay.visible{opacity:1;pointer-events:all;}
 .pow-card{position:absolute;max-width:260px;width:88vw;text-align:left;padding:16px 18px;
-  background:linear-gradient(160deg,#2e2210 0%,#1e1608 100%);
-  border:2px solid var(--gold);border-top:3px solid var(--gold-glow);
-  box-shadow:0 0 0 1px rgba(200,146,42,.1),0 12px 40px rgba(0,0,0,.7);}
-.pow-icon-big{font-size:30px;display:block;margin-bottom:4px;filter:drop-shadow(0 0 8px rgba(200,146,42,.5));}
-.pow-title{font-family:'Pirata One',cursive;font-size:19px;color:var(--gold);letter-spacing:.05em;
-  margin-bottom:6px;text-shadow:1px 1px 0 rgba(0,0,0,.5);}
-.pow-long{font-size:13px;line-height:1.45;color:var(--text);font-family:'IM Fell English',serif;margin-bottom:10px;}
-.pow-meta{font-size:10.5px;color:var(--text-dim);font-family:'Courier Prime',monospace;letter-spacing:.05em;margin-bottom:12px;}
-.pow-card .btn-primary{padding:7px 18px;font-size:12px;margin:0;}
-.pow-card .btn-primary:disabled{opacity:.4;cursor:default;}
-.pow-card .btn-primary:disabled:hover{background:transparent;color:var(--gold);box-shadow:none;}
-.pow-card .btn-buy-cant{border-color:var(--red);color:var(--red);}
-.pow-card .btn-buy-cant:hover{background:transparent;color:var(--red);box-shadow:none;}
-.pow-close{position:absolute;top:6px;right:8px;background:transparent;border:none;color:var(--text-dim);
-  font-size:16px;line-height:1;cursor:pointer;padding:4px;transition:color .2s;}
-.pow-close:hover{color:var(--gold);}
+  background:var(--card);border:1px solid var(--ink);box-shadow:3px 4px 0 rgba(42,33,24,.25);color:var(--ink);}
+.pow-icon-big{width:32px;height:32px;display:block;margin-bottom:6px;}
+.pow-title{font-family:var(--display);font-size:21px;line-height:1.1;margin-bottom:6px;}
+.pow-long{font-size:13px;line-height:1.5;color:var(--ink-2);margin-bottom:10px;}
+.pow-meta{font-size:11px;font-style:italic;color:var(--muted);margin-bottom:12px;}
+.pow-card .btn-primary{padding:8px 16px;font-size:11px;margin:0;}
+.pow-card .btn-primary:disabled{opacity:.35;cursor:default;}
+.pow-card .btn-primary:disabled:hover{background:var(--ink);color:var(--card);}
+.pow-card .btn-buy-cant{background:transparent;color:var(--rust);border-color:var(--rust);}
+.pow-close{position:absolute;top:6px;right:8px;background:transparent;border:none;color:var(--muted);
+  font-size:20px;line-height:1;cursor:pointer;padding:2px 4px;}
+.pow-close:hover{color:var(--ink);}
 
 /* TOASTS */
-#toast-wrap{position:fixed;bottom:64px;left:50%;transform:translateX(-50%);z-index:400;
+#toast-wrap{position:fixed;bottom:56px;left:50%;transform:translateX(-50%);z-index:400;
   display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;}
-.toast{background:linear-gradient(160deg,#2e2210 0%,#1e1608 100%);border:1px solid var(--gold);
-  color:var(--text);font-family:'IM Fell English',serif;font-style:italic;font-size:14px;
-  padding:8px 20px;box-shadow:0 4px 20px rgba(0,0,0,.6),0 0 12px rgba(200,146,42,.2);
-  animation:toastIn .25s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis;}
-.toast.out{opacity:0;transform:translateY(8px);transition:opacity .4s,transform .4s;}
-@keyframes toastIn{from{opacity:0;transform:translateY(12px) scale(.9)}to{opacity:1;transform:translateY(0) scale(1)}}
+.toast{background:var(--ink);color:var(--card);font-size:13px;padding:7px 16px;
+  animation:toastIn .2s ease-out;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis;}
+.toast.out{opacity:0;transform:translateY(6px);transition:opacity .35s,transform .35s;}
+@keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
 /* MOBILE */
 @media (max-width:640px){
   .game-row{flex-direction:column;align-items:center;gap:10px;}
   .sudoku-grid{width:min(95vw,500px);height:min(95vw,500px);}
-  .powerup-panel{flex-direction:row;width:min(95vw,500px);overflow-x:auto;padding:4px 2px;gap:6px;}
+  .powerup-panel{flex-direction:row;width:min(95vw,500px);overflow-x:auto;padding:2px;gap:6px;}
   .powerup-label{display:none;}
-  .powerup-btn{flex:0 0 auto;width:76px;}
-  .modal-title{font-size:22px;}
+  .powerup-btn{flex:0 0 auto;width:78px;}
+  .subtitle{font-size:32px;}
+  .modal{padding:30px 22px;}
+  .modal-title{font-size:25px;}
 }
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;}}
 </style>
 </head>
 <body>
 
 <div class="header">
-  <div class="title">☠ The Navigator's Cipher ☠</div>
-  <div class="subtitle">PLUNDER SUDOKU</div>
+  <div class="title">The Navigator's Cipher</div>
+  <div class="subtitle">Plunder Sudoku</div>
 </div>
 
 <div class="round-banner">
   <span class="round-tag" id="round-tag">Round 1</span>
-  <span class="round-sep">·</span>
-  <span id="clues-tag" style="font-family:'IM Fell English',serif;font-style:italic;font-size:12px;color:var(--text-dim);">50 clues</span>
-  <span class="round-sep">·</span>
-  <span id="fuse-tag" style="font-family:'IM Fell English',serif;font-style:italic;font-size:12px;color:var(--text-dim);">20s fuse</span>
+  <span class="round-sep">/</span>
+  <span class="banner-note" id="clues-tag">50 clues</span>
+  <span class="round-sep">/</span>
+  <span class="banner-note" id="fuse-tag">20s fuse</span>
 </div>
 
 <div class="status-bar">
-  <div class="gamble-indicator" id="gamble-ind">🎲 GAMBLE — <span id="gamble-left">3</span> moves</div>
+  <div class="gamble-indicator" id="gamble-ind">Gamble on: <span id="gamble-left">3</span> moves left</div>
   <div class="lives">
-    <span class="life-label">CREW</span>
-    <div class="heart" id="h1">💀</div><div class="heart" id="h2">💀</div>
-    <div class="heart" id="h3">💀</div><div class="heart" id="h4">💀</div>
-    <div class="heart" id="h5">💀</div>
+    <span class="life-label">Crew</span>
+    <div class="heart" id="h1"></div><div class="heart" id="h2"></div>
+    <div class="heart" id="h3"></div><div class="heart" id="h4"></div>
+    <div class="heart" id="h5"></div>
   </div>
   <div class="timer-wrap">
-    <div class="timer-label">⏳ Fuse Burnin'</div>
+    <div class="timer-label">Fuse</div>
     <div class="timer-display" id="timer-display">20</div>
     <div class="timer-bar-wrap"><div class="timer-bar" id="timer-bar"></div></div>
   </div>
   <div class="score-wrap">
-    <div class="score-label">🏴‍☠️ Plunder</div>
+    <div class="score-label">Plunder</div>
     <div class="score-val" id="score-display">0000</div>
     <div class="streak-display" id="streak-display" style="display:none;"></div>
   </div>
@@ -336,17 +298,17 @@ body::before{content:'';position:fixed;inset:0;
   <div class="grid-wrap">
     <div class="sudoku-grid" id="grid"></div>
     <div class="grid-cover" id="grid-cover">
-      <div class="grid-cover-msg"><span class="grid-cover-icon">⏸</span>Fuse paused<br>while ye inspect the charm</div>
+      <div class="grid-cover-msg">Fuse paused<br>while ye read the card</div>
     </div>
   </div>
   <div class="powerup-panel" id="powerup-panel">
-    <div class="powerup-label">⚗ Powers</div>
+    <div class="powerup-label">Hold</div>
   </div>
 </div>
 
 <div class="hint-bar">
-  💣 TAP A CELL · SPIN THE COMPASS · OR TYPE 1–9 &nbsp;·&nbsp;
-  <button id="btn-quit" onclick="quitToMenu()">🏴‍☠️ Abandon Ship</button>
+  Tap a cell and pick from the wheel, or type 1&ndash;9.
+  <button id="btn-quit" onclick="quitToMenu()">Abandon ship</button>
 </div>
 
 <!-- Toasts -->
@@ -355,7 +317,7 @@ body::before{content:'';position:fixed;inset:0;
 <!-- Powerup Detail Overlay -->
 <div class="pow-overlay" id="pow-detail">
   <div class="pow-card">
-    <button class="pow-close" id="pd-close" aria-label="Close">✕</button>
+    <button class="pow-close" id="pd-close" aria-label="Close">&times;</button>
     <span class="pow-icon-big" id="pd-icon"></span>
     <div class="pow-title" id="pd-name"></div>
     <div class="pow-long" id="pd-long"></div>
@@ -366,49 +328,43 @@ body::before{content:'';position:fixed;inset:0;
 
 <!-- Dial -->
 <div id="dial-overlay">
-  <div class="dial-bg" id="dial-bg" style="display:none;"></div>
-  <div class="dial-cancel" id="dial-cancel" style="display:none;"></div>
+  <div class="wheel" id="wheel"><div class="wheel-spin" id="wheel-spin"></div></div>
 </div>
 
 <!-- Start Modal -->
 <div class="modal-bg" id="modal-start">
   <div class="modal">
-    <div class="corner tl">☠</div><div class="corner tr">☠</div>
-    <div class="corner bl">⚓</div><div class="corner br">⚓</div>
-    <span class="modal-glyph">💣</span>
-    <div class="modal-title">PLUNDER SUDOKU</div>
-    <div class="modal-sub">It's Sudoku — fill the grid.
-A fuse is burning: don't let it run out.
-Earn power-ups to help you survive.</div>
-    <button class="btn-primary" id="btn-start">⚓ SET SAIL</button>
+    <div class="modal-kicker">A sudoku roguelite</div>
+    <div class="modal-title">Plunder Sudoku</div>
+    <div class="modal-sub">Fill the grid before the fuse burns down.
+Right answers add time; wrong ones burn it.
+Spend yer plunder in port between rounds.</div>
+    <button class="btn-primary" id="btn-start">Set sail</button>
   </div>
 </div>
 
 <!-- Shop Modal -->
 <div class="modal-bg" id="modal-shop">
   <div class="modal">
-    <div class="corner tl">☠</div><div class="corner tr">☠</div>
-    <div class="corner bl">⚓</div><div class="corner br">⚓</div>
-    <span class="modal-glyph" id="shop-glyph">🏴‍☠️</span>
-    <div class="shop-title" id="shop-title">ROUND COMPLETE!</div>
-    <div class="shop-doubloons">🪙 <span id="shop-doubloon-count">0</span> Doubloons</div>
-    <div class="shop-sub" id="shop-sub">Tap an item to inspect &amp; buy:</div>
+    <div class="modal-kicker" id="shop-kicker">In port</div>
+    <div class="shop-title" id="shop-title">Round complete</div>
+    <div class="shop-doubloons"><span id="shop-doubloon-count">0</span> doubloons in the purse</div>
+    <div class="shop-earned" id="shop-earned"></div>
+    <div class="shop-sub" id="shop-sub">Tap an item to inspect &amp; buy — one of each per port:</div>
     <div class="shop-grid" id="shop-grid"></div>
     <div class="next-info" id="next-info"></div>
-    <button class="btn-primary" id="btn-next-round">⚓ NEXT ROUND</button>
+    <button class="btn-primary" id="btn-next-round">Next round</button>
   </div>
 </div>
 
 <!-- Game Over Modal -->
 <div class="modal-bg" id="modal-over">
   <div class="modal">
-    <div class="corner tl">☠</div><div class="corner tr">☠</div>
-    <div class="corner bl">⚓</div><div class="corner br">⚓</div>
-    <span class="modal-glyph">💀</span>
-    <div class="modal-title">DAVY JONES'ER LOCKER</div>
+    <div class="modal-kicker">Run over</div>
+    <div class="modal-title">Davy Jones' Locker</div>
     <div class="modal-sub" id="over-sub">Arr... the seas have claimed ye.</div>
     <div class="modal-score" id="over-score"></div>
-    <button class="btn-primary" id="btn-restart">⚓ SAIL AGAIN</button>
+    <button class="btn-primary" id="btn-restart">Sail again</button>
   </div>
 </div>
 
@@ -436,53 +392,106 @@ function makePuzzle(sol,clues){
   for(const[r,c]of cells){if(rm>=tgt)break;p[r][c]=0;rm++;}return p;}
 
 const NUM_COLORS={
-  1:{bg:'rgba(180,60,60,.22)',  b:'rgba(180,60,60,.45)'},
-  2:{bg:'rgba(180,110,40,.22)', b:'rgba(180,110,40,.45)'},
-  3:{bg:'rgba(160,150,30,.22)', b:'rgba(160,150,30,.45)'},
-  4:{bg:'rgba(50,150,80,.22)',  b:'rgba(50,150,80,.45)'},
-  5:{bg:'rgba(40,160,160,.22)', b:'rgba(40,160,160,.45)'},
-  6:{bg:'rgba(50,100,200,.22)', b:'rgba(50,100,200,.45)'},
-  7:{bg:'rgba(120,60,200,.22)', b:'rgba(120,60,200,.45)'},
-  8:{bg:'rgba(180,50,160,.22)', b:'rgba(180,50,160,.45)'},
-  9:{bg:'rgba(180,60,110,.22)', b:'rgba(180,60,110,.45)'},
+  1:{bg:'#f0d2c8',b:'#c98a76'},
+  2:{bg:'#f2dcbf',b:'#c9a06a'},
+  3:{bg:'#ece3b8',b:'#b8a85a'},
+  4:{bg:'#d5e2c6',b:'#8aa86e'},
+  5:{bg:'#c9e0dc',b:'#6fa39b'},
+  6:{bg:'#cfdbe8',b:'#7895b8'},
+  7:{bg:'#dcd3e6',b:'#9583b0'},
+  8:{bg:'#ead0dc',b:'#b37995'},
+  9:{bg:'#e2d6c6',b:'#a38a6a'},
 };
 
 // ═══════════════════════════════════════
 //  POWER-UP DEFINITIONS
 // ═══════════════════════════════════════
 const POWERUPS=[
-  {id:'spyglass', icon:'👁',  name:"Spy Glass",       desc:"Reveal all hidden pairs",                      multi:false, cost:3,
+  {id:'spyglass', name:"Spy Glass",       desc:"Reveal all hidden pairs",                      multi:false, cost:3,
    long:"Highlights pairs of cells that can only hold the same two numbers between them."},
-  {id:'tally',    icon:'📜',  name:"Tally Board",      desc:"Live tracker of completed numbers",            multi:false, cost:1,
-   long:"Adds a tracker for the rest of the run. Each number blacks out once all 9 copies are placed correctly."},
-  {id:'crows',    icon:'🔭',  name:"Crow's Nest",      desc:"Highlight cells with only one answer",         multi:false, cost:1,
+  {id:'crows',    name:"Crow's Nest",      desc:"Highlight cells with only one answer",         multi:false, cost:1,
    long:"Marks every empty cell that has only one number left it could possibly be."},
-  {id:'reckoning',icon:'💡',  name:"Dead Reckoning",   desc:"Reveal one correct cell free",                 multi:true,  cost:1,
+  {id:'reckoning',name:"Dead Reckoning",   desc:"Reveal one correct cell free",                 multi:true,  cost:1,
    long:"Instantly fills a random empty cell with the correct number, plus 10 plunder."},
-  {id:'luckycharm',icon:'🍀', name:"Lucky Charm",      desc:"Wrong guesses only burn 4s, not 5",            multi:false, cost:2,
-   long:"While this charm is in yer hold, a wrong guess only knocks 4 seconds off the fuse instead of 5, for the rest of the run."},
-  {id:'hourglass',icon:'⌛',  name:"Davy's Hourglass", desc:"Freeze fuse 15 seconds",                       multi:true,  cost:3,
+  {id:'hourglass',name:"Davy's Hourglass", desc:"Freeze fuse 15 seconds",                       multi:true,  cost:3,
    long:"Pauses the countdown timer for 15 seconds."},
-  {id:'compass',  icon:'🧭',  name:"The Compass",      desc:"Show all candidates for a cell",               multi:false, cost:2,
+  {id:'compass',  name:"The Compass",      desc:"Show all candidates for a cell",               multi:false, cost:2,
    long:"Tap an empty cell to see every number that could legally go there. Works on up to 3 cells per round."},
-  {id:'sonar',    icon:'📡',  name:"Sonar Sweep",      desc:"Highlight cells sharing candidates",           multi:false, cost:2,
+  {id:'sonar',    name:"Sonar Sweep",      desc:"Highlight cells sharing candidates",           multi:false, cost:2,
    long:"Select an empty cell and every other empty cell that could take one of the same numbers lights up."},
-  {id:'gamble',   icon:'🎲',  name:"Pirate's Gamble",  desc:"2× plunder, 3 moves — wrong costs a life",     multi:true,  cost:3,
+  {id:'gamble',   name:"Pirate's Gamble",  desc:"2× plunder, 3 moves — wrong costs a life",     multi:true,  cost:3,
    long:"Your next 3 correct moves earn double plunder. One wrong guess ends it early and costs a life instead of burning the fuse."},
-  {id:'treasure', icon:'💰',  name:"Treasure Chest",   desc:"Instantly gain 1000 plunder",                  multi:true,  cost:3,
-   long:"Instantly adds 1000 plunder to your score."},
-  {id:'cannon',   icon:'💣',  name:"Cannonball",       desc:"Correct guess fills all adjacent empty cells", multi:true,  cost:3,
+  {id:'treasure', name:"Treasure Chest",   desc:"Instantly gain 3000 plunder",                  multi:true,  cost:2,
+   long:"Instantly adds 3000 plunder: worth 3 doubloons in port, and it counts towards unlocking more of yer powers."},
+  {id:'cannon',   name:"Cannonball",       desc:"Correct guess fills all adjacent empty cells", multi:true,  cost:3,
    long:"Your next correct guess also fills every empty cell touching it, +5 plunder each."},
-  {id:'keg',      icon:'🧨',  name:"Powder Keg",       desc:"Marks a cell — solve it to auto-fill easy ones", multi:true, cost:2,
+  {id:'keg',      name:"Powder Keg",       desc:"Marks a cell — solve it to auto-fill easy ones", multi:true, cost:2,
    long:"Mark an empty cell. Solve it correctly and every other cell with only one possible number fills in too, +8 plunder each."},
-  {id:'painter',  icon:'🎨',  name:"Colour Brush",     desc:"Tap a tile — paint every one of its number",   multi:true, cost:1,
+  {id:'painter',  name:"Colour Brush",     desc:"Tap a tile — paint every one of its number",   multi:true, cost:1,
    long:"Tap a correctly filled tile. Every tile with that number gets colored for the rest of the round."},
 ];
+// Boons — bought once, active for the whole run, never need surfacing
+const BOONS=[
+  {id:'tally',     name:"Tally Board",     desc:"Live tracker of completed numbers",        cost:9,
+   long:"A tracker sits in yer hold for the rest of the run. Each number blacks out once all 9 copies are placed correctly."},
+  {id:'lantern',   name:"Ship's Lantern",  desc:"Your last number glows on every tile",     cost:12,
+   long:"After you place a number, every tile showing that same number lights up amber, so ye can see where it can't go."},
+  {id:'luckycharm',name:"Lucky Charm",     desc:"Wrong guesses only burn 4s, not 5",        cost:6,
+   long:"For the rest of the run, a wrong guess only knocks 4 seconds off the fuse instead of 5."},
+  {id:'deadman',   name:"Dead Man's Fuse", desc:"+15s fuse whenever ye lose a crewmate",    cost:10,
+   long:"Whenever a crewmate is lost, the fresh fuse burns 15 seconds longer than usual."},
+];
+// Provisions — one-off supplies from the shop
+const PROVISIONS=[
+  {id:'recruit',   name:"New Recruit",     desc:"Gain one crewmate (max 5)",                cost:4,
+   long:"Press-gang a fresh hand. Restores one lost life, up to the full crew of 5."},
+  {id:'sparefuse', name:"Spare Fuse",      desc:"Start next round with +15s",               cost:1,
+   long:"Splice extra cord onto the fuse. The next round starts with 15 more seconds on it."},
+];
+
+// Line icons (24×24, drawn in currentColor) used for powerups, boons and supplies
+const ICON_PATHS={
+  spyglass:'<path d="M3 15.5 14.5 9l1.8 3.3L4.8 18.8z"/><path d="m15.2 9.4 4-2.3 1.8 3.2-4 2.3"/><path d="M9.5 15.6 7.5 21M10.6 15l3 6"/>',
+  crows:'<path d="M12 21V3"/><path d="m12 3 4.5 1.6L12 6.2"/><path d="M7.5 9h9l-1.2 3.5H8.7z"/><path d="M7 21h10"/>',
+  reckoning:'<circle cx="12" cy="4.5" r="1.6"/><path d="M11.2 6 6 21M12.8 6 18 21M8.4 14h7.2"/>',
+  hourglass:'<path d="M6 3h12M6 21h12"/><path d="M7.5 3c0 5 9 6 9 9s-9 4-9 9M16.5 3c0 5-9 6-9 9s9 4 9 9"/><path d="M10 18.5h4"/>',
+  compass:'<circle cx="12" cy="12" r="9"/><path d="m12 5 2 7-2 7-2-7z"/><path d="M5 12h1.6M17.4 12H19"/>',
+  sonar:'<circle cx="12" cy="13" r="1.2"/><path d="M8.6 9.6a4.8 4.8 0 0 0 0 6.8M15.4 9.6a4.8 4.8 0 0 1 0 6.8M5.6 6.6a9 9 0 0 0 0 12.8M18.4 6.6a9 9 0 0 1 0 12.8"/>',
+  gamble:'<rect x="4" y="4" width="16" height="16" rx="2.5"/><circle cx="8.5" cy="8.5" r=".9" fill="currentColor"/><circle cx="12" cy="12" r=".9" fill="currentColor"/><circle cx="15.5" cy="15.5" r=".9" fill="currentColor"/>',
+  treasure:'<path d="M4 11h16v9H4z"/><path d="M4 11c0-4 3.5-6 8-6s8 2 8 6"/><path d="M4 14h16"/><path d="M10.8 12.6h2.4v3h-2.4z"/>',
+  cannon:'<circle cx="10.5" cy="14" r="6.5"/><path d="m15.2 9.4 2.6-2.6"/><path d="M19.5 3.5v2M21 5h-2M17.6 3.8l1.2 1.2"/>',
+  keg:'<path d="M7.5 3.5h9c1.6 3.3 1.6 13.7 0 17h-9c-1.6-3.3-1.6-13.7 0-17z"/><path d="M6.4 8.5h11.2M6.4 15.5h11.2"/>',
+  painter:'<path d="m14.5 3.5 6 6-7.5 7.5-6-6z"/><path d="M7 11c-2.5 1-3 3.5-3 5.5 0 1.6-.8 2.7-2 3.5 3.8.6 7.5-.4 9-4"/>',
+  tally:'<path d="M6 3h12v18H6z"/><path d="M9 7.5h6M9 11h6M9 14.5h6M9 18h3"/>',
+  lantern:'<path d="M9 3.5h6M12 3.5v2"/><path d="M8.5 7.5h7l-1 11h-5z"/><path d="M8 7.5C8 6 9.5 5.5 12 5.5s4 .5 4 2"/><path d="M8.5 20.5h7"/><path d="M12 11v4"/>',
+  luckycharm:'<path d="M7 4v8a5 5 0 0 0 10 0V4"/><path d="M5 4h4M15 4h4"/><path d="M7 8h.01M17 8h.01M8 13h.01M16 13h.01"/>',
+  deadman:'<path d="M5.5 11a6.5 6.5 0 0 1 13 0v3.5H17V18H7v-3.5H5.5z"/><circle cx="9.3" cy="11" r="1.6"/><circle cx="14.7" cy="11" r="1.6"/><path d="M10.5 18v-2M13.5 18v-2"/>',
+  recruit:'<circle cx="11" cy="8" r="3.5"/><path d="M4 20.5c0-4 3.1-6.5 7-6.5s7 2.5 7 6.5"/><path d="M19 4v5M16.5 6.5h5"/>',
+  sparefuse:'<circle cx="11" cy="12" r="2.5"/><circle cx="11" cy="12" r="6"/><path d="M17 12h4.5"/><path d="M21.5 10v4"/>',
+};
+function iconSvg(id){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON_PATHS[id]||''}</svg>`;}
+POWERUPS.forEach(p=>p.kind='pow');BOONS.forEach(p=>p.kind='boon');PROVISIONS.forEach(p=>p.kind='prov');
+const ALL_DEFS=[...POWERUPS,...BOONS,...PROVISIONS];
+ALL_DEFS.forEach(d=>d.icon=iconSvg(d.id));
+function findDef(id){return ALL_DEFS.find(p=>p.id===id);}
+function has(id){return !!boons[id];}
+// Boons get dearer the more of them ye already hold, so a run can't
+// cheaply stack all of them. Everything else costs its listed price.
+const BOON_MARKUP=3;
+function priceOf(def){
+  if(def.kind!=='boon')return def.cost;
+  return def.cost+BOON_MARKUP*Object.keys(boons).filter(k=>boons[k]).length;
+}
 
 // ═══════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════
+const MILESTONE=1500; // plunder needed per powerup unlock
 const BASE_CLUES=50, MIN_CLUES=22, BASE_FUSE=20, BOSS_PENALTY=5;
+const FUSE_GAIN=15;      // seconds added to the fuse per correct guess
+const FUSE_CAP_MULT=1.5; // the fuse can bank up to 1.5× its starting length
+const DEADMAN_BONUS=15;
+let boons={},bonusFuse=0,livesAtRoundStart=5,shopSold=new Set(),shopBoons=[];
 let sol,puzzle,uBoard,given;
 let lives,plunder,doubloons,round,timeLeft,timerMax;
 let timerInterval,fuseExpires=0,gameOver=false,isBoss=false;
@@ -490,19 +499,19 @@ let selCell=null;
 let frozen=false,freezeTid=null;
 let powPaused=false;
 let gambleOn=false,gambleMoves=0;
-let sonarOn=false,compassOn=false,compassUses=0,trackerOn=false,luckyOn=false,cannonOn=false,streak=0,kegCells=[],kegPlacing=false,painterPicking=false;
+let sonarOn=false,compassOn=false,compassUses=0,cannonOn=false,streak=0,kegCells=[],kegPlacing=false,painterPicking=false;
 let inv={};           // {id: total owned count}
 let surfaced={};      // {id: how many charges currently visible/usable}
 let coloredNums=new Set(); // numbers whose tiles have been painted via the Colour Brush powerup
 let lastMilestone=0;
-let dialCell=null,dialEls=[];
+let dialCell=null;
 
 // ═══════════════════════════════════════
 //  RUN / ROUND INIT
 // ═══════════════════════════════════════
 function startRun(){
   lives=5;plunder=0;doubloons=0;round=0;inv={};surfaced={};coloredNums=new Set();fuseExpires=0;lastMilestone=0;
-  trackerOn=false;luckyOn=false;sonarOn=false;compassOn=false;compassUses=0;cannonOn=false;streak=0;kegCells=[];kegPlacing=false;painterPicking=false;
+  boons={};bonusFuse=0;sonarOn=false;compassOn=false;compassUses=0;cannonOn=false;streak=0;kegCells=[];kegPlacing=false;painterPicking=false;
   inv['crows']=1;inv['keg']=2;
   startRound();
 }
@@ -520,14 +529,17 @@ function startRound(){
   uBoard=puzzle.map(r=>[...r]);given=puzzle.map(r=>r.map(v=>v!==0));
   updateBanner(clues);updateHearts();updateScoreEl();updateStreak();
   renderGrid();renderPanel();
-  if(trackerOn)buildTracker();
+  if(has('tally'))buildTracker();
   document.getElementById('gamble-ind').style.display='none';
-  clearInterval(timerInterval);resetTimer();startTimer();
+  livesAtRoundStart=lives;
+  clearInterval(timerInterval);resetTimer();
+  if(bonusFuse){timeLeft+=bonusFuse;bonusFuse=0;updateTimerUI();}
+  startTimer();
 }
 
 function updateBanner(clues){
   const rt=document.getElementById('round-tag');
-  rt.textContent=isBoss?`⚔ BOSS ROUND ${round} ⚔`:`Round ${round}`;
+  rt.textContent=isBoss?`Boss round ${round}`:`Round ${round}`;
   rt.className='round-tag'+(isBoss?' boss':'');
   document.getElementById('clues-tag').textContent=clues+' clues';
   document.getElementById('fuse-tag').textContent=timerMax+'s fuse';
@@ -548,7 +560,7 @@ function renderGrid(){
     const el=document.createElement('div');
     el.className='cell';el.dataset.r=r;el.dataset.c=c;el.dataset.row=r;el.dataset.col=c;
     applyCell(el,r,c);
-    el.addEventListener('click',onCellClick);
+    el.addEventListener('pointerdown',onCellPress);
     gridEl.appendChild(el);
   }
 }
@@ -576,7 +588,7 @@ function paintNumber(n){
   document.getElementById('grid').classList.remove('painter-picking');
   refreshPanelBtn('painter');
   document.querySelectorAll(`[id^="pwr-painter-"]`).forEach(b=>b.classList.remove('active-effect'));
-  showToast(`🎨 Every ${n} painted!`);
+  showToast(`Every ${n} painted`);
 }
 
 function applyHighlights(){
@@ -592,7 +604,7 @@ function applyHighlights(){
     if(er===r)el.classList.add('hi-row');
     if(ec===c)el.classList.add('hi-col');
     if(Math.floor(er/3)===Math.floor(r/3)&&Math.floor(ec/3)===Math.floor(c/3))el.classList.add('hi-box');
-    if(sv!==0&&uBoard[er][ec]===sv)el.classList.add('same-num');
+    if(sv!==0&&has('lantern')&&uBoard[er][ec]===sv)el.classList.add('same-num');
   });
   if(sonarOn&&sv===0){
     const mine=getCands(r,c);
@@ -608,10 +620,10 @@ function applyHighlights(){
 // ═══════════════════════════════════════
 //  CELL CLICK / DIAL
 // ═══════════════════════════════════════
-function onCellClick(){
-  if(gameOver)return;
+function onCellPress(e){
+  if(gameOver||e.button>0)return;
   const r=+this.dataset.r,c=+this.dataset.c;
-  // Colour Brush picking mode — click a filled tile to paint its number
+  // Colour Brush picking mode — tap a filled tile to paint its number
   if(painterPicking){
     const v=uBoard[r][c];
     if(!given[r][c]&&(v===0||v!==sol[r][c]))return; // must pick a tile showing a correct number
@@ -619,7 +631,7 @@ function onCellClick(){
     return;
   }
   if(given[r][c])return;
-  // Keg placement mode — click places the keg, no dial
+  // Keg placement mode — tap places the keg, no wheel
   if(kegPlacing){
     if(uBoard[r][c]!==0||kegCells.some(k=>k.r===r&&k.c===c))return;
     kegCells.push({r,c});
@@ -627,61 +639,131 @@ function onCellClick(){
     kegPlacing=false;
     document.getElementById('grid').classList.remove('keg-placing');
     refreshPanelBtn('keg');
-    // Remove active-effect from all keg cards
     document.querySelectorAll(`[id^="pwr-keg-"]`).forEach(b=>b.classList.remove('active-effect'));
-    showToast('🧨 Keg placed — solve that cell to detonate!');
+    showToast('Keg placed — solve that cell to detonate');
     return;
   }
   selCell={r,c};applyHighlights();
   if(compassOn&&uBoard[r][c]===0)showCompass(r,c);
   const rect=this.getBoundingClientRect();
   openDial(rect.left+rect.width/2,rect.top+rect.height/2,r,c);
+  dialPress=true; // press-drag-release onto a wedge places straight away
 }
 
+// ═══════════════════════════════════════
+//  SHIP'S WHEEL
+// ═══════════════════════════════════════
+// Drawn once in a 200×200 viewBox centred on 0,0. Nine spokes (one every 40°)
+// poke out past the rim as handles; number tokens sit at radius 80, halfway
+// between neighbouring handles. Each number owns the whole 40° wedge around
+// it, so pointing anywhere in that direction (outside the hub) selects it.
+const WHEEL_DEAD=26;   // hub radius (viewBox units): no selection inside it
+const WHEEL_REACH=125; // past this the pointer is "off the wheel"
+let wheelGeo=null,hotNum=0,dialPress=false,dialOpenedAt=0;
+
+function buildWheel(){
+  const spin=document.getElementById('wheel-spin');
+  const pt=(deg,rad)=>{const a=deg*Math.PI/180;return[(Math.sin(a)*rad).toFixed(2),(-Math.cos(a)*rad).toFixed(2)];};
+  const[ix,iy]=pt(0,WHEEL_DEAD),[ox,oy]=pt(0,97),[ox2,oy2]=pt(40,97),[ix2,iy2]=pt(40,WHEEL_DEAD);
+  let s=`<svg class="wheel-svg" viewBox="-100 -100 200 200" aria-hidden="true">
+  <defs>
+    <linearGradient id="wg-wood" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#3a2410"/><stop offset=".42" stop-color="#8a5f37"/><stop offset=".6" stop-color="#6b4626"/><stop offset="1" stop-color="#3a2410"/>
+    </linearGradient>
+    <radialGradient id="wg-hub" cx=".38" cy=".34" r=".8">
+      <stop offset="0" stop-color="#cfae66"/><stop offset=".55" stop-color="#8f6a22"/><stop offset="1" stop-color="#4a3614"/>
+    </radialGradient>
+  </defs>
+  <path id="wedge-hl" style="display:none" fill="rgba(43,72,112,.22)"
+    d="M${ix} ${iy}L${ox} ${oy}A97 97 0 0 1 ${ox2} ${oy2}L${ix2} ${iy2}A${WHEEL_DEAD} ${WHEEL_DEAD} 0 0 0 ${ix} ${iy}Z"/>`;
+  for(let k=0;k<9;k++){
+    s+=`<g transform="rotate(${k*40})">
+      <rect x="-3" y="-56" width="6" height="32" fill="url(#wg-wood)"/>
+      <ellipse cx="0" cy="-38" rx="4.4" ry="7.5" fill="url(#wg-wood)"/>
+      <rect x="-4.6" y="-47.5" width="9.2" height="2.2" rx="1" fill="#2a1808"/>
+      <rect x="-4.6" y="-30" width="9.2" height="2.2" rx="1" fill="#2a1808"/>
+      <rect x="-5.2" y="-69" width="10.4" height="7.5" rx="1.5" fill="url(#wg-wood)" stroke="#1a0f05" stroke-width=".8"/>
+      <path d="M-3.1 -69 L-2.2 -76.5 L2.2 -76.5 L3.1 -69 Z" fill="url(#wg-wood)"/>
+      <ellipse cx="0" cy="-86.5" rx="5.6" ry="10.5" fill="url(#wg-wood)" stroke="#1a0f05" stroke-width=".7"/>
+      <rect x="-3.6" y="-99" width="7.2" height="3.4" rx="1.7" fill="#3a2410" stroke="#1a0f05" stroke-width=".6"/>
+    </g>`;
+  }
+  s+=`<circle r="55" fill="none" stroke="#1a0f05" stroke-width="12.4"/>
+  <circle r="55" fill="none" stroke="#6b4626" stroke-width="10.6"/>
+  <circle r="58.4" fill="none" stroke="#8a5f37" stroke-width="1.4" opacity=".75"/>
+  <circle r="51.8" fill="none" stroke="#3a2410" stroke-width="1.2"/>
+  <circle r="55" fill="none" stroke="#9c8a62" stroke-width="1.7" opacity=".6"/>`;
+  for(let k=0;k<9;k++)s+=`<rect transform="rotate(${k*40})" x="-4.6" y="-61" width="9.2" height="12" rx="1.2" fill="url(#wg-wood)" stroke="#1a0f05" stroke-width=".7"/>`;
+  for(let k=0;k<18;k++){const[x,y]=pt(k*20,55);s+=`<circle cx="${x}" cy="${y}" r="1.6" fill="#b8954a" stroke="#3a2a10" stroke-width=".5"/>`;}
+  // brass hub ring, open in the middle so the cell being filled stays visible
+  s+=`<circle r="21" fill="none" stroke="#2a1a08" stroke-width="7.6"/>
+  <circle r="21" fill="none" stroke="url(#wg-hub)" stroke-width="6"/>`;
+  for(let k=0;k<9;k++){const[x,y]=pt(k*40+20,21);s+=`<circle cx="${x}" cy="${y}" r="1" fill="#e2c88a" stroke="#3a2a10" stroke-width=".4"/>`;}
+  s+=`</svg>`;
+  spin.innerHTML=s;
+  for(let i=0;i<9;i++){
+    const n=i+1,a=(20+i*40)*Math.PI/180;
+    const b=document.createElement('button');
+    b.type='button';b.className='dial-num';b.textContent=n;b.setAttribute('aria-label','Place '+n);
+    b.style.left=(50+Math.sin(a)*40)+'%';b.style.top=(50-Math.cos(a)*40)+'%';
+    b.addEventListener('click',e=>{e.stopPropagation();place(n);});
+    spin.appendChild(b);
+  }
+  const ov=document.getElementById('dial-overlay');
+  ov.addEventListener('click',e=>{
+    if(!dialCell)return;
+    const n=wedgeAt(e.clientX,e.clientY);
+    if(n)place(n);
+    else if(performance.now()-dialOpenedAt>300)closeDial(); // ignore the tap that opened it
+  });
+  document.addEventListener('pointermove',e=>{if(dialCell)setHot(wedgeAt(e.clientX,e.clientY));});
+  document.addEventListener('pointerup',e=>{
+    if(!dialPress)return;dialPress=false;
+    if(!dialCell)return;
+    const n=wedgeAt(e.clientX,e.clientY);
+    if(n)place(n);
+  });
+  document.addEventListener('pointercancel',()=>{dialPress=false;});
+}
+function wedgeAt(px,py){
+  if(!wheelGeo)return 0;
+  const u=200/wheelGeo.D,dx=(px-wheelGeo.x)*u,dy=(py-wheelGeo.y)*u,d=Math.hypot(dx,dy);
+  if(d<WHEEL_DEAD||d>WHEEL_REACH)return 0;
+  let a=Math.atan2(dx,-dy)*180/Math.PI;if(a<0)a+=360;
+  return Math.min(9,Math.floor(a/40)+1);
+}
+function setHot(n){
+  if(n===hotNum)return;hotNum=n;
+  document.querySelectorAll('.dial-num').forEach((b,i)=>b.classList.toggle('hot',i+1===n));
+  const w=document.getElementById('wedge-hl');
+  if(w){w.style.display=n?'':'none';if(n)w.setAttribute('transform',`rotate(${(n-1)*40})`);}
+  // ghost the number into the cell so ye can judge it against the grid
+  if(!dialCell)return;
+  const el=getCell(dialCell.r,dialCell.c);if(!el)return;
+  el.querySelectorAll('.cell-preview').forEach(x=>x.remove());
+  el.classList.toggle('previewing',!!n);
+  if(n){const p=document.createElement('span');p.className='cell-preview';p.textContent=n;el.appendChild(p);}
+}
 function openDial(cx,cy,r,c){
   closeDial();dialCell={r,c};
-  // document.documentElement.clientWidth/Height reflects the actual visible
-  // viewport more reliably than window.innerWidth/innerHeight, which on some
-  // mobile browsers can report a wider "layout" size than what's on screen —
-  // causing the ring to be clamped against room that doesn't really exist.
+  // clientWidth/Height track the visible viewport more reliably on mobile
   const vw=document.documentElement.clientWidth||window.innerWidth;
   const vh=document.documentElement.clientHeight||window.innerHeight;
-  const minDim=Math.min(vw,vh);
-  // Button size scales with viewport but stays within a legible/tappable range.
-  const BTN=Math.max(28,Math.min(40,minDim*.09));
-  // Radius derived FROM the button size (with a little breathing room) so the
-  // 9 buttons around the ring can never overlap, no matter how small the screen is.
-  const RAD=(BTN*1.08)/(2*Math.sin(Math.PI/9));
-  const BGS=RAD*2+BTN*1.3,CCS=Math.max(30,RAD*.6);
-  let ax=cx,ay=cy;
-  if(ax-BGS/2<10)ax=BGS/2+10;if(ax+BGS/2>vw-10)ax=vw-BGS/2-10;
-  if(ay-BGS/2<10)ay=BGS/2+10;if(ay+BGS/2>vh-10)ay=vh-BGS/2-10;
-  const db=document.getElementById('dial-bg'),dc=document.getElementById('dial-cancel');
-  db.style.cssText=`display:block;width:${BGS}px;height:${BGS}px;left:${ax}px;top:${ay}px;`;
-  dc.style.cssText=`display:flex;width:${CCS}px;height:${CCS}px;left:${ax}px;top:${ay}px;`;
-  const ov=document.getElementById('dial-overlay');ov.classList.add('active');
-  for(let i=0;i<9;i++){
-    const n=i+1,ang=(i/9)*Math.PI*2-Math.PI/2;
-    const el=document.createElement('div');el.className='dial-num';el.textContent=n;
-    el.style.width=el.style.height=BTN+'px';el.style.fontSize=(BTN*.45)+'px';
-    el.style.left=(ax+Math.cos(ang)*RAD)+'px';el.style.top=(ay+Math.sin(ang)*RAD)+'px';
-    el.style.background=NUM_COLORS[n].bg;el.style.borderColor=NUM_COLORS[n].b;
-    el.addEventListener('click',e=>{e.stopPropagation();place(n);});
-    ov.appendChild(el);dialEls.push(el);
-  }
-  dialEls.forEach((el,i)=>{
-    el.style.opacity='0';el.style.transform='translate(-50%,-50%) scale(.4)';
-    setTimeout(()=>{el.style.transition=`opacity .15s ${i*.02}s,transform .18s ${i*.02}s cubic-bezier(.34,1.56,.64,1)`;
-      el.style.opacity='1';el.style.transform='translate(-50%,-50%) scale(1)';},10);
-  });
-  setTimeout(()=>{ov.onclick=e=>{if(e.target===ov||e.target===db||e.target===dc)closeDial();};},50);
+  const D=Math.round(Math.max(232,Math.min(330,Math.min(vw,vh)-16)));
+  const half=D/2+6;
+  const ax=Math.min(Math.max(cx,half),vw-half),ay=Math.min(Math.max(cy,half),vh-half);
+  wheelGeo={x:ax,y:ay,D};dialOpenedAt=performance.now();
+  const wheel=document.getElementById('wheel'),spin=document.getElementById('wheel-spin');
+  wheel.style.cssText=`width:${D}px;height:${D}px;left:${ax}px;top:${ay}px;font-size:${(D*.072).toFixed(1)}px;`;
+  wheel.classList.add('open');
+  spin.style.animation='none';void spin.offsetWidth;spin.style.animation=''; // replay spin-in
+  document.getElementById('dial-overlay').classList.add('active');
 }
 function closeDial(){
-  dialEls.forEach(el=>el.remove());dialEls=[];
-  document.getElementById('dial-bg').style.display='none';
-  document.getElementById('dial-cancel').style.display='none';
+  setHot(0);
+  document.getElementById('wheel').classList.remove('open');
   document.getElementById('dial-overlay').classList.remove('active');
-  dialCell=null;
+  dialCell=null;wheelGeo=null;
 }
 
 // ═══════════════════════════════════════
@@ -696,12 +778,12 @@ function place(n,cell){
   uBoard[r][c]=n;refreshCell(r,c);applyHighlights();
   if(ok){
     streak++;
-    let bonus=10+Math.ceil(timeLeft/timerMax*100);
+    let bonus=10+Math.ceil(Math.min(timeLeft,timerMax)/timerMax*100);
     bonus=Math.round(bonus*streakMult());
     if(gambleOn){bonus*=2;gambleMoves--;document.getElementById('gamble-left').textContent=gambleMoves;
       if(gambleMoves<=0){gambleOn=false;document.getElementById('gamble-ind').style.display='none';refreshPanelBtn('gamble');}}
-    plunder+=bonus;updateScoreEl();updateStreak();checkMilestone();
-    if(trackerOn)updateTracker();
+    plunder+=bonus;floatPts(r,c,bonus);updateScoreEl();updateStreak();checkMilestone();
+    if(has('tally'))updateTracker();
     // Cannonball — fill all adjacent empty cells
     if(cannonOn){
       const dirs=[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
@@ -712,15 +794,15 @@ function place(n,cell){
         if(given[nr][nc]||uBoard[nr][nc]!==0)return;
         uBoard[nr][nc]=sol[nr][nc];
         refreshCell(nr,nc);
-        plunder+=5;blasted++;
+        plunder+=5;floatPts(nr,nc,5);blasted++;
         detonateKegAt(nr,nc);
       });
-      if(blasted>0){updateScoreEl();checkMilestone();if(trackerOn)updateTracker();}
+      if(blasted>0){updateScoreEl();checkMilestone();if(has('tally'))updateTracker();}
       // One-shot per activation — deactivate after use
       cannonOn=false;consumeCharge('cannon');refreshPanelBtn('cannon');
       document.querySelectorAll(`[id^="pwr-cannon-"]`).forEach(b=>b.classList.remove('active-effect'));
     }
-    resetTimer();
+    addFuse(FUSE_GAIN);
     // Powder Keg detonation — cascades through any newly-revealed kegs too
     if(detonateKegAt(r,c)){
       if(checkWin()){clearInterval(timerInterval);setTimeout(showShop,400);return;}
@@ -730,14 +812,14 @@ function place(n,cell){
     streak=0;updateStreak();
     if(gambleOn){
       gambleOn=false;gambleMoves=0;document.getElementById('gamble-ind').style.display='none';refreshPanelBtn('gamble');
-      lives--;updateHearts();shakeHeart(lives);resetTimer();
-      showToast('🎲 Gamble busted — crew lost!',1600);
+      showToast('Gamble busted — crew lost',1600);
+      loseLife();
       if(lives<=0)setTimeout(showOver,300);
     }
     else{
-      const penalty=luckyOn?4:5;
+      const penalty=has('luckycharm')?4:5;
       timeLeft=Math.max(0,timeLeft-penalty);updateTimerUI();
-      showToast(`💥 Wrong! -${penalty}s fuse`,1200);
+      showToast(`Wrong: −${penalty}s fuse`,1200);
     }
   }
 }
@@ -748,20 +830,34 @@ function checkWin(){for(let r=0;r<9;r++)for(let c=0;c<9;c++)if(uBoard[r][c]!==so
 // ═══════════════════════════════════════
 const timerDisp=document.getElementById('timer-display'),timerBarEl=document.getElementById('timer-bar');
 function resetTimer(){timeLeft=timerMax;updateTimerUI();}
+function fuseCap(){return Math.round(timerMax*FUSE_CAP_MULT);}
+// Correct guesses add time rather than resetting, so quick play banks fuse.
+// Gains stop at the cap (but never pull a bonus-boosted fuse back down).
+function addFuse(sec){
+  const cap=fuseCap();
+  if(timeLeft<cap)timeLeft=Math.min(cap,timeLeft+sec);
+  updateTimerUI();
+}
+function loseLife(){
+  lives--;updateHearts();shakeHeart(lives);
+  timeLeft=timerMax;
+  if(has('deadman')&&lives>0){timeLeft+=DEADMAN_BONUS;showToast(`Dead Man's Fuse — +${DEADMAN_BONUS}s`);}
+  updateTimerUI();
+}
 function startTimer(){
   clearInterval(timerInterval);
   timerInterval=setInterval(()=>{
     if(gameOver||frozen||powPaused)return;
     timeLeft=Math.max(0,timeLeft-.1);updateTimerUI();
-    if(timeLeft<=0){fuseExpires++;lives--;updateHearts();shakeHeart(lives);
-      streak=0;updateStreak();
-      if(lives<=0)showOver();else resetTimer();}
+    if(timeLeft<=0){fuseExpires++;streak=0;updateStreak();
+      loseLife();
+      if(lives<=0)showOver();}
   },100);
 }
 function updateTimerUI(){
-  const pct=timeLeft/timerMax;
+  const pct=timeLeft/timerMax; // warning colours are relative to the base fuse
   timerDisp.textContent=Math.ceil(timeLeft).toString().padStart(2,'0');
-  timerBarEl.style.width=(pct*100)+'%';
+  timerBarEl.style.width=(Math.min(1,timeLeft/fuseCap())*100)+'%';
   timerDisp.className='timer-display';
   timerBarEl.classList.remove('fuse-warn','fuse-crit','frozen');
   if(frozen){timerBarEl.classList.add('frozen');return;}
@@ -772,10 +868,34 @@ function updateTimerUI(){
 // ═══════════════════════════════════════
 //  HEARTS & SCORE
 // ═══════════════════════════════════════
-function updateHearts(){['h1','h2','h3','h4','h5'].forEach((id,i)=>document.getElementById(id).classList.toggle('lost',i>=lives));}
+const SKULL=iconSvg('deadman');
+function updateHearts(){['h1','h2','h3','h4','h5'].forEach(id=>{const h=document.getElementById(id);if(!h.firstChild)h.innerHTML=SKULL;});['h1','h2','h3','h4','h5'].forEach((id,i)=>document.getElementById(id).classList.toggle('lost',i>=lives));}
 function shakeHeart(rem){const ids=['h5','h4','h3','h2','h1'];const el=document.getElementById(ids[rem]);if(!el)return;el.classList.remove('shake');requestAnimationFrame(()=>el.classList.add('shake'));}
+// Score counts up to its new value instead of jumping
+let shownScore=0,scoreRaf=null;
 function updateScoreEl(){
-  document.getElementById('score-display').textContent=String(plunder).padStart(4,'0');
+  const el=document.getElementById('score-display');
+  const from=shownScore,to=plunder;
+  cancelAnimationFrame(scoreRaf);
+  if(to<=from){shownScore=to;el.textContent=String(to).padStart(4,'0');return;}
+  el.classList.remove('score-pop');void el.offsetWidth;el.classList.add('score-pop');
+  const t0=performance.now(),dur=Math.min(700,250+(to-from)*2);
+  const step=now=>{
+    const k=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-k,3);
+    shownScore=Math.round(from+(to-from)*e);
+    el.textContent=String(shownScore).padStart(4,'0');
+    if(k<1)scoreRaf=requestAnimationFrame(step);
+  };
+  scoreRaf=requestAnimationFrame(step);
+}
+// "+N" that floats up off a cell when it earns plunder
+function floatPts(r,c,amt){
+  const el=getCell(r,c);if(!el)return;
+  const rc=el.getBoundingClientRect();
+  const f=document.createElement('div');
+  f.className='float-pts'+(amt>=200?' big':'');f.textContent='+'+amt;
+  f.style.left=(rc.left+rc.width/2)+'px';f.style.top=(rc.top+rc.height/2)+'px';
+  document.body.appendChild(f);setTimeout(()=>f.remove(),950);
 }
 function updateStreak(){
   const sd=document.getElementById('streak-display');
@@ -785,9 +905,9 @@ function updateStreak(){
   if(streak<2){sd.style.display='none';return;}
   const tier=Math.min(streak,5);
   const mult=streakMult();
-  const labels={2:'🔥 ×2',3:'🔥🔥 ×3',4:'💥 ×4',5:'⚡ ×5 MAX'};
+
   sd.style.display='block';
-  sd.textContent=`${labels[tier]||'⚡ ×5 MAX'} streak`;
+  sd.textContent=`Streak ×${tier}${tier>=5?' (max)':''}`;
   sd.className=`streak-display streak-x${tier}`;
   g.classList.add(`streak-${tier}`);
 }
@@ -797,10 +917,10 @@ function streakMult(){return Math.min(streak,5);}
 //  MILESTONE — surface a random owned powerup
 // ═══════════════════════════════════════
 function checkMilestone(){
-  const thr=Math.floor(plunder/500)*500;
+  const thr=Math.floor(plunder/MILESTONE)*MILESTONE;
   if(thr>lastMilestone){
-    // Surface one powerup per 500-plunder threshold crossed
-    let t=lastMilestone+500;
+    // Surface one powerup per MILESTONE of plunder crossed
+    let t=lastMilestone+MILESTONE;
     while(t<=thr){
       const available=Object.keys(inv).filter(id=>inv[id]>0&&(surfaced[id]||0)<inv[id]);
       if(available.length){
@@ -808,7 +928,7 @@ function checkMilestone(){
         surfaced[id]=(surfaced[id]||0)+1;
         surfaceBtn(id);
       }
-      t+=500;
+      t+=MILESTONE;
     }
     lastMilestone=thr;
   }
@@ -823,10 +943,9 @@ function surfaceBtn(id){
   addQuickUse(btn,id);
   btn.classList.add('visible');
   document.getElementById('powerup-panel').classList.add('has-power');
-  btn.style.boxShadow='0 0 20px rgba(200,146,42,.9)';
-  setTimeout(()=>{btn.style.boxShadow='';},900);
+  btn.classList.remove('just-surfaced');void btn.offsetWidth;btn.classList.add('just-surfaced');
   const def=POWERUPS.find(p=>p.id===id);
-  if(def)showToast(`${def.icon} ${def.name} unlocked!`);
+  if(def)showToast(`${def.name} unlocked`);
 }
 // ═══════════════════════════════════════
 //  PANEL RENDER
@@ -845,23 +964,27 @@ function renderPanel(){
   const panel=document.getElementById('powerup-panel');
   panel.querySelectorAll('.powerup-btn').forEach(b=>b.remove());
   panel.classList.remove('has-power');
+  // Boons first — always on, nothing to unlock
+  BOONS.forEach(def=>{
+    if(!has(def.id))return;
+    const btn=document.createElement('button');
+    btn.className='powerup-btn visible boon-card';btn.id='boon-'+def.id;
+    btn.innerHTML=`<span class="powerup-icon">${def.icon}</span><span class="powerup-name">${def.name}</span><span class="boon-tag">BOON</span>`;
+    if(def.id==='tally'){const tg=document.createElement('div');tg.className='tracker-grid';tg.id='tracker-grid';btn.appendChild(tg);}
+    btn.addEventListener('click',e=>openPowDetail(def.id,'game',e.currentTarget));
+    panel.appendChild(btn);panel.classList.add('has-power');
+  });
   POWERUPS.forEach(def=>{
-    const isPermanent=(def.id==='tally'&&trackerOn)||(def.id==='luckycharm'&&luckyOn);
-    const owned=Math.max(inv[def.id]||0,isPermanent?1:0);
-    const surf=Math.max(surfaced[def.id]||0,isPermanent?1:0);
+    const owned=inv[def.id]||0,surf=surfaced[def.id]||0;
     for(let i=0;i<owned;i++){
       const locked=i>=surf;
       const btn=document.createElement('button');
       btn.className='powerup-btn visible'+(locked?' locked':'');
       btn.id=makeCardId(def.id,i);
-      btn.innerHTML=`<span class="powerup-icon">${def.icon}</span><span class="powerup-name">${def.name}</span>${locked?'<span class="pow-lock">🔒</span>':''}`;
-      if(def.id==='tally'&&i===0){const tg=document.createElement('div');tg.className='tracker-grid';tg.id='tracker-grid';btn.appendChild(tg);}
+      btn.innerHTML=`<span class="powerup-icon">${def.icon}</span><span class="powerup-name">${def.name}</span>${locked?'<span class="pow-lock">Locked</span>':''}`;
       btn.addEventListener('click',e=>openPowDetail(def.id,'game',e.currentTarget));
-      if(!locked&&!isPermanent)addQuickUse(btn,def.id);
+      if(!locked)addQuickUse(btn,def.id);
       panel.appendChild(btn);
-      if(isPermanent&&i===0){
-        btn.classList.remove('locked');btn.classList.add('active-effect');
-      }
     }
     if(owned>0) panel.classList.add('has-power');
   });
@@ -906,8 +1029,6 @@ function isPowActive(id){
     case 'painter':return painterPicking;
     case 'hourglass':return frozen;
     case 'gamble':return gambleOn;
-    case 'tally':return trackerOn;
-    case 'luckycharm':return luckyOn;
     default:return false;
   }
 }
@@ -936,31 +1057,34 @@ function positionPowCard(anchorEl){
   card.style.cssText=`left:${left}px;top:${top}px;`;
 }
 function openPowDetail(id,context,anchorEl){
-  const def=POWERUPS.find(p=>p.id===id);if(!def)return;
+  const def=findDef(id);if(!def)return;
   pdCtx={id,context};
   if(context==='game'){powPaused=true;document.getElementById('grid-cover').classList.add('visible');}
-  document.getElementById('pd-icon').textContent=def.icon;
+  document.getElementById('pd-icon').innerHTML=def.icon;
   document.getElementById('pd-name').textContent=def.name;
   document.getElementById('pd-long').textContent=def.long||def.desc;
   const meta=document.getElementById('pd-meta');
   const act=document.getElementById('pd-action');
   act.disabled=false;act.className='btn-primary';
   if(context==='shop'){
-    const isOwned=!!inv[id];
-    meta.textContent=`Cost: 🪙 ${def.cost}`+(isOwned?`  ·  Owned ×${inv[id]}`:'');
-    act.textContent=`🪙 BUY — ${def.cost} DOUBLOON${def.cost!==1?'S':''}`;
-    if(isOwned&&!def.multi){act.textContent='ALREADY OWNED';act.disabled=true;}
-    else if(doubloons<def.cost){act.disabled=true;act.classList.add('btn-buy-cant');}
+    const block=shopBlockReason(def);
+    const price=priceOf(def);
+    let m=`Cost: ${price} doubloon${price!==1?'s':''}`;
+    if(def.kind==='boon')m+=`  ·  Lasts the whole run. Each boon ye own adds ${BOON_MARKUP} to the price of the rest.`;
+    else if(def.kind==='pow'&&inv[id])m+=`  ·  Owned ×${inv[id]}`;
+    meta.textContent=m;
+    act.textContent=`Buy for ${price}`;
+    if(block){act.textContent=block;act.disabled=true;}
+    else if(doubloons<price){act.disabled=true;act.classList.add('btn-buy-cant');}
   } else {
     const surf=surfaced[id]||0;
-    if(id==='tally'&&trackerOn){meta.textContent='Active for the rest of the run';act.textContent='ACTIVE';act.disabled=true;}
-    else if(id==='luckycharm'&&luckyOn){meta.textContent='Active for the rest of the run';act.textContent='ACTIVE';act.disabled=true;}
+    if(def.kind==='boon'){meta.textContent='Boon: active for the rest of the run';act.textContent='ACTIVE';act.disabled=true;}
     else if(id==='compass'&&compassUses>=3){meta.textContent='The needle has spun out for this round';act.textContent='EXHAUSTED';act.disabled=true;}
     else if(TOGGLEABLE.includes(id)&&isPowActive(id)){meta.textContent='Currently active';act.textContent='DEACTIVATE';}
     else if(CANCELABLE.includes(id)&&isPowActive(id)){meta.textContent='Awaiting yer tap on the grid';act.textContent='CANCEL';}
     else if(isPowActive(id)){meta.textContent='Effect already active';act.textContent='ACTIVE';act.disabled=true;}
-    else if(surf>0){meta.textContent='';act.textContent='⚡ USE';}
-    else{meta.textContent='Earn plunder to unlock';act.textContent='🔒 LOCKED';act.disabled=true;}
+    else if(surf>0){meta.textContent='';act.textContent='Use';}
+    else{meta.textContent='Earn plunder to unlock';act.textContent='Locked';act.disabled=true;}
   }
   positionPowCard(anchorEl);
 }
@@ -977,15 +1101,20 @@ document.getElementById('pd-close').addEventListener('click',closePowDetail);
 document.getElementById('pd-action').addEventListener('click',()=>{
   if(!pdCtx)return;
   const{id,context}=pdCtx;
-  const def=POWERUPS.find(p=>p.id===id);
+  const def=findDef(id);
   if(context==='shop'){
-    if(doubloons>=def.cost){
-      doubloons-=def.cost;
-      inv[id]=(inv[id]||0)+1;
-      updateScoreEl();
+    const price=priceOf(def);
+    if(doubloons>=price&&!shopBlockReason(def)){
+      doubloons-=price;
+      shopSold.add(id);
+      let msg=`${def.name} added to yer hold`;
+      if(def.kind==='boon'){boons[id]=true;msg=`${def.name} is yours for the voyage`;}
+      else if(id==='recruit'){lives=Math.min(5,lives+1);updateHearts();msg='A fresh hand joins the crew!';}
+      else if(id==='sparefuse'){bonusFuse+=FUSE_GAIN;msg=`Next round starts with +${FUSE_GAIN}s fuse`;}
+      else inv[id]=(inv[id]||0)+1;
       closePowDetail();
       updateShopInfo();renderShopGrid();
-      showToast(`${def.icon} ${def.name} added to yer hold!`);
+      showToast(msg);
     }
     return;
   }
@@ -998,12 +1127,12 @@ function cancelPlacement(id){
   if(id==='keg'&&kegPlacing){
     kegPlacing=false;gridEl.classList.remove('keg-placing');
     inv['keg']++;surfaced['keg']=(surfaced['keg']||0)+1;
-    showToast('🧨 Keg stowed away');
+    showToast('Keg stowed away');
   }
   if(id==='painter'&&painterPicking){
     painterPicking=false;gridEl.classList.remove('painter-picking');
     inv['painter']++;surfaced['painter']=(surfaced['painter']||0)+1;
-    showToast('🎨 Brush stowed away');
+    showToast('Brush stowed away');
   }
   document.querySelectorAll(`[id^="pwr-${id}-"]`).forEach(b=>b.classList.remove('active-effect'));
 }
@@ -1026,10 +1155,10 @@ function fillNakedSingles(){
       if(autoKegIdx!==-1){kegCells.splice(autoKegIdx,1);hitKeg=true;}
       refreshCell(rr,cc);
       const aEl=getCell(rr,cc);if(aEl)aEl.classList.remove('keg-cell');
-      plunder+=8;blasted++;
+      plunder+=8;floatPts(rr,cc,8);blasted++;
     }
   }
-  if(blasted>0){updateScoreEl();checkMilestone();if(trackerOn)updateTracker();}
+  if(blasted>0){updateScoreEl();checkMilestone();if(has('tally'))updateTracker();}
   return hitKeg;
 }
 // Detonates the keg at (r,c), if any. A sweep only fills the naked singles
@@ -1056,36 +1185,20 @@ function activatePow(id){
 
     case 'spyglass':{
       const pairs=findPairs();consumeCharge(id);refreshPanelBtn(id);
-      if(!pairs.length){showToast('👁 No hidden pairs to be found!');return;}
+      if(!pairs.length){showToast('No hidden pairs to be found');return;}
       pairs.forEach(({cells,nums})=>cells.forEach(([r,c])=>{
         const el=getCell(r,c);if(!el)return;
         el.classList.add('pair-hl');
         const lbl=document.createElement('div');lbl.className='pair-hint-label';lbl.textContent=nums.join('·');el.appendChild(lbl);
       }));
-      showToast(`👁 ${pairs.length} hidden pair${pairs.length!==1?'s':''} revealed!`);
-      break;}
-
-    case 'tally':{
-      if(trackerOn)return;
-      trackerOn=true;consumeCharge(id);
-      if(btn){btn.classList.add('active-effect');btn.style.cursor='default';}
-      buildTracker();updateTracker();
-      document.getElementById('powerup-panel').classList.add('has-power');
-      break;}
-
-    case 'luckycharm':{
-      if(luckyOn)return;
-      luckyOn=true;consumeCharge(id);
-      if(btn){btn.classList.add('active-effect');btn.style.cursor='default';}
-      document.getElementById('powerup-panel').classList.add('has-power');
-      showToast('🍀 Lucky Charm equipped — wrong guesses only burn 4s now!');
+      showToast(`${pairs.length} hidden pair${pairs.length!==1?'s':''} revealed`);
       break;}
 
     case 'crows':{
       consumeCharge(id);refreshPanelBtn(id);
       const singles=findSingles();
       singles.forEach(([r,c])=>{const el=getCell(r,c);if(el)el.classList.add('naked-hint');});
-      showToast(singles.length?`🔭 ${singles.length} easy cell${singles.length!==1?'s':''} spotted!`:'🔭 No easy cells in sight!');
+      showToast(singles.length?`${singles.length} easy cell${singles.length!==1?'s':''} spotted!`:'No easy cells in sight');
       break;}
 
     case 'reckoning':{
@@ -1094,8 +1207,8 @@ function activatePow(id){
       if(!empty.length)return;
       const[r,c]=empty[0|Math.random()*empty.length];
       uBoard[r][c]=sol[r][c];refreshCell(r,c);
-      plunder+=10;updateScoreEl();checkMilestone();
-      if(trackerOn)updateTracker();
+      plunder+=10;floatPts(r,c,10);updateScoreEl();checkMilestone();
+      if(has('tally'))updateTracker();
       detonateKegAt(r,c);
       if(checkWin()){clearInterval(timerInterval);setTimeout(showShop,400);}
       break;}
@@ -1105,24 +1218,24 @@ function activatePow(id){
       clearTimeout(freezeTid);
       freezeTid=setTimeout(()=>{frozen=false;updateTimerUI();},15000);
       if(btn)btn.classList.add('active-effect');
-      showToast('⌛ Fuse frozen for 15 seconds!');
+      showToast('Fuse frozen for 15 seconds');
       break;}
 
     case 'compass':{
-      if(compassOn){compassOn=false;if(btn)btn.classList.remove('active-effect');showToast('🧭 Compass stowed');return;}
+      if(compassOn){compassOn=false;if(btn)btn.classList.remove('active-effect');showToast('Compass stowed');return;}
       if(compassUses>=3)return;
       consumeCharge(id);compassOn=true;
       if(btn)btn.classList.add('active-effect');
-      showToast(`🧭 Compass out — tap an empty cell (${3-compassUses} left)`);
+      showToast(`Compass out — tap an empty cell (${3-compassUses} left)`);
       if(selCell&&uBoard[selCell.r][selCell.c]===0)showCompass(selCell.r,selCell.c);
       break;}
 
     case 'sonar':{
-      if(sonarOn){sonarOn=false;if(btn)btn.classList.remove('active-effect');applyHighlights();showToast('📡 Sonar off');return;}
+      if(sonarOn){sonarOn=false;if(btn)btn.classList.remove('active-effect');applyHighlights();showToast('Sonar off');return;}
       consumeCharge(id);sonarOn=true;
       if(btn)btn.classList.add('active-effect');
       applyHighlights();
-      showToast('📡 Sonar sweep active — select a cell to ping');
+      showToast('Sonar sweep active — select a cell to ping');
       break;}
 
     case 'gamble':{
@@ -1130,19 +1243,19 @@ function activatePow(id){
       document.getElementById('gamble-left').textContent=3;
       document.getElementById('gamble-ind').style.display='block';
       if(btn)btn.classList.add('active-effect');
-      showToast('🎲 Gamble on — 2× plunder for 3 moves!');
+      showToast('Gamble on — 2× plunder for 3 moves');
       break;}
 
     case 'treasure':{
-      consumeCharge(id);refreshPanelBtn(id);plunder+=1000;updateScoreEl();checkMilestone();
-      showToast('💰 +1000 plunder!');
+      consumeCharge(id);refreshPanelBtn(id);plunder+=3000;updateScoreEl();checkMilestone();
+      showToast('+3000 plunder');
       break;}
 
     case 'cannon':{
-      if(cannonOn){cannonOn=false;if(btn)btn.classList.remove('active-effect');showToast('💣 Cannon disarmed');return;}
+      if(cannonOn){cannonOn=false;if(btn)btn.classList.remove('active-effect');showToast('Cannon disarmed');return;}
       consumeCharge(id);cannonOn=true;
       if(btn)btn.classList.add('active-effect');
-      showToast('💣 Cannon armed — next correct guess blasts its neighbours');
+      showToast('Cannon armed — next correct guess blasts its neighbours');
       break;}
 
     case 'keg':{
@@ -1151,7 +1264,7 @@ function activatePow(id){
       kegPlacing=true;
       document.getElementById('grid').classList.add('keg-placing');
       if(btn)btn.classList.add('active-effect');
-      showToast('🧨 Tap an empty cell to place the keg');
+      showToast('Tap an empty cell to place the keg');
       break;}
 
     case 'painter':{
@@ -1160,7 +1273,7 @@ function activatePow(id){
       painterPicking=true;
       document.getElementById('grid').classList.add('painter-picking');
       if(btn)btn.classList.add('active-effect');
-      showToast('🎨 Tap a correct tile to paint its number');
+      showToast('Tap a correct tile to paint its number');
       break;}
   }
 }
@@ -1179,9 +1292,9 @@ function showCompass(r,c){
   if(remaining<=0){
     compassOn=false;
     if(btn){btn.classList.remove('active-effect');btn.classList.add('locked');const q=btn.querySelector('.pow-quick');if(q)q.remove();}
-    showToast('🧭 The compass needle has spun out');
+    showToast('The compass needle has spun out');
   } else {
-    showToast(`🧭 ${remaining} compass reading${remaining!==1?'s':''} left`);
+    showToast(`${remaining} compass reading${remaining!==1?'s':''} left`);
   }
 }
 function findSingles(){const res=[];for(let r=0;r<9;r++)for(let c=0;c<9;c++){if(uBoard[r][c]!==0)continue;if(getCands(r,c).size===1)res.push([r,c]);}return res;}
@@ -1215,10 +1328,17 @@ function updateTracker(){for(let n=1;n<=9;n++){const el=document.getElementById(
 let shopOffered=[];
 function showShop(){
   clearInterval(timerInterval);
-  // Convert plunder to doubloons (1 per 1000 plunder earned this round)
-  const earned=Math.floor(plunder/1000);
-  doubloons+=earned;
-  updateScoreEl();
+  // Doubloons: 1 per 1000 plunder, 1 per 10s of fuse left, 1 for a round with no crew lost
+  const fromPlunder=Math.floor(plunder/1000);
+  const fromFuse=Math.floor(timeLeft/10);
+  const flawless=lives>=livesAtRoundStart?1:0;
+  doubloons+=fromPlunder+fromFuse+flawless;
+  const parts=[`${fromPlunder} from plunder`];
+  if(fromFuse)parts.push(`+${fromFuse} for fuse left`);
+  if(flawless)parts.push('+1 no crew lost');
+  document.getElementById('shop-earned').textContent=parts.join('  ·  ');
+  shopSold=new Set();
+  shopBoons=shuffle(BOONS.filter(b=>!has(b.id))).slice(0,2);
 
   // Build pool: weight unowned first, then multi-owned
   const unowned=POWERUPS.filter(p=>!inv[p.id]);
@@ -1240,23 +1360,43 @@ function updateShopInfo(){
   const nextFuse=BASE_FUSE-(nextBoss?BOSS_PENALTY:0);
   document.getElementById('shop-doubloon-count').textContent=doubloons;
   document.getElementById('next-info').textContent=
-    `Next: Round ${round+1}${nextBoss?' ⚔ BOSS':''} · ${nextClues} clues · ${nextFuse}s fuse`;
+    `Next: Round ${round+1}${nextBoss?' (boss)':''} · ${nextClues} clues · ${nextFuse}s fuse`;
 }
 
+// Why an item can't be bought right now (other than cost), or '' if it can
+function shopBlockReason(def){
+  if(shopSold.has(def.id))return 'SOLD';
+  if(def.kind==='boon'&&has(def.id))return 'ALREADY OWNED';
+  if(def.kind==='pow'&&inv[def.id]&&!def.multi)return 'ALREADY OWNED';
+  if(def.id==='recruit'&&lives>=5)return 'CREW IS FULL';
+  return '';
+}
+function shopItemEl(def){
+  const block=shopBlockReason(def);
+  const price=priceOf(def),affordable=doubloons>=price;
+  let badge,badgeClass;
+  if(block==='SOLD'){badge='SOLD';badgeClass='sold-badge';}
+  else if(def.kind==='boon'){badge='BOON';badgeClass='boon-badge';}
+  else if(def.kind==='prov'){badge=block?'FULL':'SUPPLY';badgeClass='prov-badge';}
+  else if(inv[def.id]){badge='OWNED';badgeClass='owned-badge';}
+  else{badge='NEW';badgeClass='new-badge';}
+  const item=document.createElement('div');
+  item.className='shop-item'+(block||!affordable?' cant-buy':'');
+  item.innerHTML=`<span class="shop-icon">${def.icon}</span><div class="shop-name">${def.name}</div><div class="shop-desc">${def.desc}</div><div class="shop-cost${affordable?'':' cant'}">${price} doubloon${price!==1?'s':''}</div><div class="shop-badge ${badgeClass}">${badge}</div>`;
+  item.addEventListener('click',e=>openPowDetail(def.id,'shop',e.currentTarget));
+  return item;
+}
 function renderShopGrid(){
   const sg=document.getElementById('shop-grid');sg.innerHTML='';
-  shopOffered.forEach(def=>{
-    const isOwned=!!inv[def.id];
-    const cantBuy=(isOwned&&!def.multi)||doubloons<def.cost;
-    const affordable=doubloons>=def.cost;
-    const item=document.createElement('div');
-    item.className='shop-item'+(cantBuy?' cant-buy':'');
-    const badge=isOwned?'OWNED':'NEW';
-    const badgeClass=isOwned?'owned-badge':'new-badge';
-    item.innerHTML=`<span class="shop-icon">${def.icon}</span><div class="shop-name">${def.name}</div><div class="shop-desc">${def.desc}</div><div class="shop-cost" style="font-family:'Pirata One',cursive;font-size:12px;color:${affordable?'var(--gold)':'var(--red)'};margin:3px 0;">🪙 ${def.cost}</div><div class="shop-badge ${badgeClass}">${badge}</div>`;
-    item.addEventListener('click',e=>openPowDetail(def.id,'shop',e.currentTarget));
-    sg.appendChild(item);
-  });
+  const section=(title,defs)=>{
+    if(!defs.length)return;
+    const h=document.createElement('div');h.className='shop-section';h.textContent=title;sg.appendChild(h);
+    const row=document.createElement('div');row.className='shop-row';
+    defs.forEach(d=>row.appendChild(shopItemEl(d)));sg.appendChild(row);
+  };
+  section('Powers',shopOffered);
+  section('Boons — last the whole run',shopBoons);
+  section('Provisions',PROVISIONS);
 }
 
 document.getElementById('btn-next-round').addEventListener('click',()=>{
@@ -1273,7 +1413,7 @@ function showOver(){
   document.getElementById('over-sub').textContent=fuseExpires>2
     ?"Fortune favours the brave — better to guess than let the fuse run out."
     :"Arr... the seas have claimed ye. Sail again, ye scallywag.";
-  document.getElementById('over-score').textContent=`${plunder} Plunder · 🪙${doubloons} · ${round} Rounds`;
+  document.getElementById('over-score').textContent=`${plunder} plunder · ${doubloons} doubloons · ${round} rounds`;
   document.getElementById('modal-over').classList.add('visible');
 }
 document.getElementById('btn-restart').addEventListener('click',()=>{
@@ -1282,7 +1422,7 @@ document.getElementById('btn-restart').addEventListener('click',()=>{
 function quitToMenu(){
   gameOver=true;clearInterval(timerInterval);closeDial();
   document.getElementById('over-sub').textContent="Abandoned ship. The seas remember.";
-  document.getElementById('over-score').textContent=`${plunder} Plunder · 🪙${doubloons} · Round ${round}`;
+  document.getElementById('over-score').textContent=`${plunder} plunder · ${doubloons} doubloons · round ${round}`;
   document.getElementById('modal-over').classList.add('visible');
 }
 
@@ -1327,6 +1467,7 @@ document.addEventListener('keydown',e=>{
   }
 });
 
+buildWheel();
 startRun();
 document.getElementById('modal-start').classList.add('visible');
 </script>
