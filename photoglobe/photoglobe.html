@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Northern Hemisphere - Polar View with Mountains</title>
+    <title>Photoglobe</title>
     <link rel="icon" type="image/png" href="../images/favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com"/>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
     <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet"/>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://d3js.org/topojson.v3.min.js"></script>
+    <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
     <style>
         :root {
             --bg-primary: #0a0e27;
@@ -31,6 +32,7 @@
             background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
             color: var(--text-primary);
             min-height: 100vh;
+            min-height: 100dvh;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -39,16 +41,16 @@
 
         header {
             text-align: center;
-            padding: 3rem 2rem 2rem;
+            padding: 1.1rem 1rem 0.4rem;
             max-width: 900px;
         }
 
         h1 {
             font-family: 'Audiowide', sans-serif;
-            font-size: 3.5rem;
+            font-size: clamp(1.9rem, 5.5vw, 3rem);
             font-weight: 400;
             letter-spacing: 0.05em;
-            margin-bottom: 1rem;
+            margin-bottom: 0.3rem;
             background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -57,7 +59,7 @@
         }
 
         .subtitle {
-            font-size: 1rem;
+            font-size: clamp(0.7rem, 2.2vw, 0.9rem);
             color: var(--text-secondary);
             font-weight: 300;
             letter-spacing: 0.15em;
@@ -67,142 +69,26 @@
 
         .map-container {
             position: relative;
-            width: 90%;
-            max-width: min(850px, 70vh);
-            padding: 2rem;
+            flex: 1 1 auto;
+            width: 100%;
+            max-width: none;
+            padding: 0;
+            min-height: 280px;
             animation: fadeIn 2s ease-out;
         }
 
-        #map {
+        #globe {
+            position: absolute;
+            inset: 0;
+        }
+
+        #globe canvas {
+            display: block;
             width: 100%;
-            height: auto;
-            background: radial-gradient(circle, #4a90c9 0%, #2d5a7d 100%);
-            border-radius: 50%;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5),
-                        inset 0 0 80px rgba(0, 0, 0, 0.3);
+            height: 100%;
+            touch-action: none;
         }
 
-        .country {
-            fill: #5a8a5a;
-            stroke: #2d4a2d;
-            stroke-width: 0.5;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .country:hover {
-            /* Default: no hover effect for countries without mountains */
-        }
-
-        /* Countries with interactive mountains - grassier green */
-        .country.has-mountains {
-            fill: #8bc34a;
-        }
-
-        .country.has-mountains:hover {
-            fill: var(--accent);
-            stroke: var(--accent-hover);
-            stroke-width: 1.5;
-            filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.8));
-        }
-
-        .country.eu-country {
-            /* EU countries get special styling when any EU country is hovered */
-            fill: #8bc34a;
-        }
-
-        .country.eu-highlight {
-            fill: var(--accent);
-            stroke: var(--accent-hover);
-            stroke-width: 1.5;
-            filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.8));
-        }
-
-        /* Keep region highlighted while viewing photos */
-        .country.viewing-photos {
-            fill: var(--accent);
-            stroke: var(--accent-hover);
-            stroke-width: 1.5;
-            filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.8));
-        }
-
-        .graticule {
-            fill: none;
-            stroke: rgba(255, 255, 255, 0.1);
-            stroke-width: 0.5;
-        }
-
-        .ocean {
-            fill: #4a90c9;
-        }
-
-        /* Mountain styles */
-        .mountain-range {
-            fill: #8B7355;
-            stroke: #654321;
-            stroke-width: 1.5;
-            opacity: 0.85;
-            filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.4));
-        }
-
-        .mountain-peak {
-            fill: url(#mountainGradient);
-            stroke: #4a3319;
-            stroke-width: 1;
-        }
-
-        .snow-cap {
-            fill: #ffffff;
-            opacity: 0.9;
-        }
-
-        .rockies-overlay {
-            transition: all 0.3s ease;
-            transform-origin: center;
-            z-index: 10;
-        }
-
-        .rockies-highlight {
-            filter: brightness(1.3) drop-shadow(0 0 15px rgba(212, 175, 55, 0.8));
-            transform: scale(1.2);
-            z-index: 100;
-        }
-
-        .usa-rockies-overlay {
-            transition: all 0.3s ease;
-            transform-origin: center;
-            z-index: 10;
-        }
-
-        .usa-rockies-highlight {
-            filter: brightness(1.3) drop-shadow(0 0 15px rgba(212, 175, 55, 0.8));
-            transform: scale(1.2);
-            z-index: 100;
-        }
-
-        .japanese-alps-overlay {
-            transition: all 0.3s ease;
-            transform-origin: center;
-            z-index: 10;
-        }
-
-        .japanese-alps-highlight {
-            filter: brightness(1.3) drop-shadow(0 0 15px rgba(212, 175, 55, 0.8));
-            transform: scale(1.2);
-            z-index: 100;
-        }
-
-        .european-alps-overlay {
-            transition: all 0.3s ease;
-            transform-origin: center;
-            z-index: 10;
-        }
-
-        .european-alps-highlight {
-            filter: brightness(1.3) drop-shadow(0 0 15px rgba(212, 175, 55, 0.8));
-            transform: scale(1.2);
-            z-index: 100;
-        }
 
         .tooltip {
             position: fixed;
@@ -228,9 +114,9 @@
 
         .instructions {
             text-align: center;
-            padding: 2rem;
+            padding: 0.5rem 1rem 0.2rem;
             color: var(--text-secondary);
-            font-size: 0.9rem;
+            font-size: clamp(0.72rem, 2.4vw, 0.9rem);
             letter-spacing: 0.1em;
             animation: fadeIn 2.5s ease-out;
         }
@@ -241,8 +127,12 @@
         }
 
         .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             text-align: center;
-            padding: 3rem;
+            padding: 0;
             color: var(--accent);
             font-size: 1.2rem;
         }
@@ -264,10 +154,11 @@
         }
 
         footer {
-            margin-top: auto;
-            padding: 2rem;
+            margin-top: 0;
+            padding: 0.2rem 1rem 0.7rem;
             color: var(--text-secondary);
-            font-size: 0.85rem;
+            font-size: 0.7rem;
+            opacity: 0.7;
             text-align: center;
         }
 
@@ -280,6 +171,32 @@
             height: 100vh;
             pointer-events: none;
             z-index: 2000;
+            background: rgba(10, 14, 39, 0);
+            transition: background 0.3s ease;
+        }
+
+        /* Soft backdrop so photos read against the busy globe */
+        .polaroid-container.album-open {
+            background: rgba(10, 14, 39, 0.35);
+        }
+
+        /* One page of polaroids; only the active page is visible and clickable */
+        .polaroid-page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+        }
+
+        .polaroid-page.active {
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.3s ease, visibility 0s;
         }
 
         /* Enable pointer events on container when fullscreen is active */
@@ -300,11 +217,12 @@
             width: 200px;
             background: white;
             padding: 10px;
-            padding-bottom: 40px;
+            padding-bottom: 34px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
             cursor: pointer;
             pointer-events: auto;
             transform-origin: center;
+            z-index: var(--z, auto);
             opacity: 0;
             transition: all 0.4s ease-out;
         }
@@ -337,7 +255,11 @@
 
         .polaroid-caption {
             text-align: center;
-            margin-top: 10px;
+            margin-top: 0;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: max-height 0.25s ease, opacity 0.25s ease, margin-top 0.25s ease;
             font-family: 'JetBrains Mono', monospace;
             color: #333;
             font-size: 13px;
@@ -355,14 +277,23 @@
                 opacity: 1;
                 left: var(--final-x);
                 top: var(--final-y);
-                transform: rotate(var(--rotation)) scale(1);
+                transform: rotate(var(--rotation)) scale(var(--scale, 1));
             }
         }
 
         .polaroid:hover {
             z-index: 3000;
             transform: scale(1.1) rotate(0deg) !important;
+            padding-bottom: 12px;
             transition: all 0.3s ease;
+        }
+
+        /* Captions appear on hover and in fullscreen (fullscreen also covers touch) */
+        .polaroid:hover .polaroid-caption,
+        .polaroid.fullscreen .polaroid-caption {
+            max-height: 8em;
+            opacity: 1;
+            margin-top: 10px;
         }
 
         /* Fullscreen polaroid styles */
@@ -427,19 +358,128 @@
             display: block;
         }
 
+        /* Pagination (only shown when there are more photos than fit on screen) */
+        .pagination-controls {
+            position: fixed;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: none;
+            align-items: center;
+            gap: 6px;
+            max-width: calc(100vw - 20px);
+            padding: 4px 8px;
+            background: rgba(26, 31, 58, 0.92);
+            border: 1px solid var(--accent);
+            border-radius: 999px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+            z-index: 2001;
+            transition: opacity 0.2s ease;
+        }
+
+        .pagination-controls.active {
+            display: flex;
+        }
+
+        /* Tuck the bar away while a polaroid is fullscreen */
+        .polaroid-container.has-fullscreen ~ .pagination-controls {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .pagination-arrow {
+            min-width: 44px;
+            min-height: 44px;
+            background: transparent;
+            border: none;
+            color: var(--accent);
+            font-size: 1.8rem;
+            line-height: 1;
+            cursor: pointer;
+            border-radius: 50%;
+            padding: 0;
+            transition: opacity 0.2s ease, background 0.2s ease;
+        }
+
+        .pagination-arrow:hover:not(:disabled) {
+            background: rgba(212, 175, 55, 0.18);
+        }
+
+        .pagination-arrow:disabled {
+            opacity: 0.3;
+            cursor: default;
+        }
+
+        .pagination-dots {
+            display: flex;
+            align-items: center;
+        }
+
+        .pagination-dot {
+            position: relative;
+            width: 22px;
+            min-height: 44px;
+            background: transparent;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+        }
+
+        .pagination-dot::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 8px;
+            height: 8px;
+            margin: -4px 0 0 -4px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+
+        .pagination-dot.active::after {
+            background: var(--accent);
+            transform: scale(1.3);
+        }
+
+        .pagination-count {
+            min-width: 3.2em;
+            text-align: center;
+            color: var(--accent);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+        }
+
         @media (max-width: 768px) {
-            h1 {
-                font-size: 2.5rem;
+            .polaroid {
+                width: 150px;
+                padding: 8px;
+                padding-bottom: 26px;
             }
 
-            .subtitle {
-                font-size: 0.85rem;
+            .polaroid:hover {
+                padding-bottom: 10px;
             }
 
-            .map-container {
-                width: 95%;
-                padding: 1rem;
+            .polaroid img,
+            .polaroid video {
+                height: 135px;
             }
+
+            .polaroid-caption {
+                font-size: 11px;
+            }
+
+            .polaroid:hover .polaroid-caption {
+                margin-top: 6px;
+            }
+
+            .pagination-dot {
+                width: 16px;
+            }
+
         }
     </style>
 </head>
@@ -451,59 +491,62 @@
 
     <div class="map-container">
         <div class="loading" id="loading">Loading world map data...</div>
-        <svg id="map"></svg>
+        <div id="globe"></div>
     </div>
 
     <div class="instructions">
-        <span>Hover</span> over countries to highlight · <span>Click</span> to view photo albums
+        <span>Drag</span> to spin · <span>Scroll</span> to zoom · <span>Click</span> a pinned country for photos
     </div>
 
     <div class="tooltip" id="tooltip"></div>
 
     <div class="polaroid-container" id="polaroidContainer"></div>
     <button class="close-polaroids" id="closePolaroids">Close Photos</button>
+    <div class="pagination-controls" id="paginationControls" role="navigation" aria-label="Photo pages">
+        <button type="button" class="pagination-arrow" id="pagePrev" aria-label="Previous page">&lsaquo;</button>
+        <div class="pagination-dots" id="pageDots"></div>
+        <span class="pagination-count" id="pageCount" aria-live="polite">1 / 1</span>
+        <button type="button" class="pagination-arrow" id="pageNext" aria-label="Next page">&rsaquo;</button>
+    </div>
 
     <footer>
-        Explore the places we've been · Powered by D3.js with Natural Earth data
+        Explore the places we've been · Built with three.js &amp; D3 · Natural Earth data
     </footer>
 
-    <script>
-        // Map configuration
-        const width = 1000;
-        const height = 1000;
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-        // Create SVG
-        const svg = d3.select("#map")
-            .attr("viewBox", [0, 0, width, height]);
-
-        // Add gradient for mountains
-        const defs = svg.append("defs");
-        
-        const mountainGradient = defs.append("linearGradient")
-            .attr("id", "mountainGradient")
-            .attr("x1", "0%")
-            .attr("y1", "0%")
-            .attr("x2", "0%")
-            .attr("y2", "100%");
-        
-        mountainGradient.append("stop")
-            .attr("offset", "0%")
-            .attr("stop-color", "#f5f5f5")
-            .attr("stop-opacity", 1);
-        
-        mountainGradient.append("stop")
-            .attr("offset", "40%")
-            .attr("stop-color", "#a89968")
-            .attr("stop-opacity", 1);
-        
-        mountainGradient.append("stop")
-            .attr("offset", "100%")
-            .attr("stop-color", "#654321")
-            .attr("stop-opacity", 1);
+        // ===================================================================
+        // SHARED STATE
+        // ===================================================================
 
         // Tooltip
         const tooltip = d3.select("#tooltip");
 
+        // Region currently under the pointer (interactive regions only) and region
+        // whose photos are open. Any change schedules a land-texture redraw.
+        let hoverRegion = null;
+        let viewingRegion = null;
+        let landDirty = false;
+
+        function setHoverRegion(region) {
+            region = region || null;
+            if (region === hoverRegion) return;
+            hoverRegion = region;
+            landDirty = true;
+        }
+
+        function setViewingRegion(region) {
+            region = region || null;
+            if (region === viewingRegion) return;
+            viewingRegion = region;
+            landDirty = true;
+        }
+
+        // ===================================================================
+        // PHOTOS (Cloudinary + polaroids)
+        // ===================================================================
         // Cloudinary configuration
         const CLOUDINARY_CLOUD_NAME = 'dwob5ehbo';
         
@@ -617,489 +660,1772 @@
             return [];
         }
 
-        // Polaroid scatter function - now async to fetch from Cloudinary
-        async function scatterPolaroids(regionName) {
-            const container = document.getElementById('polaroidContainer');
-            const closeBtn = document.getElementById('closePolaroids');
-            
-            // Clear existing polaroids
-            container.innerHTML = '';
-            
-            // Remove all previous viewing-photos highlights
-            svg.selectAll('.viewing-photos').classed('viewing-photos', false);
-            
-            // Show loading message
-            container.innerHTML = '<div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 1.5rem; text-align: center;">Loading photos...</div>';
-            
-            // Get tag for this region
-            const tag = regionCloudinaryTags[regionName];
-            
-            if (!tag) {
-                container.innerHTML = '';
-                return;
-            }
-            
-            // Fetch photos from Cloudinary by tag
-            const photos = await fetchCloudinaryPhotos(tag);
-            
-            // Clear loading message
-            container.innerHTML = '';
-            
-            if (photos.length === 0) {
-                // No photos found - show message
-                container.innerHTML = '<div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 1.5rem; text-align: center;">No photos found for this region</div>';
-                closeBtn.classList.add('active');
-                return;
-            }
-            
-            // Highlight the clicked region
-            if (regionName === 'EU') {
-                // Highlight all EU countries
-                svg.selectAll('.eu-country').classed('viewing-photos', true);
-            } else {
-                // Highlight specific country
-                svg.selectAll('.country')
-                    .filter(d => d.properties.name === regionName)
-                    .classed('viewing-photos', true);
-            }
-            
-            // Create polaroids with random positions and rotations
-            for (let i = 0; i < photos.length; i++) {
-                const polaroid = document.createElement('div');
-                polaroid.className = 'polaroid';
-                
-                // Random final position
-                const finalX = Math.random() * (window.innerWidth - 220) + 10;
-                const finalY = Math.random() * (window.innerHeight - 280) + 10;
-                
-                // Random starting position (off-screen from various edges)
-                const edge = Math.floor(Math.random() * 4); // 0=top, 1=right, 2=bottom, 3=left
-                let startX, startY;
-                
-                switch(edge) {
-                    case 0: // from top
-                        startX = Math.random() * window.innerWidth;
-                        startY = -300;
-                        break;
-                    case 1: // from right
-                        startX = window.innerWidth + 300;
-                        startY = Math.random() * window.innerHeight;
-                        break;
-                    case 2: // from bottom
-                        startX = Math.random() * window.innerWidth;
-                        startY = window.innerHeight + 300;
-                        break;
-                    case 3: // from left
-                        startX = -300;
-                        startY = Math.random() * window.innerHeight;
-                        break;
-                }
-                
-                // Random rotation between -20 and 20 degrees (final)
-                const rotation = (Math.random() - 0.5) * 40;
-                
-                // Random starting rotation (more dramatic spin)
-                const startRotation = (Math.random() - 0.5) * 360;
-                
-                // Set CSS variables for animation
-                polaroid.style.setProperty('--start-x', startX + 'px');
-                polaroid.style.setProperty('--start-y', startY + 'px');
-                polaroid.style.setProperty('--final-x', finalX + 'px');
-                polaroid.style.setProperty('--final-y', finalY + 'px');
-                polaroid.style.setProperty('--rotation', rotation + 'deg');
-                polaroid.style.setProperty('--start-rotation', startRotation + 'deg');
-                
-                // Create polaroid with real photo/video from Cloudinary
-                const photo = photos[i];
-                
-                let mediaContent;
-                if (photo.isVideo) {
-                    // Video element with controls
-                    mediaContent = `
-                        <video controls loop muted playsinline>
-                            <source src="${photo.url}.${photo.format}" type="video/${photo.format}">
-                            Your browser does not support video.
-                        </video>
-                    `;
-                } else {
-                    // Image element
-                    mediaContent = `<img src="${photo.url}" alt="${photo.caption}" style="width: 100%; height: 180px; object-fit: cover;">`;
-                }
-                
-                polaroid.innerHTML = `
-                    ${mediaContent}
-                    <div class="polaroid-caption">${photo.caption}</div>
-                `;
-                
-                // Add click handler for fullscreen
-                polaroid.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const container = document.getElementById('polaroidContainer');
-                    
-                    console.log('Polaroid clicked, current fullscreen status:', this.classList.contains('fullscreen'));
-                    
-                    if (this.classList.contains('fullscreen')) {
-                        // Exit fullscreen
-                        console.log('Exiting fullscreen');
-                        this.classList.remove('fullscreen');
-                        container.classList.remove('has-fullscreen');
-                        
-                        // Pause video if it's playing
-                        const video = this.querySelector('video');
-                        if (video) {
-                            video.pause();
-                        }
-                    } else {
-                        // Remove fullscreen from any other polaroid
-                        document.querySelectorAll('.polaroid.fullscreen').forEach(p => {
-                            p.classList.remove('fullscreen');
-                        });
-                        
-                        // Enter fullscreen
-                        console.log('Entering fullscreen');
-                        this.classList.add('fullscreen');
-                        container.classList.add('has-fullscreen');
-                        
-                        console.log('Polaroid classes after adding fullscreen:', this.className);
-                        console.log('Polaroid computed style position:', window.getComputedStyle(this).position);
-                        console.log('Polaroid computed style z-index:', window.getComputedStyle(this).zIndex);
-                        
-                        // Play video if it's a video
-                        const video = this.querySelector('video');
-                        if (video) {
-                            video.play();
-                        }
-                    }
-                });
-                
-                container.appendChild(polaroid);
-                
-                // Trigger animation after a delay
-                setTimeout(() => {
-                    polaroid.classList.add('tossed');
-                }, i * 150);
-            }
-            
-            // Show close button
-            closeBtn.classList.add('active');
+        // ---- Album state & layout --------------------------------------
+        // `album` is null whenever the photo overlay is closed.
+        // Otherwise: { region, photos, layout, pages, pageIndex, dirty, size }
+        // where each page is { start, end, el, built, polaroids, timers }.
+        const albumContainer = document.getElementById('polaroidContainer');
+        const albumCloseBtn = document.getElementById('closePolaroids');
+        const pagerEl = document.getElementById('paginationControls');
+        const pagerPrev = document.getElementById('pagePrev');
+        const pagerNext = document.getElementById('pageNext');
+        const pagerDots = document.getElementById('pageDots');
+        const pagerCount = document.getElementById('pageCount');
+
+        const MOBILE_QUERY = '(max-width: 768px)';
+        const TOSS_STAGGER_MS = 90;
+        const MAX_PAGER_DOTS = 12;
+        const MAX_PAGER_DOTS_MOBILE = 8; // keeps the pill inside a 375px screen
+        const LAYOUT_TOP_MARGIN = 84; // keeps the Close button clear
+        const LAYOUT_BOTTOM_MARGIN = 24;
+        const LAYOUT_BOTTOM_MARGIN_PAGED = 92; // room for pagination controls
+
+        let album = null;
+        let albumRequestId = 0;
+        let resizeTimer = null;
+
+        function randBetween(min, max) {
+            return min + Math.random() * (max - min);
         }
 
-        // Close polaroids function
-        document.getElementById('closePolaroids').addEventListener('click', function() {
-            document.getElementById('polaroidContainer').innerHTML = '';
-            this.classList.remove('active');
-            
-            // Remove all viewing-photos highlights
-            svg.selectAll('.viewing-photos').classed('viewing-photos', false);
-        });
+        // Work out box size, safe area, grid capacity and page split for n photos
+        function computeAlbumLayout(n) {
+            const mobile = window.matchMedia(MOBILE_QUERY).matches;
+            const boxW = mobile ? 150 : 200;
+            const boxH = mobile ? 172 : 228;
+            const marginX = mobile ? 10 : 24;
+            const safeW = Math.max(1, window.innerWidth - marginX * 2);
+            const cols = Math.max(1, Math.floor(safeW / (boxW * 0.86)));
+
+            const forBottom = (bottom) => {
+                const safeH = Math.max(1, window.innerHeight - LAYOUT_TOP_MARGIN - bottom);
+                const rows = Math.max(1, Math.floor(safeH / (boxH * 0.86)));
+                return { safeH, rows, capacity: cols * rows };
+            };
+
+            let grid = forBottom(LAYOUT_BOTTOM_MARGIN);
+            let pageCount = 1;
+            if (n > grid.capacity) {
+                // Paging needed: the controls shrink the safe area, so recompute
+                grid = forBottom(LAYOUT_BOTTOM_MARGIN_PAGED);
+                pageCount = Math.ceil(n / grid.capacity);
+            }
+            return {
+                mobile, boxW, boxH, marginX, safeW, cols,
+                safeH: grid.safeH, rows: grid.rows, capacity: grid.capacity,
+                pageCount, perPage: Math.ceil(n / pageCount)
+            };
+        }
+
+        // Positions for m photos on one page: best-candidate scatter, then a light
+        // relaxation pass so photos look tossed on a table without heavy overlap
+        function layoutPage(m, L) {
+            const minX = L.marginX + L.boxW / 2, maxX = L.marginX + L.safeW - L.boxW / 2;
+            const minY = LAYOUT_TOP_MARGIN + L.boxH / 2, maxY = LAYOUT_TOP_MARGIN + L.safeH - L.boxH / 2;
+            const midX = L.marginX + L.safeW / 2, midY = LAYOUT_TOP_MARGIN + L.safeH / 2;
+            const hasX = maxX > minX, hasY = maxY > minY;
+            const randX = () => hasX ? randBetween(minX, maxX) : midX;
+            const randY = () => hasY ? randBetween(minY, maxY) : midY;
+            const clampX = (v) => hasX ? Math.max(minX, Math.min(maxX, v)) : midX;
+            const clampY = (v) => hasY ? Math.max(minY, Math.min(maxY, v)) : midY;
+
+            // 1. Best-candidate scatter (distance measured in box units)
+            const pts = [];
+            for (let i = 0; i < m; i++) {
+                let bestPt = null;
+                if (i === 0) {
+                    bestPt = { x: randX(), y: randY() };
+                } else {
+                    let bestD = -1;
+                    for (let c = 0; c < 40; c++) {
+                        const cx = randX(), cy = randY();
+                        let nearest = Infinity;
+                        for (let j = 0; j < i; j++) {
+                            const d = Math.hypot((cx - pts[j].x) / L.boxW, (cy - pts[j].y) / L.boxH);
+                            if (d < nearest) nearest = d;
+                        }
+                        if (nearest > bestD) { bestD = nearest; bestPt = { x: cx, y: cy }; }
+                    }
+                }
+                pts.push(bestPt);
+            }
+
+            // 2. Relaxation: push apart pairs that overlap too much
+            for (let iter = 0; iter < 14; iter++) {
+                for (let i = 0; i < m; i++) {
+                    for (let j = i + 1; j < m; j++) {
+                        const a = pts[i], b = pts[j];
+                        let dx = a.x - b.x, dy = a.y - b.y;
+                        const ox = 0.78 * L.boxW - Math.abs(dx);
+                        const oy = 0.78 * L.boxH - Math.abs(dy);
+                        if (ox <= 0 || oy <= 0) continue;
+                        if (ox / L.boxW < oy / L.boxH) {
+                            const dir = dx === 0 ? (Math.random() < 0.5 ? -1 : 1) : Math.sign(dx);
+                            const push = ox / 2 + 1;
+                            a.x += dir * push;
+                            b.x -= dir * push;
+                        } else {
+                            const dir = dy === 0 ? (Math.random() < 0.5 ? -1 : 1) : Math.sign(dy);
+                            const push = oy / 2 + 1;
+                            a.y += dir * push;
+                            b.y -= dir * push;
+                        }
+                    }
+                }
+                for (const p of pts) {
+                    p.x = clampX(p.x);
+                    p.y = clampY(p.y);
+                }
+            }
+
+            // Random stacking order within the page
+            const order = [];
+            for (let i = 1; i <= m; i++) order.push(i);
+            for (let i = order.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [order[i], order[j]] = [order[j], order[i]];
+            }
+
+            const maxRot = L.mobile ? 24 : 32;
+            return pts.map((p, i) => ({
+                x: p.x - L.boxW / 2,
+                y: p.y - L.boxH / 2,
+                rotation: randBetween(6, maxRot) * (Math.random() < 0.5 ? -1 : 1),
+                scale: randBetween(0.92, 1.08),
+                z: order[i]
+            }));
+        }
+
+        // Random off-screen start point for the toss-in animation
+        function randomStartPoint() {
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            switch (Math.floor(Math.random() * 4)) {
+                case 0: return { x: Math.random() * w, y: -300 };      // from top
+                case 1: return { x: w + 300, y: Math.random() * h };   // from right
+                case 2: return { x: Math.random() * w, y: h + 300 };   // from bottom
+                default: return { x: -300, y: Math.random() * h };     // from left
+            }
+        }
+
+        function createPolaroid(photo, index, pos) {
+            const polaroid = document.createElement('div');
+            polaroid.className = 'polaroid';
+            polaroid._albumIndex = index;
+
+            const start = randomStartPoint();
+            polaroid.style.setProperty('--start-x', start.x + 'px');
+            polaroid.style.setProperty('--start-y', start.y + 'px');
+            polaroid.style.setProperty('--final-x', pos.x + 'px');
+            polaroid.style.setProperty('--final-y', pos.y + 'px');
+            polaroid.style.setProperty('--rotation', pos.rotation + 'deg');
+            polaroid.style.setProperty('--scale', pos.scale);
+            polaroid.style.setProperty('--z', pos.z);
+            polaroid.style.setProperty('--start-rotation', ((Math.random() - 0.5) * 360) + 'deg');
+
+            let media;
+            if (photo.isVideo) {
+                media = document.createElement('video');
+                media.controls = true;
+                media.loop = true;
+                media.muted = true;
+                media.setAttribute('muted', '');
+                media.setAttribute('playsinline', '');
+                media.preload = 'metadata';
+                const source = document.createElement('source');
+                source.src = `${photo.url}.${photo.format}`;
+                source.type = `video/${photo.format}`;
+                media.appendChild(source);
+                media.appendChild(document.createTextNode('Your browser does not support video.'));
+            } else {
+                media = document.createElement('img');
+                media.decoding = 'async';
+                media.alt = photo.caption;
+                media.src = photo.url;
+            }
+
+            const caption = document.createElement('div');
+            caption.className = 'polaroid-caption';
+            caption.textContent = photo.caption;
+
+            polaroid.appendChild(media);
+            polaroid.appendChild(caption);
+
+            polaroid.addEventListener('click', function (e) {
+                e.stopPropagation();
+                if (this.classList.contains('fullscreen')) {
+                    exitFullscreen();
+                } else {
+                    enterFullscreen(this);
+                }
+            });
+            return polaroid;
+        }
+
+        // Create a page's polaroids (and their media requests) the first time it is shown
+        function buildPage(page) {
+            if (page.built || !album) return;
+            page.built = true;
+            const count = page.end - page.start;
+            const positions = layoutPage(count, album.layout);
+            for (let i = 0; i < count; i++) {
+                const polaroid = createPolaroid(album.photos[page.start + i], page.start + i, positions[i]);
+                page.polaroids.push(polaroid);
+                page.el.appendChild(polaroid);
+                page.timers.push(setTimeout(() => polaroid.classList.add('tossed'), i * TOSS_STAGGER_MS));
+            }
+        }
+
+        function showPage(index) {
+            if (!album) return;
+            index = Math.max(0, Math.min(album.pages.length - 1, index));
+            buildPage(album.pages[index]);
+            album.pageIndex = index;
+            album.pages.forEach((p, i) => p.el.classList.toggle('active', i === index));
+            updatePager();
+        }
+
+        function goToPage(index) {
+            if (!album || index === album.pageIndex || index < 0 || index >= album.pages.length) return;
+            showPage(index);
+        }
+
+        function updatePager() {
+            if (!album) return;
+            const total = album.pages.length;
+            pagerCount.textContent = `${album.pageIndex + 1} / ${total}`;
+            pagerPrev.disabled = album.pageIndex === 0;
+            pagerNext.disabled = album.pageIndex === total - 1;
+            Array.from(pagerDots.children).forEach((dot, i) => {
+                const isActive = i === album.pageIndex;
+                dot.classList.toggle('active', isActive);
+                if (isActive) dot.setAttribute('aria-current', 'true');
+                else dot.removeAttribute('aria-current');
+            });
+        }
+
+        // Build page containers for the current album + viewport and show the page
+        // containing photo `focusIndex`
+        function setupPages(focusIndex) {
+            const photos = album.photos;
+            const L = computeAlbumLayout(photos.length);
+            album.layout = L;
+            album.size = `${window.innerWidth}x${window.innerHeight}`;
+            album.pages = [];
+            for (let p = 0; p < L.pageCount; p++) {
+                const start = p * L.perPage;
+                const end = Math.min(photos.length, start + L.perPage);
+                const el = document.createElement('div');
+                el.className = 'polaroid-page';
+                albumContainer.appendChild(el);
+                album.pages.push({ start, end, el, built: false, polaroids: [], timers: [] });
+            }
+
+            // Pagination controls (outside the container)
+            pagerDots.innerHTML = '';
+            const maxDots = L.mobile ? MAX_PAGER_DOTS_MOBILE : MAX_PAGER_DOTS;
+            if (L.pageCount > 1 && L.pageCount <= maxDots) {
+                for (let i = 0; i < L.pageCount; i++) {
+                    const dot = document.createElement('button');
+                    dot.type = 'button';
+                    dot.className = 'pagination-dot';
+                    dot.setAttribute('aria-label', `Page ${i + 1}`);
+                    dot.addEventListener('click', () => goToPage(i));
+                    pagerDots.appendChild(dot);
+                }
+            }
+            pagerEl.classList.toggle('active', L.pageCount > 1);
+
+            const target = album.pages.findIndex(p => focusIndex >= p.start && focusIndex < p.end);
+            showPage(target < 0 ? 0 : target);
+        }
+
+        function clearPageTimers() {
+            if (!album || !album.pages) return;
+            album.pages.forEach(p => p.timers.forEach(clearTimeout));
+        }
+
+        // Recompute layout (e.g. after a resize), staying on the same photos
+        function rebuildAlbum() {
+            if (!album) return;
+            album.dirty = false;
+            const focusIndex = album.pages[album.pageIndex].start;
+            clearPageTimers();
+            albumContainer.innerHTML = '';
+            setupPages(focusIndex);
+        }
+
+        // Tear everything down. Safe to call when nothing is open.
+        function resetAlbum() {
+            clearPageTimers();
+            album = null;
+            albumContainer.innerHTML = '';
+            albumContainer.classList.remove('album-open', 'has-fullscreen');
+            albumCloseBtn.classList.remove('active');
+            pagerEl.classList.remove('active');
+            pagerDots.innerHTML = '';
+            setViewingRegion(null);
+        }
+
+        function closeAlbum() {
+            albumRequestId++; // abandon any fetch still in flight
+            resetAlbum();
+        }
+
+        // ---- Fullscreen --------------------------------------------------
+        function getFullscreenPolaroid() {
+            return albumContainer.querySelector('.polaroid.fullscreen');
+        }
+
+        function leaveFullscreenState(polaroid) {
+            polaroid.classList.remove('fullscreen');
+            const video = polaroid.querySelector('video');
+            if (video) video.pause();
+        }
+
+        function enterFullscreen(polaroid) {
+            const current = getFullscreenPolaroid();
+            if (current && current !== polaroid) leaveFullscreenState(current);
+            polaroid.classList.add('fullscreen');
+            albumContainer.classList.add('has-fullscreen');
+            const video = polaroid.querySelector('video');
+            if (video) {
+                const playing = video.play();
+                if (playing && playing.catch) playing.catch(() => {});
+            }
+        }
+
+        function exitFullscreen() {
+            const current = getFullscreenPolaroid();
+            if (current) leaveFullscreenState(current);
+            albumContainer.classList.remove('has-fullscreen');
+            // A resize happened while fullscreen: catch up now
+            if (album && album.dirty) rebuildAlbum();
+        }
+
+        // Move fullscreen to the previous / next photo in album order
+        function stepFullscreen(direction) {
+            const current = getFullscreenPolaroid();
+            if (!album || !current) return;
+            const nextIndex = current._albumIndex + direction;
+            if (nextIndex < 0 || nextIndex >= album.photos.length) return;
+            const pageIdx = album.pages.findIndex(p => nextIndex >= p.start && nextIndex < p.end);
+            if (pageIdx < 0) return;
+            showPage(pageIdx); // builds the page if needed
+            const target = album.pages[pageIdx].polaroids[nextIndex - album.pages[pageIdx].start];
+            if (target) enterFullscreen(target);
+        }
+
+        // Polaroid scatter function - async to fetch from Cloudinary
+        async function scatterPolaroids(regionName) {
+            const requestId = ++albumRequestId;
+
+            // Clear any existing album (also clears the viewing-region highlight)
+            resetAlbum();
+
+            // Show loading message
+            albumContainer.innerHTML = '<div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 1.5rem; text-align: center;">Loading photos...</div>';
+
+            // Get tag for this region
+            const tag = regionCloudinaryTags[regionName];
+
+            if (!tag) {
+                albumContainer.innerHTML = '';
+                return;
+            }
+
+            // Fetch photos from Cloudinary by tag
+            const photos = await fetchCloudinaryPhotos(tag);
+
+            // A newer request or a close happened while fetching: do nothing
+            if (requestId !== albumRequestId) return;
+
+            // Clear loading message
+            albumContainer.innerHTML = '';
+
+            if (photos.length === 0) {
+                // No photos found - show message
+                albumContainer.innerHTML = '<div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 1.5rem; text-align: center;">No photos found for this region</div>';
+                albumCloseBtn.classList.add('active');
+                return;
+            }
+
+            // Highlight the clicked region on the globe
+            setViewingRegion(regionName);
+
+            album = { region: regionName, photos, layout: null, pages: [], pageIndex: 0, dirty: false, size: '' };
+            albumContainer.classList.add('album-open');
+            setupPages(0);
+
+            // Show close button
+            albumCloseBtn.classList.add('active');
+        }
+
+        // Close button
+        albumCloseBtn.addEventListener('click', closeAlbum);
 
         // Click outside polaroid to exit fullscreen
-        document.getElementById('polaroidContainer').addEventListener('click', function(e) {
-            // Only if clicking the container itself (not a polaroid)
-            if (e.target === this) {
-                console.log('Clicked outside polaroid');
-                document.querySelectorAll('.polaroid.fullscreen').forEach(polaroid => {
-                    polaroid.classList.remove('fullscreen');
-                    
-                    // Pause video if playing
-                    const video = polaroid.querySelector('video');
-                    if (video) {
-                        video.pause();
-                    }
-                });
-                this.classList.remove('has-fullscreen');
+        albumContainer.addEventListener('click', function (e) {
+            if (e.target === this) exitFullscreen();
+        });
+
+        // Pagination arrows
+        pagerPrev.addEventListener('click', () => { if (album) goToPage(album.pageIndex - 1); });
+        pagerNext.addEventListener('click', () => { if (album) goToPage(album.pageIndex + 1); });
+
+        // Keyboard: registered once, reads from `album`
+        document.addEventListener('keydown', function (e) {
+            if (!album) return;
+            if (e.metaKey || e.ctrlKey || e.altKey) return;
+            const t = e.target;
+            if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
+
+            const fullscreen = getFullscreenPolaroid();
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                if (fullscreen) exitFullscreen();
+                else closeAlbum();
+            } else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                const direction = e.key === 'ArrowLeft' ? -1 : 1;
+                e.preventDefault();
+                if (fullscreen) stepFullscreen(direction);
+                else goToPage(album.pageIndex + direction);
             }
         });
 
-        // Azimuthal Equal Area projection centered on North Pole
-        const projection = d3.geoAzimuthalEqualArea()
-            .rotate([0, -90])
-            .scale(350)
-            .translate([width / 2, height / 2])
-            .clipAngle(90);
+        // Horizontal swipe on touch: registered once
+        let swipeStart = null;
+        document.addEventListener('touchstart', function (e) {
+            swipeStart = null;
+            if (!album || e.touches.length !== 1) return;
+            const t = e.target;
+            if (t && t.closest && (t.closest('.polaroid') || t.closest('.pagination-controls') || t.closest('.close-polaroids') || t.closest('#globe'))) return; // a drag on the globe spins it, it must not flip the page
+            swipeStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        }, { passive: true });
+        document.addEventListener('touchend', function (e) {
+            const start = swipeStart;
+            swipeStart = null;
+            if (!album || !start || !e.changedTouches.length) return;
+            const dx = e.changedTouches[0].clientX - start.x;
+            const dy = e.changedTouches[0].clientY - start.y;
+            if (Math.abs(dx) < 50 || Math.abs(dx) <= Math.abs(dy)) return;
+            const direction = dx < 0 ? 1 : -1; // swipe left = next
+            if (getFullscreenPolaroid()) stepFullscreen(direction);
+            else goToPage(album.pageIndex + direction);
+        }, { passive: true });
+        document.addEventListener('touchcancel', () => { swipeStart = null; }, { passive: true });
 
-        const path = d3.geoPath().projection(projection);
+        // Resize / orientation change: debounced relayout
+        window.addEventListener('resize', function () {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function () {
+                if (!album) return;
+                if (album.size === `${window.innerWidth}x${window.innerHeight}`) return;
+                if (getFullscreenPolaroid()) {
+                    album.dirty = true; // rebuild when fullscreen exits
+                    return;
+                }
+                rebuildAlbum();
+            }, 250);
+        });
 
-        // Graticule (grid lines)
-        const graticule = d3.geoGraticule();
+        // ===================================================================
+        // GLOBE: DATA & CONSTANTS
+        // ===================================================================
 
-        // Draw ocean background
-        svg.append("path")
-            .datum({type: "Sphere"})
-            .attr("class", "ocean")
-            .attr("d", path);
+        const DEG = Math.PI / 180;
+        const GOLD_HEX = 0xd4af37;
+        const GROW_TARGET = 1.45;
+        const LAND_R = 1.018; // land sits above the sea (radius 1)
 
-        // Draw graticule
-        svg.append("path")
-            .datum(graticule)
-            .attr("class", "graticule")
-            .attr("d", path);
-
-        // Define custom overlay - Canadian Rockies
-        const canadianRockies = {
-            // Approximate location for western Canada (British Columbia/Alberta border)
-            lat: 58,  // Latitude
-            lon: -135, // Longitude
-            width: 160,  // Width of SVG overlay
-            height: 200  // Height of SVG overlay
-        };
-
-        // Define custom overlay - USA Rockies
-        const usaRockies = {
-            // Approximate location for western USA Rocky Mountains
-            lat: 35,  // Latitude (Montana/Wyoming area)
-            lon: -103, // Longitude
-            width: 252,  // Width of SVG overlay
-            height: 324  // Height of SVG overlay
-        };
-
-        // Define custom overlay - Japanese Alps
-        const japaneseAlps = {
-            // Approximate location for Japanese Alps (central Honshu)
-            lat: 37,  // Latitude
-            lon: 137, // Longitude
-            width: 80,  // Width of SVG overlay (80% of 100)
-            height: 96  // Height of SVG overlay (80% of 120)
-        };
-
-        // Define static overlay - World Mountains (non-interactive)
-        const worldMountains = {
-            // Cover the entire visible area
-            lat: 78,  // Center latitude
-            lon: 0,   // Center longitude
-            width: 963,  // Width to cover most of the map
-            height: 856  // Height to cover most of the map
-        };
-
-        // Define custom overlay - European Alps
-        const europeanAlps = {
-            // Approximate location for European Alps (Switzerland/Austria area)
-            lat: 44.5,  // Latitude
-            lon: 10, // Longitude
-            width: 180,  // Width of SVG overlay
-            height: 140  // Height of SVG overlay
-        };
-
-        // List of EU countries
+        // List of EU countries (names as used by the world-atlas dataset)
         const euCountries = [
-            "Austria", "Belgium", "Bulgaria", "Croatia", "Cyprus", "Czech Republic",
+            "Austria", "Belgium", "Bulgaria", "Croatia", "Cyprus", "Czech Republic", "Czechia",
             "Denmark", "Estonia", "Finland", "France", "Germany", "Greece",
             "Hungary", "Ireland", "Italy", "Latvia", "Lithuania", "Luxembourg",
             "Malta", "Netherlands", "Poland", "Portugal", "Romania", "Slovakia",
             "Slovenia", "Spain", "Sweden"
         ];
+        const EU_SET = new Set(euCountries);
+        const INTERACTIVE_REGIONS = new Set(['Canada', 'United States of America', 'Japan', 'EU']);
 
-        // Load world data
-        d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json")
-            .then(world => {
-                document.getElementById("loading").style.display = "none";
+        // Where the camera looks when a region is opened: [lon, lat]
+        const FOCUS_POINTS = {
+            'Canada': [-118, 56],
+            'United States of America': [-108, 41],
+            'Japan': [138, 37],
+            'EU': [10, 47]
+        };
 
-                const countries = topojson.feature(world, world.objects.countries);
+        function regionOfCountry(name) {
+            return EU_SET.has(name) ? 'EU' : name;
+        }
 
-                // Countries with interactive mountains
-                const mountainCountries = ["Canada", "United States of America", "Japan"];
+        // Mountain ranges: pts are [lon, lat]; h = relative height; w = jitter half-width (deg);
+        // s = sample spacing (deg of arc); region omitted = 'none' (never highlighted).
+        const RANGES = [
+            // Canada
+            { name:'Canadian Rockies', region:'Canada', h:0.95, w:1.1, s:1.0, pts:[[-114.0,49.2],[-115.5,51.0],[-117.0,52.5],[-119.0,53.8],[-121.5,55.5],[-124.0,57.5],[-126.5,59.0]] },
+            { name:'Coast Mountains', region:'Canada', h:0.85, w:0.9, s:1.2, pts:[[-122.5,49.8],[-124.5,51.0],[-127.0,52.8],[-129.0,54.8],[-131.0,56.8],[-133.5,58.8]] },
+            { name:'Saint Elias', region:'Canada', h:1.0, w:0.7, s:1.2, pts:[[-137.5,60.2],[-140.0,60.7]] },
+            { name:'Mackenzie Mountains', region:'Canada', h:0.6, w:1.0, s:1.4, pts:[[-127.5,62.0],[-129.5,63.5],[-132.0,64.8]] },
+            // USA
+            { name:'US Rockies', region:'United States of America', h:0.95, w:1.3, s:1.0, pts:[[-113.8,48.5],[-113.0,46.5],[-111.0,44.8],[-109.5,43.3],[-107.5,41.0],[-106.3,39.5],[-106.0,38.0],[-105.6,36.3]] },
+            { name:'Sierra Nevada', region:'United States of America', h:0.85, w:0.5, s:1.0, pts:[[-120.6,39.5],[-119.3,37.8],[-118.4,36.4]] },
+            { name:'Cascades', region:'United States of America', h:0.8, w:0.4, s:1.3, pts:[[-121.7,48.5],[-121.7,46.5],[-121.9,44.5],[-122.2,42.5],[-122.0,41.2]] },
+            { name:'Alaska Range', region:'United States of America', h:1.0, w:0.8, s:1.3, pts:[[-153.0,61.0],[-151.0,63.0],[-147.0,63.5],[-144.0,62.5]] },
+            { name:'Brooks Range', region:'United States of America', h:0.6, w:0.7, s:1.6, pts:[[-160.0,68.0],[-152.0,68.0],[-145.0,68.5]] },
+            { name:'Appalachians', region:'United States of America', h:0.4, w:0.6, s:1.6, pts:[[-84.0,35.0],[-81.5,36.5],[-79.5,38.5],[-77.5,40.5],[-75.0,41.5],[-72.5,43.5],[-71.0,44.3]] },
+            // Japan
+            { name:'Japanese Alps', region:'Japan', h:0.8, w:0.35, s:0.5, pts:[[137.6,36.7],[137.8,36.1],[138.0,35.5]] },
+            { name:'Mount Fuji', region:'Japan', h:1.0, w:0.05, s:1, pts:[[138.73,35.36]] },
+            { name:'Tohoku', region:'Japan', h:0.5, w:0.3, s:0.9, pts:[[140.9,40.2],[140.6,39.0],[140.2,37.9]] },
+            { name:'Hokkaido', region:'Japan', h:0.55, w:0.4, s:0.9, pts:[[142.9,43.6],[142.6,42.9]] },
+            // EU
+            { name:'Alps', region:'EU', h:1.0, w:0.7, s:0.8, pts:[[6.2,44.3],[6.9,45.5],[7.8,46.0],[9.0,46.5],[10.5,46.8],[12.0,47.0],[13.5,47.2],[14.8,47.4]] },
+            { name:'Pyrenees', region:'EU', h:0.75, w:0.3, s:0.8, pts:[[-1.5,43.0],[0.0,42.7],[1.5,42.6],[2.5,42.4]] },
+            { name:'Apennines', region:'EU', h:0.55, w:0.3, s:1.0, pts:[[9.0,44.4],[11.0,44.0],[12.8,43.0],[13.6,42.3],[14.8,41.3],[16.0,40.2]] },
+            { name:'Carpathians', region:'EU', h:0.6, w:0.5, s:1.0, pts:[[18.5,49.3],[20.5,49.2],[22.5,48.8],[24.5,47.8],[25.8,46.5],[25.5,45.5],[23.5,45.3],[22.5,45.3]] },
+            { name:'Balkan Mountains', region:'EU', h:0.5, w:0.3, s:1.0, pts:[[23.0,42.2],[24.5,42.7],[26.0,42.8]] },
+            { name:'Sierra Nevada (Spain)', region:'EU', h:0.7, w:0.2, s:1, pts:[[-3.3,37.05]] },
+            // Rest of the world (non-interactive)
+            { name:'Andes', h:1.0, w:1.0, s:1.3, pts:[[-73,8],[-76,3],[-78.5,-1],[-78,-6],[-76.5,-10],[-73,-13.5],[-69.5,-16],[-68,-20],[-68.5,-25],[-70,-30],[-70,-34],[-71,-38],[-72,-42],[-73,-46],[-73,-50]] },
+            { name:'Himalaya', h:1.3, w:1.0, s:1.0, pts:[[74,35.5],[77,33.5],[80,31],[83,29.2],[86,28],[88.5,27.7],[91,27.8],[94,28.5],[96.5,29]] },
+            { name:'Karakoram / Hindu Kush', h:1.2, w:0.8, s:1.1, pts:[[70,35.8],[72.5,36.3],[75,36],[77,35.3]] },
+            { name:'Kunlun', h:0.9, w:0.8, s:1.8, pts:[[78,36.5],[83,36],[88,36],[93,35.8],[98,35]] },
+            { name:'Tian Shan', h:0.95, w:0.8, s:1.5, pts:[[71,41.5],[75,42],[79,42.2],[83,43],[87,43.3]] },
+            { name:'Altai', h:0.75, w:0.9, s:1.6, pts:[[84,50],[88,49],[92,47.5],[95,46]] },
+            { name:'Sayan', h:0.6, w:0.8, s:1.8, pts:[[96,52.5],[100,52],[104,51.5]] },
+            { name:'Urals', h:0.45, w:0.5, s:1.6, pts:[[59,52],[58.5,55],[59.5,58],[60,61],[61,64],[65,67.5]] },
+            { name:'Caucasus', h:0.95, w:0.5, s:1.0, pts:[[39.5,43.8],[42,43.2],[44.5,42.7],[47,41.8]] },
+            { name:'Scandinavian Mountains', h:0.6, w:0.6, s:1.4, pts:[[6.5,60],[8.5,61.8],[11,63.5],[14,66],[17,68],[20,69.3]] },
+            { name:'Scottish Highlands', h:0.35, w:0.3, s:0.8, pts:[[-5.2,56.6],[-4.5,57.2]] },
+            { name:'Atlas', h:0.75, w:0.6, s:1.5, pts:[[-8.5,31],[-6,32],[-3.5,33.2],[0,34.2],[4,35.5],[7,35.6]] },
+            { name:'Taurus / Anatolia', h:0.7, w:0.7, s:1.6, pts:[[30,37],[33,37],[36,37.8],[39.5,38.8],[43,39.5]] },
+            { name:'Zagros', h:0.8, w:0.8, s:1.5, pts:[[45.5,36],[47.5,34],[50,32],[52.5,30],[55,28.5]] },
+            { name:'Alborz', h:0.85, w:0.4, s:1.2, pts:[[50,36.5],[52,36],[54,36.5]] },
+            { name:'Ethiopian Highlands', h:0.7, w:0.9, s:1.5, pts:[[38,13],[39,10.5],[39.5,8]] },
+            { name:'Kilimanjaro', h:1.0, w:0.05, s:1, pts:[[37.35,-3.07]] },
+            { name:'Mount Kenya', h:0.85, w:0.05, s:1, pts:[[37.3,-0.15]] },
+            { name:'Rwenzori', h:0.8, w:0.3, s:1, pts:[[29.9,0.4]] },
+            { name:'Drakensberg', h:0.6, w:0.5, s:1.2, pts:[[29.5,-28.5],[29,-30],[28,-31]] },
+            { name:'Western Ghats', h:0.45, w:0.4, s:1.8, pts:[[73.8,18],[75,14],[76.8,10.5]] },
+            { name:'Hengduan', h:0.85, w:0.8, s:1.5, pts:[[99,28],[99.5,25],[100,22]] },
+            { name:'Taebaek', h:0.4, w:0.3, s:1.0, pts:[[128.5,38],[129,36.5]] },
+            { name:'Barisan (Sumatra)', h:0.6, w:0.4, s:1.8, pts:[[96.5,4.5],[99.5,1],[102,-2.5],[104.5,-5]] },
+            { name:'New Guinea Highlands', h:0.85, w:0.6, s:1.5, pts:[[137,-4],[140,-4.6],[143,-5.5],[146,-6.3]] },
+            { name:'Great Dividing Range', h:0.4, w:0.6, s:2.0, pts:[[146,-18],[148,-22],[151,-26],[151.5,-30],[149.5,-34],[148.3,-36.5],[146.5,-37.3]] },
+            { name:'Southern Alps', h:0.8, w:0.35, s:0.8, pts:[[168,-44.8],[169.5,-44],[170.5,-43.4],[171.8,-42.7]] },
+            { name:'Sierra Madre Occidental', h:0.6, w:0.7, s:1.6, pts:[[-108.5,29.5],[-107,26.5],[-105.5,23.5],[-104,21]] },
+            { name:'Sierra Madre Oriental', h:0.7, w:0.6, s:1.6, pts:[[-100.5,25.5],[-99.5,22.5],[-98,19.5]] },
+            { name:'Verkhoyansk', h:0.55, w:0.9, s:1.8, pts:[[128,65],[130,67.5],[128,70]] },
+            { name:'Chersky', h:0.55, w:0.9, s:1.8, pts:[[140,66],[145,65],[150,63.5]] },
+            { name:'Kamchatka', h:0.8, w:0.5, s:1.4, pts:[[158,53],[160,56],[162,58.5]] },
+            { name:'Transantarctic', h:0.8, w:1.0, s:2.5, pts:[[160,-72],[165,-77],[170,-82],[-170,-85]] },
+            { name:'Antarctic Peninsula', h:0.6, w:0.6, s:1.8, pts:[[-63,-65],[-65,-69],[-68,-73]] },
+        ];
 
-                // Draw countries FIRST
-                const countryPaths = svg.selectAll(".country")
-                    .data(countries.features)
-                    .enter()
-                    .append("path")
-                    .attr("class", d => {
-                        let classes = "country";
-                        
-                        // Add eu-country class to EU countries
-                        if (euCountries.includes(d.properties.name)) {
-                            classes += " eu-country has-mountains";
-                        }
-                        // Add has-mountains class to countries with dedicated mountains
-                        else if (mountainCountries.includes(d.properties.name)) {
-                            classes += " has-mountains";
-                        }
-                        
-                        return classes;
-                    })
-                    .attr("d", path)
-                    .attr("data-name", d => d.properties.name);
+        // ===================================================================
+        // GLOBE: HELPERS
+        // ===================================================================
 
-                // Add World Mountains as static background (non-interactive, bottom layer)
-                const worldMountainsGroup = svg.append("g").attr("class", "world-mountains-overlay");
+        // Matches THREE.SphereGeometry's default UVs with an equirectangular texture
+        // (left edge lon -180, top lat +90). lon 0, lat 0 -> +X; North Pole -> +Y.
+        function lonLatToVec3(lon, lat, r, out) {
+            const lo = lon * DEG, la = lat * DEG;
+            const c = Math.cos(la);
+            return out.set(r * c * Math.cos(lo), r * Math.sin(la), -r * c * Math.sin(lo));
+        }
 
-                // Calculate position for World Mountains
-                const worldMountainsPos = projection([worldMountains.lon, worldMountains.lat]);
-                
-                if (worldMountainsPos) {
-                    worldMountainsGroup.append("image")
-                        .attr("href", "world_mountains.svg")
-                        .attr("x", worldMountainsPos[0] - worldMountains.width / 2)
-                        .attr("y", worldMountainsPos[1] - worldMountains.height / 2)
-                        .attr("width", worldMountains.width)
-                        .attr("height", worldMountains.height)
-                        .style("pointer-events", "none")
-                        .style("opacity", 1);
+        const _ll = [0, 0];
+        function vec3ToLonLat(v) {
+            const len = Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+            _ll[1] = Math.asin(Math.max(-1, Math.min(1, v.y / len))) / DEG;
+            _ll[0] = Math.atan2(-v.z, v.x) / DEG;
+            return _ll;
+        }
+
+        // Small seeded PRNG so the mountain layout is identical on every load
+        function mulberry32(seed) {
+            let a = seed >>> 0;
+            return function () {
+                a = (a + 0x6D2B79F5) >>> 0;
+                let t = a;
+                t = Math.imul(t ^ (t >>> 15), t | 1);
+                t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+            };
+        }
+
+        // One shared low-poly, snow-capped peak. Unit size: base radius 1 at y=0, apex at y=1.
+        function buildPeakGeometry() {
+            const N = 6;
+            const base = [], snow = [];
+            for (let i = 0; i < N; i++) {
+                const a = (i / N) * Math.PI * 2;
+                const ca = Math.cos(a), sa = Math.sin(a);
+                base.push([ca, 0, sa]);
+                // Jagged snowline: alternate low/wide and high/narrow vertices
+                const even = i % 2 === 0;
+                const r = even ? 0.44 : 0.28;
+                const y = even ? 0.56 : 0.72;
+                snow.push([r * ca, y, r * sa]);
+            }
+            const apex = [0, 1, 0];
+            const cBase = new THREE.Color('#5d4630');
+            const cSnowRing = new THREE.Color('#b08d57');
+            const cWhite = new THREE.Color('#ffffff');
+            const pos = [], col = [];
+            function tri(a, ca, b, cb, c, cc) {
+                pos.push(a[0], a[1], a[2], b[0], b[1], b[2], c[0], c[1], c[2]);
+                col.push(ca.r, ca.g, ca.b, cb.r, cb.g, cb.b, cc.r, cc.g, cc.b);
+            }
+            for (let i = 0; i < N; i++) {
+                const j = (i + 1) % N;
+                // Lower frustum (two triangles per side), counter-clockwise seen from outside
+                tri(base[j], cBase, base[i], cBase, snow[i], cSnowRing);
+                tri(base[j], cBase, snow[i], cSnowRing, snow[j], cSnowRing);
+                // Snow cap fan
+                tri(snow[j], cWhite, snow[i], cWhite, apex, cWhite);
+            }
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+            geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+            geo.computeVertexNormals();
+            return geo;
+        }
+
+        // Walk a range's spine and return jittered peak placements as lon/lat + size
+        function placeRangePeaks(range, rand, out) {
+            const pts = range.pts;
+            const samples = [];
+            if (pts.length === 1) {
+                samples.push({ lon: pts[0][0], lat: pts[0][1], t: 0.5, single: true });
+            } else {
+                const segLen = [];
+                let total = 0;
+                for (let i = 0; i < pts.length - 1; i++) {
+                    const l = d3.geoDistance(pts[i], pts[i + 1]) / DEG;
+                    segLen.push(l);
+                    total += l;
                 }
-
-                // Add USA Rockies SVG overlay first
-                const usaRockiesGroup = svg.append("g").attr("class", "usa-rockies-overlay");
-
-                // Calculate position for USA Rockies
-                const usaRockiesPos = projection([usaRockies.lon, usaRockies.lat]);
-                
-                let usaRockiesImage = null;
-                if (usaRockiesPos) {
-                    // Add the SVG as an image
-                    usaRockiesImage = usaRockiesGroup.append("image")
-                        .attr("href", "USA_rockies.svg")
-                        .attr("x", usaRockiesPos[0] - usaRockies.width / 2)
-                        .attr("y", usaRockiesPos[1] - usaRockies.height / 2)
-                        .attr("width", usaRockies.width)
-                        .attr("height", usaRockies.height)
-                        .style("pointer-events", "none")
-                        .style("opacity", 0.9);
+                const addAt = (dist) => {
+                    let seg = 0, start = 0;
+                    while (seg < segLen.length - 1 && dist > start + segLen[seg]) {
+                        start += segLen[seg];
+                        seg++;
+                    }
+                    const f = segLen[seg] > 0 ? Math.min(1, Math.max(0, (dist - start) / segLen[seg])) : 0;
+                    const p = d3.geoInterpolate(pts[seg], pts[seg + 1])(f);
+                    samples.push({ lon: p[0], lat: p[1], t: total > 0 ? dist / total : 0.5, single: false });
+                };
+                let d = 0;
+                while (d <= total + 1e-9) {
+                    addAt(d);
+                    d += range.s;
                 }
+                if (total - (d - range.s) > range.s * 0.5) addAt(total);
+            }
 
-                // Add European Alps SVG overlay
-                const europeanAlpsGroup = svg.append("g").attr("class", "european-alps-overlay");
-
-                // Calculate position for European Alps
-                const europeanAlpsPos = projection([europeanAlps.lon, europeanAlps.lat]);
-                
-                let europeanAlpsImage = null;
-                if (europeanAlpsPos) {
-                    // Add the SVG as an image
-                    europeanAlpsImage = europeanAlpsGroup.append("image")
-                        .attr("href", "european_alps.svg")
-                        .attr("x", europeanAlpsPos[0] - europeanAlps.width / 2)
-                        .attr("y", europeanAlpsPos[1] - europeanAlps.height / 2)
-                        .attr("width", europeanAlps.width)
-                        .attr("height", europeanAlps.height)
-                        .style("pointer-events", "none")
-                        .style("opacity", 0.9);
+            for (const s of samples) {
+                const count = s.single ? 1 : 2;
+                for (let k = 0; k < count; k++) {
+                    const dx = (rand() * 2 - 1) * range.w;
+                    const dy = (rand() * 2 - 1) * range.w;
+                    const off = Math.sqrt(dx * dx + dy * dy);
+                    const lat = Math.max(-89.9, Math.min(89.9, s.lat + dy));
+                    const lon = s.lon + dx / Math.max(0.05, Math.cos(lat * DEG));
+                    const height = 0.13 * range.h * (0.55 + 0.45 * rand()) *
+                        (0.7 + 0.3 * Math.sin(Math.PI * s.t)) * (1 - 0.35 * off / range.w);
+                    const radius = Math.min(0.06, height * (0.55 + 0.2 * rand()));
+                    const yaw = rand() * Math.PI * 2;
+                    out.push({ lon, lat, height, radius, yaw });
                 }
+            }
+        }
 
-                // Add Japanese Alps SVG overlay
-                const japaneseAlpsGroup = svg.append("g").attr("class", "japanese-alps-overlay");
+        // ===================================================================
+        // GLOBE: MAIN
+        // ===================================================================
 
-                // Calculate position for Japanese Alps
-                const japaneseAlpsPos = projection([japaneseAlps.lon, japaneseAlps.lat]);
-                
-                let japaneseAlpsImage = null;
-                if (japaneseAlpsPos) {
-                    // Add the SVG as an image
-                    japaneseAlpsImage = japaneseAlpsGroup.append("image")
-                        .attr("href", "Japanese_alps.svg")
-                        .attr("x", japaneseAlpsPos[0] - japaneseAlps.width / 2)
-                        .attr("y", japaneseAlpsPos[1] - japaneseAlps.height / 2)
-                        .attr("width", japaneseAlps.width)
-                        .attr("height", japaneseAlps.height)
-                        .style("pointer-events", "none")
-                        .style("opacity", 0.9);
-                }
+        async function initGlobe() {
+            const globeEl = document.getElementById('globe');
+            const loadingEl = document.getElementById('loading');
+            const polaroidContainer = document.getElementById('polaroidContainer');
 
-                // Add Canadian Rockies SVG overlay on top (renders after, so appears on top)
-                const rockiesGroup = svg.append("g").attr("class", "rockies-overlay");
+            // ---- Renderer (bail out gracefully without WebGL) ----
+            let renderer;
+            try {
+                renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            } catch (err) {
+                console.error('WebGL unavailable:', err);
+                loadingEl.textContent = 'Sorry, the 3D globe needs WebGL, which is not available in this browser.';
+                return;
+            }
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+            renderer.outputColorSpace = THREE.SRGBColorSpace;
+            const canvas = renderer.domElement;
+            canvas.style.cursor = 'grab';
+            globeEl.appendChild(canvas);
 
-                // Calculate position for Canadian Rockies
-                const rockiesPos = projection([canadianRockies.lon, canadianRockies.lat]);
-                
-                let rockiesImage = null;
-                if (rockiesPos) {
-                    // Add the SVG as an image
-                    rockiesImage = rockiesGroup.append("image")
-                        .attr("href", "canadian_rockies.svg")
-                        .attr("x", rockiesPos[0] - canadianRockies.width / 2)
-                        .attr("y", rockiesPos[1] - canadianRockies.height / 2)
-                        .attr("width", canadianRockies.width)
-                        .attr("height", canadianRockies.height)
-                        .style("pointer-events", "none")
-                        .style("opacity", 0.9);
-                }
+            const gl = renderer.getContext();
+            const maxTex = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+            const TW = maxTex >= 4096 ? 4096 : 2048;
+            const TH = TW / 2;
 
-                // Add event listeners to countries
-                countryPaths
-                    .on("mouseenter", function(event, d) {
-                        const countryName = d.properties.name;
-                        
-                        // Check if this is an EU country
-                        if (euCountries.includes(countryName)) {
-                            tooltip.text("EU").classed("active", true);
-                            // Highlight ALL EU countries
-                            svg.selectAll(".eu-country").classed("eu-highlight", true);
-                            // Light up European Alps
-                            if (europeanAlpsImage) {
-                                europeanAlpsGroup.classed("european-alps-highlight", true);
-                            }
-                        } else {
-                            tooltip.text(countryName).classed("active", true);
-                            
-                            // Light up Canadian Rockies when hovering over Canada
-                            if (countryName === "Canada" && rockiesImage) {
-                                rockiesGroup.classed("rockies-highlight", true);
-                            }
-                            
-                            // Light up USA Rockies when hovering over United States
-                            if (countryName === "United States of America" && usaRockiesImage) {
-                                usaRockiesGroup.classed("usa-rockies-highlight", true);
-                            }
-                            
-                            // Light up Japanese Alps when hovering over Japan
-                            if (countryName === "Japan" && japaneseAlpsImage) {
-                                japaneseAlpsGroup.classed("japanese-alps-highlight", true);
-                            }
-                        }
-                    })
-                    .on("mousemove", function(event) {
-                        tooltip
-                            .style("left", (event.clientX + 15) + "px")
-                            .style("top", (event.clientY + 15) + "px");
-                    })
-                    .on("mouseleave", function(event, d) {
-                        tooltip.classed("active", false);
-                        const countryName = d.properties.name;
-                        
-                        // Check if this is an EU country
-                        if (euCountries.includes(countryName)) {
-                            // Remove highlight from ALL EU countries
-                            svg.selectAll(".eu-country").classed("eu-highlight", false);
-                            // Remove highlight from European Alps
-                            if (europeanAlpsImage) {
-                                europeanAlpsGroup.classed("european-alps-highlight", false);
-                            }
-                        } else {
-                            // Remove highlight from Canadian Rockies
-                            if (countryName === "Canada" && rockiesImage) {
-                                rockiesGroup.classed("rockies-highlight", false);
-                            }
-                            
-                            // Remove highlight from USA Rockies
-                            if (countryName === "United States of America" && usaRockiesImage) {
-                                usaRockiesGroup.classed("usa-rockies-highlight", false);
-                            }
-                            
-                            // Remove highlight from Japanese Alps
-                            if (countryName === "Japan" && japaneseAlpsImage) {
-                                japaneseAlpsGroup.classed("japanese-alps-highlight", false);
-                            }
-                        }
-                    })
-                    .on("click", function(event, d) {
-                        const countryName = d.properties.name;
-                        
-                        // If EU country, show EU photos
-                        if (euCountries.includes(countryName)) {
-                            scatterPolaroids('EU');
-                        } 
-                        // If Canada, USA, or Japan, show their photos
-                        else if (countryName === "Canada" || countryName === "United States of America" || countryName === "Japan") {
-                            scatterPolaroids(countryName);
-                        }
-                        // Other countries don't have photo albums
-                    });
-            })
-            .catch(error => {
+            // ---- Load country data ----
+            let world;
+            try {
+                world = await d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json");
+            } catch (error) {
                 console.error("Error loading map data:", error);
-                document.getElementById("loading").innerHTML = 
-                    "Error loading map data. Please check your internet connection.";
+                loadingEl.innerHTML = "Error loading map data. Please check your internet connection.";
+                return;
+            }
+            loadingEl.style.display = "none";
+            const features = topojson.feature(world, world.objects.countries).features;
+
+            // ---- Picking id canvas (also used to place waves and trees) ----
+            const PW = 2048, PH = 1024;
+            const pickProj = d3.geoEquirectangular().fitSize([PW, PH], { type: 'Sphere' });
+            const pickCanvas = document.createElement('canvas');
+            pickCanvas.width = PW;
+            pickCanvas.height = PH;
+            const pctx = pickCanvas.getContext('2d', { willReadFrequently: true });
+            pctx.imageSmoothingEnabled = false;
+            pctx.lineWidth = 1;
+            pctx.lineJoin = 'round';
+            const pickPath = d3.geoPath(pickProj, pctx);
+            features.forEach((f, i) => {
+                const id = i + 1;
+                const col = 'rgb(' + ((id >> 16) & 255) + ',' + ((id >> 8) & 255) + ',' + (id & 255) + ')';
+                pctx.fillStyle = col;
+                pctx.strokeStyle = col;
+                pctx.beginPath();
+                pickPath(f);
+                pctx.fill();
+                pctx.stroke();
             });
+            const pickData = pctx.getImageData(0, 0, PW, PH).data;
+
+            // ---- Scene, camera, lights ----
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
+            // Initial direction (lon -40, lat 30); resize() sets the fitted distance
+            lonLatToVec3(-40, 30, 3.9, camera.position);
+            camera.lookAt(0, 0, 0);
+            scene.add(camera);
+
+            // Key light rides on the camera so the lit side always faces the viewer
+            const keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
+            keyLight.position.set(-1.2, 1.4, 1.5);
+            camera.add(keyLight);
+            scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+
+            // Stepped shading ramp shared by the globe and the peaks
+            const gradientMap = new THREE.DataTexture(new Uint8Array([110, 170, 220, 255]), 4, 1, THREE.RedFormat);
+            gradientMap.minFilter = THREE.NearestFilter;
+            gradientMap.magFilter = THREE.NearestFilter;
+            gradientMap.generateMipmaps = false;
+            gradientMap.needsUpdate = true;
+
+            // ---- Shared facet set (only used to paint canvases, never added to the scene) ----
+            const faces = [];
+            {
+                const fgeo = new THREE.IcosahedronGeometry(1, 25).toNonIndexed();
+                const fp = fgeo.getAttribute('position').array;
+                const toLL = (x, y, z) => [
+                    Math.atan2(-z, x) / DEG,
+                    Math.asin(Math.max(-1, Math.min(1, y))) / DEG
+                ];
+                for (let i = 0; i < fp.length; i += 9) {
+                    let cx = (fp[i] + fp[i + 3] + fp[i + 6]) / 3;
+                    let cy = (fp[i + 1] + fp[i + 4] + fp[i + 7]) / 3;
+                    let cz = (fp[i + 2] + fp[i + 5] + fp[i + 8]) / 3;
+                    const len = Math.sqrt(cx * cx + cy * cy + cz * cz);
+                    cx /= len; cy /= len; cz /= len;
+                    const cll = toLL(cx, cy, cz);
+                    faces.push({
+                        a: toLL(fp[i], fp[i + 1], fp[i + 2]),
+                        b: toLL(fp[i + 3], fp[i + 4], fp[i + 5]),
+                        c: toLL(fp[i + 6], fp[i + 7], fp[i + 8]),
+                        lon: cll[0], lat: cll[1], nx: cx, ny: cy, nz: cz
+                    });
+                }
+                fgeo.dispose();
+            }
+
+            // Fill (and 1px stroke, to hide hairline seams) one facet on an equirectangular canvas
+            function fillFacet(ctx, W, H, f, colour) {
+                let a = f.a[0], b = f.b[0], c = f.c[0];
+                const wrap = Math.max(a, b, c) - Math.min(a, b, c) > 180;
+                if (wrap) {
+                    if (a < 0) a += 360;
+                    if (b < 0) b += 360;
+                    if (c < 0) c += 360;
+                }
+                const sx = W / 360, sy = H / 180;
+                const xa = (a + 180) * sx, xb = (b + 180) * sx, xc = (c + 180) * sx;
+                const ya = (90 - f.a[1]) * sy, yb = (90 - f.b[1]) * sy, yc = (90 - f.c[1]) * sy;
+                ctx.fillStyle = colour;
+                ctx.strokeStyle = colour;
+                for (let k = 0; k < (wrap ? 2 : 1); k++) {
+                    const off = k ? -W : 0;
+                    ctx.beginPath();
+                    ctx.moveTo(xa + off, ya);
+                    ctx.lineTo(xb + off, yb);
+                    ctx.lineTo(xc + off, yc);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.stroke();
+                }
+            }
+
+            function hexRGB(h) {
+                const n = parseInt(h.slice(1), 16);
+                return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+            }
+            // Lighten (f > 1) / darken (f < 1) an [r,g,b] colour, returned as a CSS string
+            function shade(rgb, f) {
+                const cl = (v) => Math.max(0, Math.min(255, Math.round(v * f)));
+                return 'rgb(' + cl(rgb[0]) + ',' + cl(rgb[1]) + ',' + cl(rgb[2]) + ')';
+            }
+
+            // ---- Per-country info, cached Path2Ds ----
+            const landProj = d3.geoEquirectangular().fitSize([TW, TH], { type: 'Sphere' });
+            const info = features.map((f) => {
+                const name = (f.properties && f.properties.name) || '';
+                const region = regionOfCountry(name);
+                const p2d = new Path2D();
+                d3.geoPath(landProj, p2d)(f);
+                return {
+                    name,
+                    region,
+                    label: EU_SET.has(name) ? 'EU' : name,
+                    interactive: INTERACTIVE_REGIONS.has(region),
+                    ice: name === 'Greenland' || name === 'Antarctica',
+                    path: p2d
+                };
+            });
+            const graticulePath = new Path2D();
+            d3.geoPath(landProj, graticulePath)(d3.geoGraticule10());
+            const landUnion = new Path2D();
+            for (const c of info) landUnion.addPath(c.path);
+
+            const k = TW / 4096;
+
+            // ---- Biomes ----
+            const spineX = [], spineY = [], spineZ = [], spineC = [];
+            {
+                const v = new THREE.Vector3();
+                const addSample = (lon, lat, cosT) => {
+                    lonLatToVec3(lon, lat, 1, v);
+                    spineX.push(v.x); spineY.push(v.y); spineZ.push(v.z); spineC.push(cosT);
+                };
+                for (const range of RANGES) {
+                    const cosT = Math.cos((range.w + 1.3) * DEG);
+                    const pts = range.pts;
+                    if (pts.length === 1) { addSample(pts[0][0], pts[0][1], cosT); continue; }
+                    for (let s = 0; s < pts.length - 1; s++) {
+                        const n = Math.max(1, Math.ceil(d3.geoDistance(pts[s], pts[s + 1]) / DEG));
+                        const interp = d3.geoInterpolate(pts[s], pts[s + 1]);
+                        for (let i = (s === 0 ? 0 : 1); i <= n; i++) {
+                            const p = interp(i / n);
+                            addSample(p[0], p[1], cosT);
+                        }
+                    }
+                }
+            }
+            const NSPINE = spineX.length;
+
+            const DESERTS = [[10,23,28,8],[-6,23,11,7],[26,24,10,7],[47,23,9,8],[60,33,8,5],[62,42,10,5],[71,27,3,3],[83,39,7,3],[103,43,10,4],[132,-25,14,7],[22,-24,6,5],[15,-23,2,6],[-70,-23,2,6],[-69,-45,3,7],[-113,34,6,5],[-116,40,4,3],[-104,28,4,4],[46,7,5,5]];
+            const HIGHLANDS = [[88,33,11,4],[-67,-19,3,5],[39,9,3,4],[100,47,8,3]];
+            const JUNGLES = [[-62,-4,13,8],[22,0,9,5],[102,2,8,6],[114,0,6,5],[141,-5,6,3],[-85,13,5,4],[-5,6,8,2.5]];
+            function inEllipses(list, lon, lat) {
+                for (let i = 0; i < list.length; i++) {
+                    const e = list[i];
+                    const dl = ((lon - e[0] + 540) % 360) - 180;
+                    const dy = lat - e[1];
+                    const u = dl / e[2], w = dy / e[3];
+                    if (u * u + w * w < 1) return true;
+                }
+                return false;
+            }
+            const _bv = new THREE.Vector3();
+            function biomeAt(lon, lat) {
+                lonLatToVec3(lon, lat, 1, _bv);
+                for (let i = 0; i < NSPINE; i++) {
+                    if (_bv.x * spineX[i] + _bv.y * spineY[i] + _bv.z * spineZ[i] >= spineC[i]) return 'foothill';
+                }
+                if (inEllipses(DESERTS, lon, lat)) return 'desert';
+                if (inEllipses(HIGHLANDS, lon, lat)) return 'highland';
+                if (inEllipses(JUNGLES, lon, lat)) return 'jungle';
+                if (lat >= 0) {
+                    if (lat > 69) return 'tundra';
+                    const taigaLat = (lon > -11 && lon < 30) ? 58 : 51;
+                    if (lat > taigaLat) return 'taiga';
+                    if (lat > 28) return 'temperate';
+                    return 'savanna';
+                }
+                if (lat < -58) return 'tundra';
+                if (lat < -34) return 'temperate';
+                return 'savanna';
+            }
+            const BIOME_RGB = {
+                temperate: hexRGB('#7fb34d'), taiga: hexRGB('#3f7d4e'), tundra: hexRGB('#a8b48c'),
+                savanna: hexRGB('#a7b552'), jungle: hexRGB('#2e8b46'), desert: hexRGB('#dcc47e'),
+                highland: hexRGB('#b7a36e'), foothill: hexRGB('#8f8757')
+            };
+
+            // ---- Sea texture ----
+            const seaCanvas = document.createElement('canvas');
+            seaCanvas.width = TW;
+            seaCanvas.height = TH;
+            {
+                const sctx = seaCanvas.getContext('2d');
+                sctx.fillStyle = '#3a7cc0';
+                sctx.fillRect(0, 0, TW, TH);
+                sctx.lineWidth = 1;
+                sctx.lineJoin = 'round';
+                const sr = mulberry32(777001);
+                const eq = hexRGB('#3f86cc'), po = hexRGB('#3470b2');
+                const ice1 = hexRGB('#eaf3f8'), ice2 = hexRGB('#d9e8f2');
+                for (const f of faces) {
+                    if (Math.abs(f.lat) > 88) continue;
+                    const jit = 1 + (sr() * 2 - 1) * 0.035;
+                    const iceN = 79 + (sr() * 2 - 1) * 3;
+                    const iceS = -63 + (sr() * 2 - 1) * 3;
+                    const pick2 = sr() < 0.5;
+                    let col;
+                    if (f.lat > iceN || f.lat < iceS) {
+                        col = shade(pick2 ? ice1 : ice2, 1);
+                    } else {
+                        const t = Math.abs(f.lat) / 90;
+                        col = shade([eq[0] + (po[0] - eq[0]) * t, eq[1] + (po[1] - eq[1]) * t, eq[2] + (po[2] - eq[2]) * t], jit);
+                    }
+                    fillFacet(sctx, TW, TH, f, col);
+                }
+                // Shallow shelves: stepped turquoise bands hugging every coast
+                sctx.lineJoin = 'round';
+                sctx.strokeStyle = 'rgba(125, 205, 235, 0.22)';
+                for (const w of [56, 34, 16]) {
+                    sctx.lineWidth = w * k;
+                    sctx.stroke(landUnion);
+                }
+                sctx.lineWidth = 1 * k;
+                sctx.strokeStyle = 'rgba(255,255,255,0.10)';
+                sctx.stroke(graticulePath);
+            }
+            const seaTexture = new THREE.CanvasTexture(seaCanvas);
+            seaTexture.colorSpace = THREE.SRGBColorSpace;
+            seaTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+
+            // ---- Land base texture (alpha: sea fully transparent), painted once ----
+            const landBase = document.createElement('canvas');
+            landBase.width = TW;
+            landBase.height = TH;
+            {
+                const bctx = landBase.getContext('2d');
+                bctx.lineWidth = 1;
+                bctx.lineJoin = 'round';
+                const br = mulberry32(777002);
+                // c. biome mosaic everywhere
+                for (const f of faces) {
+                    if (Math.abs(f.lat) > 88) continue;
+                    const lo = f.lon + (br() * 2 - 1) * 1.5;
+                    const la = f.lat + (br() * 2 - 1) * 1.5;
+                    const key = biomeAt(lo, la);
+                    fillFacet(bctx, TW, TH, f, shade(BIOME_RGB[key], 1 + (br() * 2 - 1) * 0.07));
+                }
+                // pre-fill poles so they are never empty
+                bctx.fillStyle = shade(BIOME_RGB.tundra, 1);
+                bctx.fillRect(0, 0, TW, 2 * TH / 180 * 3);
+                bctx.fillStyle = '#dde9f1';
+                bctx.fillRect(0, TH - 2 * TH / 180 * 3, TW, 2 * TH / 180 * 3);
+
+                // d. ice sheets
+                const icePath = new Path2D();
+                for (const c of info) if (c.ice) icePath.addPath(c.path);
+                bctx.save();
+                bctx.clip(icePath);
+                const iceCols = [hexRGB('#f4f8fb'), hexRGB('#dde9f1'), hexRGB('#e8f1f6')];
+                const ir = mulberry32(777003);
+                for (const f of faces) {
+                    if (Math.abs(f.lat) < 58) continue;
+                    fillFacet(bctx, TW, TH, f, shade(iceCols[Math.floor(ir() * 3)], 1));
+                }
+                bctx.restore();
+                // fill the pole rows with ice too (Antarctica reaches the bottom edge)
+                bctx.fillStyle = '#dde9f1';
+                bctx.fillRect(0, TH - 2 * TH / 180 * 3, TW, 2 * TH / 180 * 3);
+
+                // e. dim non-interactive, non-ice countries
+                bctx.fillStyle = 'rgba(64, 84, 78, 0.40)';
+                for (const c of info) {
+                    if (!c.interactive && !c.ice) bctx.fill(c.path);
+                }
+                // ...and lift the interactive ones slightly so they read as clickable
+                bctx.fillStyle = 'rgba(255, 250, 170, 0.12)';
+                for (const c of info) {
+                    if (c.interactive) bctx.fill(c.path);
+                }
+
+                // f. cut to land
+                bctx.globalCompositeOperation = 'destination-in';
+                bctx.fillStyle = '#000';
+                bctx.fill(landUnion);
+                bctx.globalCompositeOperation = 'source-over';
+
+                // g. lakes
+                const LAKES = [[-87.5,47.6,2.6,0.8],[-87,44,0.7,1.8],[-82.3,44.8,1.0,1.3],[-81.2,42.2,1.6,0.4],[-77.8,43.7,1.2,0.35],[33,-1,1.3,1.3],[-121,66,1.5,0.8],[-114,61.7,2.0,0.6],[-97.5,52.5,0.6,1.5],[108,53.5,0.5,2.2]];
+                const lakeRx = TW / 360, lakeRy = TH / 180;
+                bctx.globalCompositeOperation = 'destination-out';
+                for (const L of LAKES) {
+                    const p = landProj([L[0], L[1]]);
+                    bctx.beginPath();
+                    bctx.ellipse(p[0], p[1], L[2] * lakeRx, L[3] * lakeRy, 0, 0, Math.PI * 2);
+                    bctx.fill();
+                }
+                bctx.globalCompositeOperation = 'source-over';
+
+                // h. rivers
+                const RIVERS = [
+                    [[-73,-4.5],[-67,-3],[-60,-3.2],[-55,-2.2],[-50.5,-0.5]],
+                    [[32.5,2],[31.5,10],[32.5,15.6],[33.5,18.5],[31,22],[32.7,25.5],[31.2,30],[31,31.4]],
+                    [[-93.5,45],[-91,41],[-90,37],[-91,33],[-90,29.5]],
+                    [[97,33],[102,27.5],[106.5,29.5],[111.5,30.5],[116,30],[121,31.5]],
+                    [[9,48.2],[13.5,48.5],[17,48],[19,46],[22.5,44.5],[28,45.2]],
+                    [[36,57],[44,56.3],[49,55.5],[46,50],[48,46]]
+                ];
+                const riverPath = new Path2D();
+                d3.geoPath(landProj, riverPath)({ type: 'MultiLineString', coordinates: RIVERS });
+                bctx.lineCap = 'round';
+                bctx.lineJoin = 'round';
+                bctx.strokeStyle = '#4f9bd6';
+                bctx.lineWidth = 4 * k;
+                bctx.stroke(riverPath);
+
+                // i. interior borders
+                const borderPath = new Path2D();
+                d3.geoPath(landProj, borderPath)(topojson.mesh(world, world.objects.countries, (a, b) => a !== b));
+                bctx.strokeStyle = 'rgba(40, 30, 20, 0.35)';
+                bctx.lineWidth = 1.5 * k;
+                bctx.stroke(borderPath);
+
+                // Warm inner rim on interactive countries (clipped so it stays inside them)
+                bctx.strokeStyle = 'rgba(240, 201, 82, 0.6)';
+                bctx.lineWidth = 8 * k;
+                for (const c of info) {
+                    if (!c.interactive) continue;
+                    bctx.save();
+                    bctx.clip(c.path);
+                    bctx.stroke(c.path);
+                    bctx.restore();
+                }
+
+                // j. coast ink (exterior boundaries only) + lake outlines
+                const coastPath = new Path2D();
+                d3.geoPath(landProj, coastPath)(topojson.mesh(world, world.objects.countries, (a, b) => a === b));
+                bctx.strokeStyle = '#2a1c10';
+                bctx.lineWidth = 3 * k;
+                bctx.stroke(coastPath);
+                for (const L of LAKES) {
+                    const p = landProj([L[0], L[1]]);
+                    bctx.beginPath();
+                    bctx.ellipse(p[0], p[1], L[2] * lakeRx, L[3] * lakeRy, 0, 0, Math.PI * 2);
+                    bctx.stroke();
+                }
+            }
+
+            // ---- Live land canvas: base + gold highlight ----
+            const landCanvas = document.createElement('canvas');
+            landCanvas.width = TW;
+            landCanvas.height = TH;
+            const lctx = landCanvas.getContext('2d');
+
+            function drawLand() {
+                lctx.globalCompositeOperation = 'source-over';
+                lctx.clearRect(0, 0, TW, TH);
+                lctx.drawImage(landBase, 0, 0);
+                if (hoverRegion || viewingRegion) {
+                    lctx.globalCompositeOperation = 'source-atop';
+                    lctx.fillStyle = 'rgba(212, 175, 55, 0.72)';
+                    lctx.strokeStyle = '#f0c952';
+                    lctx.lineWidth = 2 * k;
+                    lctx.lineJoin = 'round';
+                    for (let i = 0; i < info.length; i++) {
+                        const c = info[i];
+                        if (!(c.interactive && (c.region === hoverRegion || c.region === viewingRegion))) continue;
+                        lctx.fill(c.path);
+                        lctx.stroke(c.path);
+                    }
+                    lctx.globalCompositeOperation = 'source-over';
+                }
+                landTexture.needsUpdate = true;
+            }
+
+            const landTexture = new THREE.CanvasTexture(landCanvas);
+            landTexture.colorSpace = THREE.SRGBColorSpace;
+            landTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            drawLand();
+
+            // ---- Sea sphere, wave marks, land shells, ink outline, atmosphere ----
+            const sea = new THREE.Mesh(
+                new THREE.SphereGeometry(1, 96, 64),
+                new THREE.MeshToonMaterial({ map: seaTexture, gradientMap })
+            );
+            scene.add(sea);
+
+            // Wave marks on their own slowly drifting transparent sphere
+            const WW = 2048, WH = 1024;
+            const waveCanvas = document.createElement('canvas');
+            waveCanvas.width = WW;
+            waveCanvas.height = WH;
+            {
+                const wctx = waveCanvas.getContext('2d');
+                const waveProj = d3.geoEquirectangular().fitSize([WW, WH], { type: 'Sphere' });
+                const wr = mulberry32(777004);
+                wctx.strokeStyle = 'rgba(255,255,255,0.6)';
+                wctx.lineWidth = 2.6;
+                wctx.lineCap = 'round';
+                wctx.lineJoin = 'round';
+                const isOcean = (lon, lat) => {
+                    const px = Math.min(PW - 1, Math.max(0, Math.floor(((lon + 180) / 360) * PW)));
+                    const py = Math.min(PH - 1, Math.max(0, Math.floor(((90 - lat) / 180) * PH)));
+                    const idx = (py * PW + px) * 4;
+                    return pickData[idx] === 0 && pickData[idx + 1] === 0 && pickData[idx + 2] === 0;
+                };
+                for (let i = 0; i < 280; i++) {
+                    const lat = Math.asin(2 * wr() - 1) / DEG;
+                    const lon = wr() * 360 - 180;
+                    if (Math.abs(lat) >= 66) continue;
+                    const half = 1.6 / Math.cos(lat * DEG);
+                    if (lon - half < -180 || lon + half > 180) continue;
+                    if (!isOcean(lon, lat) || !isOcean(lon - half, lat) || !isOcean(lon + half, lat)) continue;
+                    wctx.beginPath();
+                    for (let j = 0; j <= 8; j++) {
+                        const t = j / 8;
+                        const p = waveProj([lon + (t - 0.5) * 2 * half, lat + 0.32 * Math.sin(2 * Math.PI * 1.5 * t)]);
+                        if (j === 0) wctx.moveTo(p[0], p[1]); else wctx.lineTo(p[0], p[1]);
+                    }
+                    wctx.stroke();
+                }
+            }
+            const waveTexture = new THREE.CanvasTexture(waveCanvas);
+            waveTexture.colorSpace = THREE.SRGBColorSpace;
+            const waveMaterial = new THREE.MeshBasicMaterial({ map: waveTexture, transparent: true, depthWrite: false });
+            const waves = new THREE.Mesh(new THREE.SphereGeometry(1, 64, 48), waveMaterial);
+            waves.scale.setScalar(1.002);
+            scene.add(waves);
+
+            // Land body: stacked alpha-tested shells make a raised slab with earthy cliffs
+            const shellGeo = new THREE.SphereGeometry(1, 96, 64);
+            const topMaterial = new THREE.MeshToonMaterial({ map: landTexture, gradientMap, alphaTest: 0.5 });
+            const cliffMaterial = new THREE.MeshBasicMaterial({ map: landTexture, color: 0x7a5a38, alphaTest: 0.5 });
+            const SHELLS = 6;
+            for (let i = 0; i < SHELLS; i++) {
+                const shell = new THREE.Mesh(shellGeo, i === SHELLS - 1 ? topMaterial : cliffMaterial);
+                shell.scale.setScalar(1.003 + (LAND_R - 1.003) * (i / (SHELLS - 1)));
+                scene.add(shell);
+            }
+
+            const outline = new THREE.Mesh(
+                new THREE.SphereGeometry(1, 64, 48),
+                new THREE.MeshBasicMaterial({ color: 0x0b1530, side: THREE.BackSide })
+            );
+            outline.scale.setScalar(LAND_R * 1.012);
+            scene.add(outline);
+
+            const atmosphere = new THREE.Mesh(
+                new THREE.SphereGeometry(1, 48, 32),
+                new THREE.ShaderMaterial({
+                    transparent: true,
+                    depthWrite: false,
+                    side: THREE.BackSide,
+                    blending: THREE.AdditiveBlending,
+                    vertexShader: `
+                        varying vec3 vN;
+                        varying vec3 vV;
+                        void main() {
+                            vN = normalize(normalMatrix * normal);
+                            vec4 mv = modelViewMatrix * vec4(position, 1.0);
+                            vV = normalize(-mv.xyz);
+                            gl_Position = projectionMatrix * mv;
+                        }`,
+                    fragmentShader: `
+                        varying vec3 vN;
+                        varying vec3 vV;
+                        void main() {
+                            float f = dot(normalize(vN), normalize(vV));
+                            float a = pow(clamp(-f * 2.6, 0.0, 1.0), 1.6) * 0.4;
+                            gl_FragColor = vec4(0.45, 0.75, 1.0, a);
+                        }`
+                })
+            );
+            atmosphere.scale.setScalar(LAND_R * 1.10);
+            scene.add(atmosphere);
+
+            // ---- Mountains ----
+            const peakGeometry = buildPeakGeometry();
+            const outlineMaterial = new THREE.MeshBasicMaterial({ color: 0x2a1c10, side: THREE.BackSide });
+            const rand = mulberry32(20240607);
+
+            const GROUP_KEYS = ['Canada', 'United States of America', 'Japan', 'EU', 'none'];
+            const groups = {};
+            const placed = {};
+            for (const key of GROUP_KEYS) placed[key] = [];
+
+            const peaks = [];
+            for (const range of RANGES) {
+                peaks.length = 0;
+                placeRangePeaks(range, rand, peaks);
+                const key = range.region || 'none';
+                for (const p of peaks) placed[key].push(p);
+            }
+
+            // Build per-instance base data: normal, yaw-rotated X and Z axes, radius, height
+            const _n = new THREE.Vector3();
+            const _t = new THREE.Vector3();
+            const _b = new THREE.Vector3();
+            const _x = new THREE.Vector3();
+            const _z = new THREE.Vector3();
+            const STRIDE = 11;
+            const groupList = [];
+            for (const key of GROUP_KEYS) {
+                const list = placed[key];
+                if (list.length === 0) continue;
+                const data = new Float32Array(list.length * STRIDE);
+                list.forEach((p, i) => {
+                    lonLatToVec3(p.lon, p.lat, 1, _n);
+                    if (Math.abs(_n.y) > 0.99) _t.set(1, 0, 0); else _t.set(0, 1, 0);
+                    _t.cross(_n).normalize();          // tangent
+                    _b.crossVectors(_n, _t);           // bitangent
+                    const cy = Math.cos(p.yaw), sy = Math.sin(p.yaw);
+                    _x.copy(_t).multiplyScalar(cy).addScaledVector(_b, sy);
+                    _z.crossVectors(_x, _n);           // X x Y = Z (right-handed)
+                    const o = i * STRIDE;
+                    data[o] = _n.x; data[o + 1] = _n.y; data[o + 2] = _n.z;
+                    data[o + 3] = _x.x; data[o + 4] = _x.y; data[o + 5] = _x.z;
+                    data[o + 6] = _z.x; data[o + 7] = _z.y; data[o + 8] = _z.z;
+                    data[o + 9] = p.radius;
+                    data[o + 10] = p.height;
+                });
+
+                const material = new THREE.MeshToonMaterial({ vertexColors: true, gradientMap });
+                const mesh = new THREE.InstancedMesh(peakGeometry, material, list.length);
+                const ink = new THREE.InstancedMesh(peakGeometry, outlineMaterial, list.length);
+                mesh.frustumCulled = false;
+                ink.frustumCulled = false;
+                scene.add(mesh);
+                scene.add(ink);
+
+                const grp = { key, data, count: list.length, mesh, ink, g: 1 };
+                groups[key] = grp;
+                groupList.push(grp);
+            }
+
+            const _m = new THREE.Matrix4();
+            const _px = new THREE.Vector3();
+            const _py = new THREE.Vector3();
+            const _pz = new THREE.Vector3();
+            const _pp = new THREE.Vector3();
+
+            // Rebuild a group's instance matrices at growth factor g
+            function writeMatrices(grp) {
+                const g = grp.g;
+                const rk = 1 + (g - 1) * 0.4;
+                const d = grp.data;
+                for (let i = 0; i < grp.count; i++) {
+                    const o = i * STRIDE;
+                    const r = d[o + 9] * rk;
+                    const h = d[o + 10] * g;
+                    _pp.set(d[o], d[o + 1], d[o + 2]).multiplyScalar(LAND_R - 0.6 * r * r);
+                    _px.set(d[o + 3], d[o + 4], d[o + 5]).multiplyScalar(r);
+                    _py.set(d[o], d[o + 1], d[o + 2]).multiplyScalar(h);
+                    _pz.set(d[o + 6], d[o + 7], d[o + 8]).multiplyScalar(r);
+                    _m.makeBasis(_px, _py, _pz).setPosition(_pp);
+                    grp.mesh.setMatrixAt(i, _m);
+                    _px.multiplyScalar(1.14);
+                    _py.multiplyScalar(1.07);
+                    _pz.multiplyScalar(1.14);
+                    _m.makeBasis(_px, _py, _pz).setPosition(_pp);
+                    grp.ink.setMatrixAt(i, _m);
+                }
+                grp.mesh.instanceMatrix.needsUpdate = true;
+                grp.ink.instanceMatrix.needsUpdate = true;
+            }
+            for (const grp of groupList) writeMatrices(grp);
+
+            // ---- Trees (small low-poly cones; no ink twin, no hover reaction) ----
+            {
+                const N = 5;
+                const pos = [], col = [];
+                for (let i = 0; i < N; i++) {
+                    const a0 = (i / N) * Math.PI * 2, a1 = ((i + 1) / N) * Math.PI * 2;
+                    // counter-clockwise seen from outside: base[j], base[i], apex
+                    pos.push(Math.cos(a1), 0, Math.sin(a1), Math.cos(a0), 0, Math.sin(a0), 0, 1, 0);
+                    col.push(0.75, 0.75, 0.75, 0.75, 0.75, 0.75, 1, 1, 1);
+                }
+                const treeGeo = new THREE.BufferGeometry();
+                treeGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+                treeGeo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+                treeGeo.computeVertexNormals();
+
+                const tr = mulberry32(777005);
+                const TREE_SPEC = {
+                    taiga: { p: 0.55, h0: 0.016, h1: 0.024, rk: 0.38, colour: '#2f6b3a' },
+                    jungle: { p: 0.6, h0: 0.012, h1: 0.017, rk: 0.75, colour: '#3c9a4a' },
+                    temperate: { p: 0.14, h0: 0.012, h1: 0.018, rk: 0.55, colour: '#4f9440' }
+                };
+                const trees = [];
+                for (let i = 0; i < 9000 && trees.length < 1500; i++) {
+                    const lat = Math.asin(2 * tr() - 1) / DEG;
+                    const lon = tr() * 360 - 180;
+                    const roll = tr();
+                    const yaw = tr() * Math.PI * 2;
+                    const sizeR = tr();
+                    const jit = 1 + (tr() * 2 - 1) * 0.08;
+                    const px = Math.min(PW - 1, Math.max(0, Math.floor(((lon + 180) / 360) * PW)));
+                    const py = Math.min(PH - 1, Math.max(0, Math.floor(((90 - lat) / 180) * PH)));
+                    const idx = (py * PW + px) * 4;
+                    const id = (pickData[idx] << 16) | (pickData[idx + 1] << 8) | pickData[idx + 2];
+                    if (id < 1 || id > features.length || info[id - 1].ice) continue;
+                    const spec = TREE_SPEC[biomeAt(lon, lat)];
+                    if (!spec || roll >= spec.p) continue;
+                    trees.push({ lon, lat, yaw, spec, h: spec.h0 + (spec.h1 - spec.h0) * sizeR, jit });
+                }
+
+                const treeMesh = new THREE.InstancedMesh(
+                    treeGeo,
+                    new THREE.MeshToonMaterial({ vertexColors: true, gradientMap }),
+                    Math.max(1, trees.length)
+                );
+                treeMesh.count = trees.length;
+                treeMesh.frustumCulled = false;
+                const _tc = new THREE.Color();
+                trees.forEach((t, i) => {
+                    lonLatToVec3(t.lon, t.lat, 1, _n);
+                    if (Math.abs(_n.y) > 0.99) _t.set(1, 0, 0); else _t.set(0, 1, 0);
+                    _t.cross(_n).normalize();
+                    _b.crossVectors(_n, _t);
+                    const cy = Math.cos(t.yaw), sy = Math.sin(t.yaw);
+                    _x.copy(_t).multiplyScalar(cy).addScaledVector(_b, sy);
+                    _z.crossVectors(_x, _n);
+                    const r = t.h * t.spec.rk;
+                    _px.copy(_x).multiplyScalar(r);
+                    _py.copy(_n).multiplyScalar(t.h);
+                    _pz.copy(_z).multiplyScalar(r);
+                    _pp.copy(_n).multiplyScalar(LAND_R - 0.001);
+                    _m.makeBasis(_px, _py, _pz).setPosition(_pp);
+                    treeMesh.setMatrixAt(i, _m);
+                    _tc.set(t.spec.colour).multiplyScalar(t.jit);
+                    treeMesh.setColorAt(i, _tc);
+                });
+                treeMesh.instanceMatrix.needsUpdate = true;
+                if (treeMesh.instanceColor) treeMesh.instanceColor.needsUpdate = true;
+                scene.add(treeMesh);
+            }
+
+            // ---- Map pins (floating markers over the four clickable regions) ----
+            // [lon, lat, altitude]; altitude = gap between land surface and the pin tip
+            const PINS = {
+                'Canada': [-99, 57, 0.035],
+                'United States of America': [-96, 39, 0.035],
+                'EU': [3, 47.5, 0.035],
+                'Japan': [139.6, 36.3, 0.17] // floats above Japan's peaks
+            };
+            const PIN_SIZE = 0.075;       // world height of the pin
+            const PIN_HEAD_OFFSET = 0.058; // tip -> head centre, world units
+            const PIN_HIT_PX = 20;
+            const PIN_NEAR_SIDE = 0.12;
+            const PIN_PULSE_SECONDS = 2.2;
+
+            // One shared non-indexed pin: tip at y = 0, 6-sided cone widening to the head
+            const pinGeometry = (() => {
+                const pos = [];
+                const N = 6, ringY = 0.62, ringR = 0.42;
+                for (let i = 0; i < N; i++) {
+                    const a0 = (i / N) * Math.PI * 2, a1 = ((i + 1) / N) * Math.PI * 2;
+                    // counter-clockwise seen from outside: tip, ring[i], ring[i+1]
+                    pos.push(0, 0, 0,
+                        ringR * Math.cos(a0), ringY, ringR * Math.sin(a0),
+                        ringR * Math.cos(a1), ringY, ringR * Math.sin(a1));
+                }
+                const head = new THREE.IcosahedronGeometry(0.5, 0); // already non-indexed
+                const hp = head.getAttribute('position').array;
+                for (let i = 0; i < hp.length; i += 3) pos.push(hp[i], hp[i + 1] + 0.78, hp[i + 2]);
+                head.dispose();
+                const geo = new THREE.BufferGeometry();
+                geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+                geo.computeVertexNormals();
+                return geo;
+            })();
+            const pinInkMaterial = new THREE.MeshBasicMaterial({ color: 0x2a1c10, side: THREE.BackSide });
+            const PIN_UP = new THREE.Vector3(0, 1, 0);
+            const PIN_Z = new THREE.Vector3(0, 0, 1);
+            const ringGeometry = new THREE.RingGeometry(0.72, 1, 32);
+            const pins = [];
+            Object.keys(PINS).forEach((region, i) => {
+                const [lon, lat, alt] = PINS[region];
+                const normal = lonLatToVec3(lon, lat, 1, new THREE.Vector3()).normalize();
+
+                // Group aligned to the surface normal; holder carries the unit pin and spins
+                const group = new THREE.Group();
+                group.quaternion.setFromUnitVectors(PIN_UP, normal);
+                const holder = new THREE.Group();
+                holder.scale.setScalar(PIN_SIZE);
+                const bodyMat = new THREE.MeshToonMaterial({
+                    color: 0xf0c952, gradientMap, emissive: 0xd4af37, emissiveIntensity: 0.25
+                });
+                const body = new THREE.Mesh(pinGeometry, bodyMat);
+                const ink = new THREE.Mesh(pinGeometry, pinInkMaterial);
+                ink.scale.setScalar(1.12);
+                ink.position.y = -0.64 * 0.12; // scale about the pin's centre, not its tip
+                holder.add(ink);
+                holder.add(body);
+                group.add(holder);
+                group.position.copy(normal).multiplyScalar(LAND_R + alt);
+                scene.add(group);
+
+                // Ground pulse ring lying on the land surface
+                const ringMat = new THREE.MeshBasicMaterial({
+                    color: 0xf0c952, transparent: true, depthWrite: false, side: THREE.DoubleSide
+                });
+                const ring = new THREE.Mesh(ringGeometry, ringMat);
+                ring.quaternion.setFromUnitVectors(PIN_Z, normal);
+                ring.position.copy(normal).multiplyScalar(LAND_R + 0.003);
+                ring.scale.setScalar(0.04);
+                scene.add(ring);
+
+                // Floating pins get a thin string down to the land
+                if (alt > 0.1) {
+                    const len = alt + 0.005;
+                    const string = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.0025, 0.0025, len, 6),
+                        new THREE.MeshBasicMaterial({ color: 0x2a1c10 })
+                    );
+                    string.quaternion.setFromUnitVectors(PIN_UP, normal);
+                    string.position.copy(normal).multiplyScalar(LAND_R + len / 2);
+                    scene.add(string);
+                }
+
+                pins.push({
+                    region, normal, alt, group, holder, bodyMat, ring, ringMat,
+                    phase: i * 1.7, s: 1,
+                    // same shape as an info[] entry, so hover/click treat it like a country
+                    info: { name: region, region, label: region === 'EU' ? 'EU' : region, interactive: true, ice: false }
+                });
+            });
+
+            // ---- Controls ----
+            const controls = new OrbitControls(camera, canvas);
+            controls.enablePan = false;
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.08;
+            controls.rotateSpeed = 0.6;
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 0.6;
+
+            const reduceMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+            let userActive = false;
+            let lastInteract = -Infinity;
+            let fly = null; // camera tween toward a region
+
+            controls.addEventListener('start', () => {
+                userActive = true;
+                fly = null;
+            });
+            controls.addEventListener('end', () => {
+                userActive = false;
+                lastInteract = performance.now();
+            });
+
+            function canAutoRotate(now) {
+                if (reduceMotionQuery.matches) return false;
+                if (fly || userActive) return false;
+                if (now - lastInteract < 4000) return false;
+                if (viewingRegion || polaroidContainer.childElementCount > 0) return false;
+                if (hoverRegion) return false;
+                return true;
+            }
+
+            // Slerp the camera direction so a region's focus point faces the viewer
+            const _d1 = new THREE.Vector3();
+            function flyTo(region) {
+                const focus = FOCUS_POINTS[region];
+                if (!focus) return;
+                const dist = camera.position.length();
+                const d0 = camera.position.clone().normalize();
+                lonLatToVec3(focus[0], focus[1], 1, _d1);
+                fly = {
+                    t0: performance.now(),
+                    dur: 700,
+                    d0,
+                    dist,
+                    q: new THREE.Quaternion().setFromUnitVectors(d0, _d1)
+                };
+            }
+            const _qTmp = new THREE.Quaternion();
+            const _qId = new THREE.Quaternion();
+
+            // ---- Picking: id canvas + ray/sphere ----
+
+            const raycaster = new THREE.Raycaster();
+            const _ndc = new THREE.Vector2();
+            const _hit = new THREE.Vector3();
+
+            // Screen point -> country info under it (or null for ocean / off-globe)
+            function pick(clientX, clientY) {
+                const rect = canvas.getBoundingClientRect();
+                if (!rect.width || !rect.height) return null;
+                _ndc.set(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
+                camera.updateMatrixWorld();
+                raycaster.setFromCamera(_ndc, camera);
+                const o = raycaster.ray.origin, dir = raycaster.ray.direction;
+                const b = o.dot(dir);
+                const disc = b * b - (o.lengthSq() - LAND_R * LAND_R);
+                if (disc < 0) return null;
+                const t = -b - Math.sqrt(disc);
+                if (t < 0) return null;
+                _hit.copy(dir).multiplyScalar(t).add(o);
+                const ll = vec3ToLonLat(_hit);
+                const px = Math.min(PW - 1, Math.max(0, Math.floor(((ll[0] + 180) / 360) * PW)));
+                const py = Math.min(PH - 1, Math.max(0, Math.floor(((90 - ll[1]) / 180) * PH)));
+                const idx = (py * PW + px) * 4;
+                const id = (pickData[idx] << 16) | (pickData[idx + 1] << 8) | pickData[idx + 2];
+                if (id < 1 || id > features.length) return null;
+                if (!d3.geoContains(features[id - 1], ll)) return null;
+                return info[id - 1];
+            }
+
+            // Pin under the pointer (screen-space hit test on the pin head), or null
+            const _pinV = new THREE.Vector3();
+            const _camDir = new THREE.Vector3();
+            function pickPin(clientX, clientY) {
+                const rect = canvas.getBoundingClientRect();
+                if (!rect.width || !rect.height) return null;
+                camera.updateMatrixWorld();
+                _camDir.copy(camera.position).normalize();
+                let best = null, bestD = PIN_HIT_PX;
+                for (let i = 0; i < pins.length; i++) {
+                    const pin = pins[i];
+                    if (pin.normal.dot(_camDir) <= PIN_NEAR_SIDE) continue;
+                    _pinV.copy(pin.group.position).addScaledVector(pin.normal, PIN_HEAD_OFFSET).project(camera);
+                    const sx = rect.left + (_pinV.x * 0.5 + 0.5) * rect.width;
+                    const sy = rect.top + (-_pinV.y * 0.5 + 0.5) * rect.height;
+                    const d = Math.hypot(sx - clientX, sy - clientY);
+                    if (d <= bestD) { bestD = d; best = pin; }
+                }
+                return best ? best.info : null;
+            }
+
+            // Pins win over the country underneath
+            function pickTarget(clientX, clientY) {
+                return pickPin(clientX, clientY) || pick(clientX, clientY);
+            }
+
+            // ---- Pointer handling ----
+            let pDown = null;       // { x, y, t } while a primary pointer is held
+            let dragging = false;
+            let pointerInside = false;
+            let mouseX = 0, mouseY = 0;
+            let needsPick = false;
+            let hoverLabel = '';
+
+            function updateCursor() {
+                canvas.style.cursor = dragging ? 'grabbing' : hoverRegion ? 'pointer' : 'grab';
+            }
+
+            function applyHover(c) {
+                const label = c ? c.label : '';
+                if (label !== hoverLabel) {
+                    hoverLabel = label;
+                    if (label) tooltip.text(label).classed('active', true);
+                    else tooltip.classed('active', false);
+                }
+                setHoverRegion(c && c.interactive ? c.region : null);
+                updateCursor();
+            }
+
+            canvas.addEventListener('pointerdown', (e) => {
+                if (e.button !== 0) return;
+                pDown = { x: e.clientX, y: e.clientY, t: performance.now() };
+                dragging = false;
+                if (e.pointerType !== 'touch') mouseX = e.clientX, mouseY = e.clientY;
+            });
+
+            canvas.addEventListener('pointermove', (e) => {
+                if (pDown && !dragging && Math.hypot(e.clientX - pDown.x, e.clientY - pDown.y) >= 6) {
+                    dragging = true;
+                    applyHover(null);
+                }
+                if (e.pointerType === 'touch') return;
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                pointerInside = true;
+                tooltip
+                    .style("left", (e.clientX + 15) + "px")
+                    .style("top", (e.clientY + 15) + "px");
+                if (!pDown) needsPick = true;
+                updateCursor();
+            });
+
+            canvas.addEventListener('pointerup', (e) => {
+                if (e.button !== 0 || !pDown) return;
+                const isClick = !dragging &&
+                    Math.hypot(e.clientX - pDown.x, e.clientY - pDown.y) < 6 &&
+                    performance.now() - pDown.t < 500;
+                pDown = null;
+                dragging = false;
+                needsPick = e.pointerType !== 'touch';
+                if (isClick) {
+                    const c = pickTarget(e.clientX, e.clientY);
+                    if (c && c.interactive) {
+                        flyTo(c.region);
+                        scatterPolaroids(c.region);
+                    }
+                }
+                updateCursor();
+            });
+
+            canvas.addEventListener('pointercancel', () => {
+                pDown = null;
+                dragging = false;
+                updateCursor();
+            });
+
+            canvas.addEventListener('pointerleave', () => {
+                pointerInside = false;
+                needsPick = false;
+                applyHover(null);
+            });
+
+            // ---- Resize ----
+            const FIT_RADIUS = 1.12; // globe plus peaks/pins margin
+            let prevFit = 0;
+            function fitDistance() {
+                const halfV = THREE.MathUtils.degToRad(camera.fov / 2);
+                const halfH = Math.atan(Math.tan(halfV) * camera.aspect);
+                return FIT_RADIUS / Math.sin(Math.min(halfV, halfH));
+            }
+            function resize() {
+                const w = globeEl.clientWidth, h = globeEl.clientHeight;
+                if (!w || !h) return;
+                renderer.setSize(w, h, false);
+                camera.aspect = w / h;
+                camera.updateProjectionMatrix();
+                const newFit = fitDistance();
+                const dist = camera.position.length();
+                const target = prevFit ? dist * (newFit / prevFit) : newFit;
+                if (dist > 0) camera.position.multiplyScalar(target / dist);
+                controls.minDistance = newFit * 0.5;
+                controls.maxDistance = newFit * 1.6;
+                prevFit = newFit;
+                controls.update();
+            }
+            new ResizeObserver(resize).observe(globeEl);
+            resize();
+
+            // ---- Render loop ----
+            let raf = 0;
+            let lastT = performance.now();
+
+            function frame(now) {
+                raf = requestAnimationFrame(frame);
+                const dt = Math.min(0.1, (now - lastT) / 1000);
+                lastT = now;
+
+                if (fly) {
+                    const t = Math.min(1, (now - fly.t0) / fly.dur);
+                    const e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+                    _qTmp.copy(_qId).slerp(fly.q, e);
+                    camera.position.copy(fly.d0).applyQuaternion(_qTmp).multiplyScalar(fly.dist);
+                    if (t >= 1) {
+                        fly = null;
+                        lastInteract = now;
+                    }
+                }
+
+                controls.autoRotate = canAutoRotate(now);
+                const moved = controls.update();
+
+                if ((moved || needsPick) && pointerInside && !pDown) {
+                    needsPick = false;
+                    applyHover(pickTarget(mouseX, mouseY));
+                }
+
+                if (landDirty) {
+                    landDirty = false;
+                    drawLand();
+                }
+
+                // Ease each region's peaks toward their hover/viewing size
+                for (const grp of groupList) {
+                    if (grp.key === 'none') continue;
+                    const target = (grp.key === hoverRegion || grp.key === viewingRegion) ? GROW_TARGET : 1;
+                    if (grp.g === target) continue;
+                    grp.g += (target - grp.g) * Math.min(1, dt * 8);
+                    if (Math.abs(target - grp.g) < 0.002) grp.g = target;
+                    writeMatrices(grp);
+                    grp.mesh.material.emissive.setHex(GOLD_HEX).multiplyScalar((grp.g - 1) / 0.45 * 0.35);
+                }
+
+                // Pins: bob, spin, ground pulse, hover/viewing emphasis
+                {
+                    const reduce = reduceMotionQuery.matches;
+                    const tSec = now / 1000;
+                    for (let i = 0; i < pins.length; i++) {
+                        const pin = pins[i];
+                        if (reduce) {
+                            pin.group.position.copy(pin.normal).multiplyScalar(LAND_R + pin.alt);
+                            pin.ring.scale.setScalar(0.04);
+                            pin.ringMat.opacity = 0.5;
+                        } else {
+                            const bob = 0.010 * (0.5 + 0.5 * Math.sin(tSec * 2.2 + pin.phase));
+                            pin.group.position.copy(pin.normal).multiplyScalar(LAND_R + pin.alt + bob);
+                            pin.holder.rotation.y += dt * 0.8;
+                            const ph = ((tSec + pin.phase) / PIN_PULSE_SECONDS) % 1;
+                            pin.ring.scale.setScalar(0.02 + 0.04 * ph);
+                            pin.ringMat.opacity = 0.75 * (1 - ph);
+                        }
+                        const target = (pin.region === hoverRegion || pin.region === viewingRegion) ? 1.35 : 1;
+                        if (pin.s !== target) {
+                            pin.s += (target - pin.s) * Math.min(1, dt * 8);
+                            if (Math.abs(target - pin.s) < 0.002) pin.s = target;
+                            pin.group.scale.setScalar(pin.s);
+                            pin.bodyMat.emissiveIntensity = 0.25 + (pin.s - 1) / 0.35 * 0.35;
+                        }
+                    }
+                }
+
+                if (!reduceMotionQuery.matches) {
+                    waves.rotation.y += dt * 0.006;
+                    waveMaterial.opacity = 0.62 + 0.22 * Math.sin(now / 1000 * 0.9);
+                }
+
+                renderer.render(scene, camera);
+            }
+
+            function startLoop() {
+                if (raf) return;
+                lastT = performance.now();
+                raf = requestAnimationFrame(frame);
+            }
+
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    cancelAnimationFrame(raf);
+                    raf = 0;
+                } else {
+                    startLoop();
+                }
+            });
+            if (!document.hidden) startLoop();
+        }
+
+        initGlobe().catch((error) => {
+            console.error('Globe failed to start:', error);
+        });
     </script>
 </body>
 </html>
