@@ -151,7 +151,7 @@
 
   .hero-stack {
     margin-top: 64px;
-    display: grid; grid-template-columns: 1fr 1.25fr; gap: 56px;
+    display: grid; grid-template-columns: 1fr 1.7fr; gap: 48px;
     align-items: start;
     text-align: left;
   }
@@ -238,7 +238,12 @@
     transform: rotate(-8deg);
     pointer-events: none;
   }
-  .letter-bio { margin: 0; font-size: 17px; line-height: 1.75; color: var(--ink-soft); max-width: 62ch; }
+  .letter-bio { margin: 0; font-size: 17px; line-height: 1.75; color: var(--ink-soft); max-width: 68ch; }
+  .letter-bio p { margin: 0 0 1.1em; }
+  .letter-bio ul { margin: 0 0 1.1em; padding-left: 1.3em; }
+  .letter-bio li { margin-bottom: 0.4em; }
+  .letter-bio li::marker { color: var(--berry); }
+  .letter-bio > :last-child { margin-bottom: 0; }
   .letter-bio b { color: var(--evergreen); font-weight: 700; }
   .letter-bio em { color: var(--berry); font-style: italic; font-weight: 700; }
   .letter-sign { font-family: var(--hand); font-size: 32px; font-weight: 600; color: var(--pen); margin: 14px 0 0; }
@@ -483,11 +488,16 @@
             </g>
           </svg>
         </div>
-        <p class="letter-bio">
-          This year, before the rug gets pulled on cheap AI, I'm going to take the opportiunity to <b>create more</b>. This website is the window onto those creations. <b>Games</b>, <em>apps</em> and of course the site itself.<br/><br/>
-          Once upon a time, if you wanted a space on the web you <b>made yourself one</b>. When I was 12 I had a small corner on my dad's site for a racehorse called Ice Cracker. It was great, anything was possible. Since then the dark shadow of social media has cast over the web and we've been straight-jacketed into profiles and feeds.<br/><br/>
-          <em>Idiots can build anything now.</em> And I'm one of them.
-        </p>
+        <div class="letter-bio">
+          <p>The sun is setting on 2026. I set out with the aspiration that it would be <b>&lsquo;a year of creation&rsquo;</b>, making the most of all the new things AI would let me do that I couldn't before. I've certainly done a lot with AI, but the vast majority didn't make it here. Some just had a specific use in time or place:</p>
+          <ul>
+            <li>A <b>house hunting app</b> that put square footage, time on the market and floor plan front and centre. Plus making <em>3D renders</em> of said houses in Blender.</li>
+            <li>Turning an old <b>Kindle</b> into a media controller for the TV.</li>
+          </ul>
+          <p>I've also used it much more for work than I imagined last year. All 3 employers paid for Claude. An auspicious sign for Anthropic perhaps, but this somewhat quenched my desire to vibe code at home all evening.</p>
+          <p>Out in the real world we've moved from London to Bristol, begun the process of buying a house and changed jobs twice. So really it has been <em>a year of searching and moving</em>.</p>
+          <p>I also won the Rattler Fest <b>yodelling competition</b> and flew 1st class to New York for a long weekend. So maybe it was <em>the year of being a baller</em>?</p>
+        </div>
         <p class="letter-sign">Merry Christmas, Jack x</p>
         <div class="letter-cta">
           <a href="#projects" class="btn btn--primary">See the projects</a>
