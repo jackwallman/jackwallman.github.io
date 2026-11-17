@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Jack Wallman · Archive</title>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="icon" type="image/png" href="../images/favicon.png"/>
+<style>
+  :root {
+    --bg: #f7f4ee; --ink: #1d2433; --dim: #6b6f7a; --rule: rgba(29,36,51,0.15); --accent: #7d1a2a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #11141c; --ink: #eceae4; --dim: #9a9ca6; --rule: rgba(236,234,228,0.15); --accent: #e0a3ad; }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 17px/1.6 Georgia, 'Times New Roman', serif;
+  }
+  main { max-width: 720px; margin: 0 auto; padding: 72px 16px 96px; }
+  .back { font-size: 14px; color: var(--dim); text-decoration: none; }
+  .back:hover { color: var(--accent); }
+  h1 { font-weight: 500; font-size: clamp(40px, 8vw, 64px); line-height: 1.05; margin: 24px 0 12px; }
+  .lede { color: var(--dim); margin: 0 0 48px; }
+  ul { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule); }
+  li a {
+    display: flex; gap: 16px; align-items: center;
+    padding: 20px 0; border-bottom: 1px solid var(--rule);
+    color: inherit; text-decoration: none;
+  }
+  li a:hover h2 { color: var(--accent); }
+  .thumb {
+    flex: none; width: 72px; height: 72px; border-radius: 8px;
+    background: linear-gradient(180deg, #050118 0%, #18063a 60%, #2a0750 100%);
+    display: grid; place-items: center;
+    font: 700 22px/1 'Courier New', monospace; color: #00e5ff;
+    text-shadow: 0 0 8px #00e5ff, 0 0 16px #ff2bd6;
+  }
+  .thumb--glass-neon {
+    background:
+      linear-gradient(135deg, transparent 50%, #0a0e27 50%),
+      conic-gradient(from 45deg, #8b1e3f, #1e3a8b, #c9a227, #2f6b3a, #8b1e3f);
+    color: #fff8e7; text-shadow: 0 0 6px #00f5ff, 0 0 12px #ff006e;
+  }
+  h2 { font-size: 22px; font-weight: 500; margin: 0; transition: color 160ms; }
+  .meta { font-size: 14px; color: var(--dim); margin: 2px 0 0; }
+  .arrow { margin-left: auto; color: var(--dim); }
+</style>
+</head>
+<body>
+<main>
+  <a class="back" href="../">&larr; Back to the current site</a>
+  <h1>Archive</h1>
+  <p class="lede">Past versions of this homepage, for posterity.</p>
+  <ul>
+    <li>
+      <a href="synthwave/">
+        <span class="thumb" aria-hidden="true">JW</span>
+        <span>
+          <h2>Synthwave</h2>
+          <p class="meta">Synthwave cyberpunk theme · June–November 2026</p>
+        </span>
+        <span class="arrow">&rarr;</span>
+      </a>
+    </li>
+    <li>
+      <a href="neon/">
+        <span class="thumb thumb--glass-neon" aria-hidden="true">JW</span>
+        <span>
+          <h2>Stained Glass &amp; Neon</h2>
+          <p class="meta">The original site, with a toggle between the two themes · January–June 2026</p>
+        </span>
+        <span class="arrow">&rarr;</span>
+      </a>
+    </li>
+  </ul>
+</main>
+</body>
+</html>

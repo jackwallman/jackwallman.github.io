@@ -1,0 +1,641 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Jack Wallman · Synthwave (archived)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="icon" type="image/png" href="../../images/favicon.png"/>
+
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+
+<style>
+  html { scroll-behavior: smooth; scroll-padding-top: 86px; }
+  html, body { margin: 0; padding: 0; background: #07041a; color: #f4eeff; font-family: 'Chakra Petch', system-ui, sans-serif; min-height: 100%; }
+  body { overflow-x: clip; }
+  * { box-sizing: border-box; }
+  a { color: inherit; }
+
+  .dirB {
+    --bg: #07041a;
+    --ink: #f4eeff;
+    --dim: #8a7fb0;
+    --cyan: #00e5ff;
+    --mag: #ff2bd6;
+    --purple: #b026ff;
+    --rule: rgba(255, 43, 214, 0.22);
+    position: relative;
+    font-family: 'Rajdhani', system-ui, sans-serif;
+    background: linear-gradient(180deg, #050118 0%, #0a0224 40%, #18063a 70%, #2a0750 100%);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow: clip;
+  }
+  .dirB *::selection { background: var(--mag); color: #07041a; }
+
+  /* atmospherics */
+  .dirB-stars {
+    position: absolute; inset: 0; pointer-events: none; z-index: 0;
+    background-image:
+      radial-gradient(1px 1px at 20% 12%, #fff 50%, transparent 100%),
+      radial-gradient(1px 1px at 70% 8%, #fff 50%, transparent 100%),
+      radial-gradient(1px 1px at 35% 20%, rgba(255,255,255,0.6) 50%, transparent 100%),
+      radial-gradient(1px 1px at 88% 18%, #fff 50%, transparent 100%),
+      radial-gradient(1px 1px at 55% 4%, rgba(255,255,255,0.7) 50%, transparent 100%),
+      radial-gradient(1px 1px at 12% 28%, rgba(255,255,255,0.6) 50%, transparent 100%);
+    opacity: 0.7;
+  }
+
+  .dirB-sun {
+    position: absolute; left: 50%; top: 30%;
+    transform: translate(-50%, -50%);
+    width: 700px; height: 700px;
+    z-index: 1; pointer-events: none;
+    -webkit-mask: linear-gradient(180deg, #000 0 68%, transparent 96%);
+    mask: linear-gradient(180deg, #000 0 68%, transparent 96%);
+  }
+  .dirB-sun-glow {
+    position: absolute; left: 50%; top: 30%;
+    transform: translate(-50%, -50%);
+    width: 1100px; height: 1100px;
+    border-radius: 50%;
+    z-index: 0; pointer-events: none;
+    background: radial-gradient(circle at 50% 50%,
+      rgba(255,230,90,0.95) 10%,
+      rgba(255,200,60,0.85) 22%,
+      rgba(255,160,40,0.7) 34%,
+      rgba(255,110,50,0.4) 48%,
+      transparent 66%);
+    filter: blur(46px);
+    -webkit-mask: linear-gradient(180deg, #000 0 42%, transparent 66%);
+    mask: linear-gradient(180deg, #000 0 42%, transparent 66%);
+  }
+  .dirB-sun-disc {
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    background: linear-gradient(180deg,
+      #ffe85c 0%, #ffd21f 24%, #ffa42b 44%,
+      #ff6a4d 60%, #ff447f 74%, #ff2bd6 100%);
+    -webkit-mask: linear-gradient(180deg,
+      #000 0 54%,
+      transparent 54% 55.2%,
+      #000 55.2% 60%,
+      transparent 60% 61.6%,
+      #000 61.6% 66%,
+      transparent 66% 68%,
+      #000 68% 72%,
+      transparent 72% 74.4%,
+      #000 74.4% 78%,
+      transparent 78% 81%,
+      #000 81% 84%,
+      transparent 84% 87.5%,
+      #000 87.5% 90%,
+      transparent 90% 94%,
+      #000 94% 96%,
+      transparent 96% 100%);
+    mask: linear-gradient(180deg,
+      #000 0 54%,
+      transparent 54% 55.2%,
+      #000 55.2% 60%,
+      transparent 60% 61.6%,
+      #000 61.6% 66%,
+      transparent 66% 68%,
+      #000 68% 72%,
+      transparent 72% 74.4%,
+      #000 74.4% 78%,
+      transparent 78% 81%,
+      #000 81% 84%,
+      transparent 84% 87.5%,
+      #000 87.5% 90%,
+      transparent 90% 94%,
+      #000 94% 96%,
+      transparent 96% 100%);
+  }
+
+  .dirB-grid {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 55%;
+    z-index: 0; pointer-events: none;
+    background-image:
+      linear-gradient(var(--mag) 1px, transparent 1px),
+      linear-gradient(90deg, var(--cyan) 1px, transparent 1px);
+    background-size: 60px 60px, 60px 60px;
+    transform: perspective(700px) rotateX(60deg);
+    transform-origin: 50% 0;
+    mask-image: linear-gradient(180deg, transparent 0%, #000 30%, #000 80%, transparent 100%);
+    -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 30%, #000 80%, transparent 100%);
+    opacity: 0.55;
+    animation: dirB-grid 6s linear infinite;
+  }
+  @keyframes dirB-grid {
+    from { background-position: 0 0, 0 0; }
+    to   { background-position: 0 60px, 0 0; }
+  }
+  .dirB-horizon-glow {
+    position: absolute; left: 0; right: 0; top: calc(45% - 90px);
+    height: 90px; z-index: 0;
+    background: linear-gradient(180deg, transparent, rgba(255,43,214,0.55) 100%);
+    filter: blur(10px);
+  }
+  .dirB-horizon {
+    position: absolute; left: 0; right: 0; top: 45%;
+    height: 2px; z-index: 0;
+    background: var(--mag);
+    box-shadow: 0 0 12px var(--mag), 0 -12px 40px rgba(255,43,214,0.7);
+  }
+
+  .dirB-scan {
+    position: absolute; inset: 0; pointer-events: none; z-index: 50;
+    background: repeating-linear-gradient(180deg, rgba(255,255,255,0.018) 0 1px, transparent 1px 3px);
+    opacity: 0.4;
+  }
+
+  /* top */
+  .dirB-top {
+    position: sticky; top: 0; z-index: 60;
+    display: flex; align-items: center; gap: 36px;
+    padding: 16px 48px;
+    border-bottom: 1px solid var(--rule);
+    background: rgba(7,4,26,0.78);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  .dirB-brand { display: flex; align-items: center; gap: 14px; }
+  .dirB-brand-mark {
+    font-family: 'Audiowide', 'Rajdhani', sans-serif;
+    font-size: 22px;
+    letter-spacing: 0.05em;
+    color: var(--ink);
+    text-shadow: 0 0 14px var(--mag);
+    padding: 6px 12px;
+    border: 1px solid var(--mag);
+  }
+  .dirB-brand-tag { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.18em; color: var(--cyan); }
+
+  .dirB-nav { display: flex; gap: 28px; margin-left: auto; }
+  .dirB-nav a {
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.18em;
+    color: var(--ink);
+    text-decoration: none;
+    position: relative;
+    transition: color 160ms;
+  }
+  .dirB-nav a:hover { color: var(--mag); text-shadow: 0 0 10px var(--mag); }
+
+  .dirB-cta-top {
+    justify-self: end;
+    font-weight: 700; letter-spacing: 0.18em; font-size: 13px;
+    color: var(--cyan);
+    border: 1px solid var(--cyan);
+    padding: 8px 14px;
+    text-decoration: none;
+    box-shadow: 0 0 14px rgba(0,229,255,0.3), inset 0 0 14px rgba(0,229,255,0.06);
+    transition: all 160ms;
+  }
+  .dirB-cta-top:hover { background: var(--cyan); color: #07041a; }
+
+  /* hero */
+  .dirB-hero {
+    position: relative; z-index: 3;
+    padding: 80px 48px 60px;
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center;
+  }
+  .dirB-hero-tag {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; letter-spacing: 0.24em;
+    color: var(--cyan);
+    padding: 6px 14px;
+    border: 1px solid var(--cyan);
+    background: rgba(7,4,26,0.5);
+    margin-bottom: 32px;
+    text-shadow: 0 0 10px rgba(0,229,255,0.4);
+  }
+  .dirB-blink { width: 8px; height: 8px; background: var(--cyan); border-radius: 50%; animation: dirB-blink 1.6s infinite; box-shadow: 0 0 10px var(--cyan); }
+  @keyframes dirB-blink { 0%, 70%, 100% { opacity: 1; } 80% { opacity: 0.1; } }
+
+  .dirB-name {
+    font-family: 'Audiowide', 'Rajdhani', sans-serif;
+    font-weight: 400;
+    font-size: clamp(72px, 11vw, 180px);
+    line-height: 0.88;
+    letter-spacing: 0.02em;
+    margin: 0;
+    display: flex; flex-direction: column;
+    text-transform: uppercase;
+    filter: drop-shadow(0 0 24px rgba(255,43,214,0.9)) drop-shadow(0 0 48px rgba(255,43,214,0.7)) drop-shadow(0 0 90px rgba(176,38,255,0.6));
+  }
+  .dirB-name span {
+    position: relative;
+    background: linear-gradient(180deg, #ffffff 0%, #ffe9ff 30%, var(--mag) 70%, var(--purple) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: none;
+  }
+  .dirB-name.is-glitch span::before,
+  .dirB-name.is-glitch span::after {
+    content: attr(data-text);
+    position: absolute; left: 0; top: 0; width: 100%;
+    background: none; -webkit-text-fill-color: initial;
+    pointer-events: none;
+  }
+  .dirB-name.is-glitch span::before { color: var(--cyan); transform: translate(-3px, 1px); mix-blend-mode: screen; }
+  .dirB-name.is-glitch span::after  { color: var(--mag); transform: translate(3px, -1px); mix-blend-mode: screen; }
+
+  .dirB-tagline {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    font-size: 18px;
+    letter-spacing: 0.36em;
+    color: #ffffff;
+    margin: 28px 0 0;
+    text-shadow:
+      0 0 8px rgba(5,1,24,1),
+      0 0 20px rgba(5,1,24,0.9),
+      0 2px 4px rgba(5,1,24,0.95);
+  }
+
+  .dirB-hero-stack {
+    margin-top: 56px;
+    display: grid; grid-template-columns: 1fr 1.3fr; gap: 36px;
+    width: 100%; max-width: 1080px;
+    text-align: left;
+  }
+  .dirB-hero-portrait {
+    position: relative;
+    aspect-ratio: 1/1;
+  }
+  .dirB-hero-portrait-frame {
+    position: absolute; inset: 0;
+    background: transparent;
+    filter: drop-shadow(0 0 36px rgba(255,43,214,0.45)) drop-shadow(0 0 14px rgba(0,229,255,0.4));
+  }
+  .dirB-hero-portrait-frame img {
+    width: 100%; height: 100%; object-fit: contain;
+  }
+
+  .dirB-hero-meta {
+    background: rgba(7,4,26,0.6);
+    border: 1px solid var(--rule);
+    padding: 4px;
+    backdrop-filter: blur(4px);
+    display: flex; flex-direction: column;
+  }
+  .dirB-hero-bio {
+    margin: 0; padding: 22px 24px;
+    font-size: 17px; line-height: 1.7; color: #d6c8f0;
+    border-bottom: 1px solid var(--rule);
+    flex: 1;
+  }
+  .dirB-hero-bio b { color: var(--cyan); font-weight: 700; text-shadow: 0 0 10px rgba(0,229,255,0.4); }
+  .dirB-hero-bio em { color: var(--mag); font-style: normal; font-weight: 700; font-size: 19px; text-shadow: 0 0 14px rgba(255,43,214,0.5); }
+  .dirB-hero-cta { padding: 16px; display: flex; gap: 12px; }
+  .dirB-btn {
+    flex: 1;
+    font-weight: 700; letter-spacing: 0.2em; font-size: 13px;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 14px 18px;
+    text-align: center;
+    border: 1px solid;
+    transition: all 160ms;
+  }
+  .dirB-btn--primary { color: #07041a; background: var(--cyan); border-color: var(--cyan); box-shadow: 0 0 24px rgba(0,229,255,0.4); }
+  .dirB-btn--primary:hover { background: #fff; box-shadow: 0 0 36px rgba(0,229,255,0.7); }
+  .dirB-btn--ghost { color: var(--mag); border-color: var(--mag); background: transparent; }
+  .dirB-btn--ghost:hover { background: var(--mag); color: #07041a; box-shadow: 0 0 24px rgba(255,43,214,0.5); }
+
+  /* sections */
+  .dirB-section-head {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    padding: 0 48px;
+    margin: 0 0 36px;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 18px;
+  }
+  .dirB-section-head > div { display: flex; align-items: baseline; gap: 18px; }
+  .dirB-section-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px; letter-spacing: 0.18em;
+    color: var(--cyan);
+    text-shadow: 0 0 10px var(--cyan);
+  }
+  .dirB-section-head h2 {
+    font-family: 'Audiowide', sans-serif;
+    font-weight: 400;
+    font-size: clamp(28px, 4.5vw, 56px);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin: 0;
+    color: var(--ink);
+    text-shadow: 0 0 18px rgba(255,43,214,0.4);
+  }
+  .dirB-section-tail {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; letter-spacing: 0.16em;
+    color: var(--dim);
+  }
+
+  /* work */
+  .dirB-work { position: relative; z-index: 3; padding: 80px 0 60px; }
+  .dirB-cards {
+    display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr;
+    gap: 18px; padding: 0 48px;
+  }
+  .dirB-card {
+    position: relative;
+    display: flex; flex-direction: column;
+    text-decoration: none; color: var(--ink);
+    border: 1px solid var(--rule);
+    background: rgba(7,4,26,0.65);
+    overflow: hidden;
+    transition: transform 240ms, border-color 240ms, box-shadow 240ms;
+  }
+  .dirB-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--mag);
+    box-shadow: 0 0 36px rgba(255,43,214,0.35);
+  }
+  .dirB-card:hover .dirB-card-link i { transform: translate(4px, -4px); }
+  .dirB-card-media { position: relative; aspect-ratio: 4/3; overflow: hidden; background: #0a0224; }
+  .dirB-card--lg .dirB-card-media { aspect-ratio: 16/10; }
+  .dirB-card-media--icon {
+    display: grid; place-items: center;
+    background:
+      radial-gradient(60% 60% at 50% 50%, rgba(255,43,214,0.20), transparent 70%),
+      radial-gradient(80% 80% at 50% 50%, rgba(0,229,255,0.12), transparent 70%),
+      #0a0224;
+  }
+  .dirB-card-icon {
+    position: absolute; top: 14px; left: 14px;
+    width: calc(100% - 28px); height: calc(100% - 28px);
+    object-fit: contain;
+    filter: drop-shadow(0 0 16px rgba(255,43,214,0.6)) drop-shadow(0 0 32px rgba(0,229,255,0.4));
+    transition: transform 600ms ease;
+  }
+  .dirB-card:hover .dirB-card-icon { transform: scale(1.06); }
+  .dirB-card-grid {
+    position: absolute; inset: 0; pointer-events: none;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  .dirB-card-pill {
+    position: absolute; top: 14px; left: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.18em;
+    padding: 4px 10px;
+    background: var(--cyan); color: #07041a;
+    z-index: 2;
+  }
+  .dirB-card-pill--mag { background: var(--mag); color: #07041a; }
+  .dirB-card-pill--inc { background: #ffd400; color: #07041a; }
+
+  .dirB-card-body { padding: 22px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+  .dirB-card-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.18em; color: var(--cyan); }
+  .dirB-card h3 {
+    font-family: 'Audiowide', sans-serif;
+    font-weight: 400;
+    font-size: 22px; letter-spacing: 0.04em;
+    margin: 0;
+  }
+  .dirB-card p { font-size: 16px; line-height: 1.55; color: #d6c8f0; margin: 0; }
+  .dirB-card-link {
+    margin-top: auto;
+    display: flex; justify-content: space-between; align-items: center;
+    padding-top: 14px;
+    border-top: 1px solid var(--rule);
+    font-weight: 700; letter-spacing: 0.2em; font-size: 12px;
+    color: var(--mag);
+  }
+  .dirB-card-link i { font-style: normal; transition: transform 200ms; }
+
+  /* footer */
+  .dirB-foot {
+    position: relative; z-index: 3;
+    padding: 60px 48px 80px;
+    border-top: 1px solid var(--rule);
+  }
+  .dirB-foot-mono {
+    font-family: 'Audiowide', sans-serif;
+    font-size: clamp(80px, 14vw, 220px);
+    line-height: 0.86;
+    letter-spacing: -0.04em;
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--mag);
+    text-shadow: 0 0 36px rgba(255,43,214,0.4);
+    margin-bottom: 40px;
+  }
+  .dirB-foot-links { display: flex; flex-direction: column; gap: 0; }
+  .dirB-foot-links a {
+    display: grid; grid-template-columns: 60px 1fr auto;
+    align-items: center;
+    padding: 22px 0;
+    border-top: 1px solid var(--rule);
+    text-decoration: none; color: var(--ink);
+    transition: color 160ms, padding 160ms;
+  }
+  .dirB-foot-links a:last-child { border-bottom: 1px solid var(--rule); }
+  .dirB-foot-links a:hover { color: var(--mag); padding-left: 12px; text-shadow: 0 0 14px var(--mag); }
+  .dirB-foot-num {
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    letter-spacing: 0.18em; color: var(--cyan);
+  }
+  .dirB-foot-label {
+    font-family: 'Audiowide', sans-serif;
+    font-size: 28px; letter-spacing: 0.06em;
+  }
+  .dirB-foot-links i { font-style: normal; font-size: 22px; }
+  .dirB-foot-tail {
+    margin-top: 32px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.18em; color: var(--dim);
+  }
+
+  @media (max-width: 860px) {
+    .dirB-top { grid-template-columns: 1fr; gap: 14px; padding: 18px 24px; text-align: center; }
+    .dirB-nav { justify-content: center; }
+    .dirB-cta-top { justify-self: center; }
+    .dirB-hero { padding: 48px 24px 40px; }
+    .dirB-name { font-size: clamp(40px, 15vw, 72px); }
+    .dirB-hero-stack { grid-template-columns: 1fr; gap: 24px; margin-top: 36px; }
+    .dirB-section-head { padding: 0 24px; }
+    .dirB-cards { grid-template-columns: 1fr; padding: 0 24px; }
+    .dirB-foot { padding: 40px 24px 60px; }
+  }
+  .archive-bar {
+    display: flex; flex-wrap: wrap; gap: 6px 20px; justify-content: center; align-items: center;
+    padding: 10px 16px; background: #000; color: #8a7fb0;
+    font: 500 12px/1.4 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase;
+    border-bottom: 1px solid rgba(0, 229, 255, 0.35);
+  }
+  .archive-bar a { color: #00e5ff; text-decoration: none; }
+  .archive-bar a:hover { color: #ff2bd6; }
+</style>
+</head>
+<body>
+<div class="archive-bar">
+  <span>Archived &middot; Synthwave edition, June&ndash;November 2026</span>
+  <a href="../">All archives</a>
+  <a href="../../">Current site &rarr;</a>
+</div>
+<div class="dirB">
+  <div class="dirB-stars" aria-hidden="true"></div>
+  <div class="dirB-sun-glow" aria-hidden="true"></div>
+  <div class="dirB-sun" aria-hidden="true">
+    <div class="dirB-sun-disc"></div>
+  </div>
+  <div class="dirB-horizon-glow" aria-hidden="true"></div>
+  <div class="dirB-grid" aria-hidden="true"></div>
+  <div class="dirB-horizon" aria-hidden="true"></div>
+  <div class="dirB-scan" aria-hidden="true"></div>
+
+  <header class="dirB-top">
+    <div class="dirB-brand">
+      <span class="dirB-brand-mark">JW</span>
+      <span class="dirB-brand-tag">// SIGNAL · ON</span>
+    </div>
+    <nav class="dirB-nav">
+      <a href="#work-b">01 PROJECTS</a>
+      <a href="#contact-b">02 LINKS</a>
+    </nav>
+  </header>
+
+  <section class="dirB-hero">
+    <div class="dirB-hero-tag">
+      <span class="dirB-blink"></span>
+      <span>2026 · A YEAR OF CREATION</span>
+    </div>
+
+    <h1 class="dirB-name is-glitch" id="dirB-name">
+      <span data-text="JACK">JACK</span>
+      <span data-text="WALLMAN">WALLMAN</span>
+    </h1>
+
+    <p class="dirB-tagline">RATTLER FEST 2026 · YODELLING COMPETITION WINNER</p>
+
+    <div class="dirB-hero-stack">
+      <div class="dirB-hero-portrait">
+        <div class="dirB-hero-portrait-frame">
+          <img src="../../images/portrait-couple.webp" alt="Jack Wallman"/>
+        </div>
+      </div>
+
+      <div class="dirB-hero-meta">
+        <p class="dirB-hero-bio">
+          This year, before the rug gets pulled on cheap AI, I'm going to take the opportiunity to <b>create more</b>. This website is the window onto those creations. <b>Games</b>, <em>apps</em> and of course the site itself.<br/><br/>
+          Once upon a time, if you wanted a space on the web you <b>made yourself one</b>. When I was 12 I had a small corner on my dad's site for a racehorse called Ice Cracker. It was great, anything was possible. Since then the dark shadow of social media has cast over the web and we've been straight-jacketed into profiles and feeds.<br/><br/>
+          <em>Idiots can build anything now.</em> And I'm one of them.
+        </p>
+        <div class="dirB-hero-cta">
+          <a href="#work-b" class="dirB-btn dirB-btn--primary">ENTER ARCHIVE</a>
+          <a href="#contact-b" class="dirB-btn dirB-btn--ghost">LINKS</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="work-b" class="dirB-work">
+    <div class="dirB-section-head">
+      <div>
+        <span class="dirB-section-num">/02</span>
+        <h2>PROJECTS</h2>
+      </div>
+      <span class="dirB-section-tail">// 04 ACTIVE TRANSMISSIONS</span>
+    </div>
+
+    <div class="dirB-cards">
+      <a class="dirB-card dirB-card--lg" href="https://jackwallman.github.io/photoglobe/photoglobe_neon.html">
+        <div class="dirB-card-media dirB-card-media--icon">
+          <img src="../../images/neonglobe.webp" alt="" class="dirB-card-icon"/>
+          <div class="dirB-card-grid"></div>
+          <div class="dirB-card-pill">LIVE NODE</div>
+        </div>
+        <div class="dirB-card-body">
+          <span class="dirB-card-num">PROJECT_01</span>
+          <h3>PHOTOGLOBE</h3>
+          <p>Interactive neon globe of ski snaps.</p>
+          <span class="dirB-card-link"><span>VISIT NODE</span><i>&#8599;</i></span>
+        </div>
+      </a>
+
+      <a class="dirB-card" href="../../shopping-list/shopping_list_app.html">
+        <div class="dirB-card-media dirB-card-media--icon">
+          <img src="../../images/speedyshoperlogo_neon.svg" alt="" class="dirB-card-icon"/>
+          <div class="dirB-card-grid"></div>
+          <div class="dirB-card-pill dirB-card-pill--mag">UTILITY</div>
+        </div>
+        <div class="dirB-card-body">
+          <span class="dirB-card-num">PROJECT_02</span>
+          <h3>SPEEDY SHOPPER</h3>
+          <p>Cross-reference your weekly meal plan against the cupboard. Build the list, run the errand, return.</p>
+          <span class="dirB-card-link"><span>DEPLOY</span><i>&#8599;</i></span>
+        </div>
+      </a>
+
+      <a class="dirB-card" href="../../Plunder%20Sudoku/PlunderSudoku.html">
+        <div class="dirB-card-media dirB-card-media--icon">
+          <img src="../../images/NeonPlundersudoku.webp" alt="" class="dirB-card-icon"/>
+          <div class="dirB-card-grid"></div>
+          <div class="dirB-card-pill">LIVE NODE</div>
+        </div>
+        <div class="dirB-card-body">
+          <span class="dirB-card-num">PROJECT_03</span>
+          <h3>PLUNDER SUDOKU</h3>
+          <p>A roguelite twist on sudoku. Plunder powerups, chain solves and stay ahead of the fuse.</p>
+          <span class="dirB-card-link"><span>PLAY</span><i>&#8599;</i></span>
+        </div>
+      </a>
+
+      <a class="dirB-card" href="https://jackwallman.com/bristol-routemap/">
+        <div class="dirB-card-media dirB-card-media--icon">
+          <img src="../../images/routemap_neon.svg" alt="" class="dirB-card-icon"/>
+          <div class="dirB-card-grid"></div>
+          <div class="dirB-card-pill">LIVE NODE</div>
+        </div>
+        <div class="dirB-card-body">
+          <span class="dirB-card-num">PROJECT_04</span>
+          <h3>BRISTOL ROUTEMAP</h3>
+          <p>Map and list of Bristol transport infrastructure projects: cycle routes, bus priority, rail reopenings and more.</p>
+          <span class="dirB-card-link"><span>EXPLORE</span><i>&#8599;</i></span>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <footer id="contact-b" class="dirB-foot">
+    <div class="dirB-foot-mono"><span>JW</span></div>
+    <div class="dirB-foot-links">
+      <a href="https://www.linkedin.com/in/jack-w-wallman/">
+        <span class="dirB-foot-num">01</span>
+        <span class="dirB-foot-label">LINKEDIN</span>
+        <i>&#8599;</i>
+      </a>
+      <a href="https://github.com/jackwallman">
+        <span class="dirB-foot-num">02</span>
+        <span class="dirB-foot-label">GITHUB</span>
+        <i>&#8599;</i>
+      </a>
+      <a href="mailto:hello@jackwallman.com">
+        <span class="dirB-foot-num">03</span>
+        <span class="dirB-foot-label">EMAIL</span>
+        <i>&#8599;</i>
+      </a>
+    </div>
+    <div class="dirB-foot-tail">&copy; 2026 · J.WALLMAN · ALL TRANSMISSIONS RESERVED</div>
+  </footer>
+</div>
+
+<script>
+  setTimeout(function () {
+    var el = document.getElementById('dirB-name');
+    if (el) el.classList.remove('is-glitch');
+  }, 1400);
+</script>
+</body>
+</html>
